@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { AlertCircle, CheckCircle2, DollarSign, Gift, Receipt, XCircle } from 'lucide-react';
 import { api } from '../lib/api';
-import { PageHeader, Badge, LoadingSpinner, Modal, inputClass, btnPrimary, btnSecondary } from '../components/ui';
+import { PageHeader, LoadingSpinner, Modal, inputClass, btnPrimary, btnSecondary } from '../components/ui';
 import { useAuth } from '../contexts/AuthContext';
 
 interface Penalty {
@@ -304,26 +304,40 @@ export default function PenaltiesPage() {
               </td>
               <td className="px-5 py-3">
                 {penalty.isMonthly ? (
-                  <Badge variant="warning">Monthly</Badge>
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 ring-1 ring-amber-200">
+                    Monthly
+                  </span>
                 ) : (
-                  <Badge variant="default">Weekly</Badge>
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 ring-1 ring-blue-200">
+                    Weekly
+                  </span>
                 )}
               </td>
               <td className="px-5 py-3">
                 {penalty.status === 'OUTSTANDING' && (
-                  <Badge variant="danger">Outstanding</Badge>
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-50 text-red-700 ring-1 ring-red-200">
+                    Outstanding
+                  </span>
                 )}
                 {penalty.status === 'SETTLED' && (
-                  <Badge variant="success">Settled</Badge>
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200">
+                    Settled
+                  </span>
                 )}
                 {penalty.status === 'WAIVED' && (
-                  <Badge variant="default">Waived</Badge>
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 ring-1 ring-slate-200">
+                    Waived
+                  </span>
                 )}
                 {!penalty.status && penalty.paidAt && (
-                  <Badge variant="success">Settled</Badge>
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200">
+                    Settled
+                  </span>
                 )}
                 {!penalty.status && !penalty.paidAt && (
-                  <Badge variant="danger">Outstanding</Badge>
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-50 text-red-700 ring-1 ring-red-200">
+                    Outstanding
+                  </span>
                 )}
               </td>
               <td className="px-5 py-3">
@@ -736,7 +750,9 @@ export default function PenaltiesPage() {
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-slate-500">Status:</span>
-                <Badge variant="success">Settled</Badge>
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200">
+                  Settled
+                </span>
               </div>
             </div>
 

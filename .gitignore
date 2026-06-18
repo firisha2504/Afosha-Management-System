@@ -53,3 +53,21 @@ uploads/*
 
 # Coverage
 coverage/
+
+# Temporary files
+*.tmp
+*.temp
+*~
+.scratch/
+
+# Temporary documentation (use archived-docs/ folder instead)
+*-TEMP.md
+*-WIP.md
+*-DRAFT.md
+
+# Temporary scripts (use archived-scripts/ folder instead)
+check-*.ts
+fix-*.ts
+analyze-*.ts
+test-*.ts
+quick-*.ts

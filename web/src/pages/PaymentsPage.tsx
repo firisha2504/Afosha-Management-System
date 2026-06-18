@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Plus, Receipt, Pencil, Trash2, Users, CheckCircle2, AlertCircle, RotateCcw } from 'lucide-react';
+import { Plus, Receipt, Pencil, Trash2, Users, CheckCircle2, AlertCircle, RotateCcw, ChevronDown, ChevronRight } from 'lucide-react';
 import { api } from '../lib/api';
 import { PageHeader, Badge, LoadingSpinner, Modal, inputClass, btnPrimary, btnSecondary } from '../components/ui';
 import { useAuth } from '../contexts/AuthContext';
@@ -92,6 +92,13 @@ export default function PaymentsPage() {
   const [receipt, setReceipt] = useState<ReceiptData | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [deleteError, setDeleteError] = useState('');
+
+  // Collapsible weeks
+  const [collapsedWeeks, setCollapsedWeeks] = useState<Record<string, boolean>>({});
+
+  const toggleWeek = (weekKey: string) => {
+    setCollapsedWeeks(prev => ({ ...prev, [weekKey]: !prev[weekKey] }));
+  };
 
   const load = () => {
     setLoading(true);
@@ -337,6 +344,33 @@ export default function PaymentsPage() {
     return statusMatch && typeMatch && paidUnpaidMatch && weekMatch;
   });
 
+  // Group payments by week for collapsible sections
+  const groupedPayments = useMemo(() => {
+    const groups: Record<string, Payment[]> = {};
+    
+    filtered.forEach(payment => {
+      if (payment.obligation) {
+        // Weekly payment - group by week
+        const key = `week-${payment.obligation.weekNumber}-${payment.obligation.year}`;
+        if (!groups[key]) groups[key] = [];
+        groups[key].push(payment);
+      } else if (payment.notes?.toLowerCase().includes('penalty')) {
+        // Penalty payment
+        const key = 'penalty';
+        if (!groups[key]) groups[key] = [];
+        groups[key].push(payment);
+      } else {
+        // Other payments (special contributions, etc.)
+        const key = 'other';
+        if (!groups[key]) groups[key] = [];
+        groups[key].push(payment);
+      }
+    });
+    
+    return groups;
+  }, [filtered]);
+
+
   // Unpaid obligations not already represented by a payment record
   const paymentObligationIds = new Set(payments.map(p => p.obligationId).filter(Boolean));
   const paymentSpecialObligationIds = new Set(payments.map(p => p.specialContributionObligationId).filter(Boolean));
@@ -353,31 +387,6 @@ export default function PaymentsPage() {
     return typeMatch && weekMatch;
   });
   
-  // Get unique weeks from weekly payments and obligations
-  const uniqueWeeks = (() => {
-    const weeks = new Set<string>();
-    
-    // From payments
-    payments.forEach(p => {
-      if (p.obligation) {
-        weeks.add(`${p.obligation.weekNumber}-${p.obligation.year}`);
-      }
-    });
-    
-    // From obligations (for unpaid)
-    weeklyObligations.forEach(o => {
-      weeks.add(`${o.weekNumber}-${o.year}`);
-    });
-    
-    // Convert to array and sort by year and week (most recent first)
-    return Array.from(weeks)
-      .sort((a, b) => {
-        const [weekA, yearA] = a.split('-').map(Number);
-        const [weekB, yearB] = b.split('-').map(Number);
-        if (yearB !== yearA) return yearB - yearA;
-        return weekB - weekA;
-      });
-  })();
   const totalVerified = payments.filter(p => p.status === 'VERIFIED').reduce((s, p) => s + Number(p.amount), 0);
   const totalPending  = payments.filter(p => p.status === 'PENDING').reduce((s, p) => s + Number(p.amount), 0);
 
@@ -493,38 +502,7 @@ export default function PaymentsPage() {
             ))}
           </div>
 
-          {/* Week filter dropdown (show only for Weekly tab) */}
-          {paymentTypeTab === 'WEEKLY' && uniqueWeeks.length > 0 && (
-            <div className="mb-4 flex items-center gap-3">
-              <label className="text-sm font-medium text-slate-700">Filter by Week:</label>
-              <select
-                className={`${inputClass} max-w-xs`}
-                value={weekFilter}
-                onChange={(e) => setWeekFilter(e.target.value)}
-              >
-                <option value="ALL">All Weeks ({payments.filter(p => p.obligation).length + weeklyObligations.length})</option>
-                {uniqueWeeks.map(week => {
-                  const [weekNum, year] = week.split('-');
-                  const paymentCount = payments.filter(p => 
-                    p.obligation && 
-                    p.obligation.weekNumber === Number(weekNum) && 
-                    p.obligation.year === Number(year)
-                  ).length;
-                  const obligationCount = weeklyObligations.filter(o => 
-                    o.weekNumber === Number(weekNum) && 
-                    o.year === Number(year)
-                  ).length;
-                  const totalCount = paymentCount + obligationCount;
-                  
-                  return (
-                    <option key={week} value={week}>
-                      Week {weekNum}, {year} ({totalCount})
-                    </option>
-                  );
-                })}
-              </select>
-            </div>
-          )}
+
 
           {/* Status filter tabs */}
           <div className="flex gap-1 mb-4 bg-slate-100 p-1 rounded-xl w-fit">
@@ -656,7 +634,7 @@ export default function PaymentsPage() {
                 {(() => {
                   const showUnpaidRows = paidUnpaidFilter === 'ALL' && statusFilter !== 'VERIFIED';
                   const unpaidRows = showUnpaidRows ? filteredUnpaidObligations : [];
-                  const hasRows = filtered.length > 0 || unpaidRows.length > 0;
+                  const hasRows = Object.keys(groupedPayments).length > 0 || unpaidRows.length > 0;
 
                   if (!hasRows) {
                     return (
@@ -666,72 +644,127 @@ export default function PaymentsPage() {
 
                   return (
                     <>
-                      {filtered.map((payment) => {
-                  const paymentType = payment.obligation ? 'WEEKLY' : payment.specialContributionObligation ? 'SPECIAL' : (payment.notes && (payment.notes.includes('Penalty payment') || payment.notes.toLowerCase().includes('penalty'))) ? 'PENALTY' : 'GENERAL';
-                  const typeColor = paymentType === 'WEEKLY' ? 'bg-blue-50 text-blue-700 ring-1 ring-blue-200' : paymentType === 'SPECIAL' ? 'bg-purple-50 text-purple-700 ring-1 ring-purple-200' : paymentType === 'PENALTY' ? 'bg-red-50 text-red-700 ring-1 ring-red-200' : 'bg-slate-50 text-slate-600 ring-1 ring-slate-200';
-                  const typeLabel = paymentType === 'WEEKLY' ? 'Weekly' : paymentType === 'SPECIAL' ? 'Special' : paymentType === 'PENALTY' ? 'Penalty' : 'General';
-                  const typeDetail = paymentType === 'WEEKLY' && payment.obligation ? `Week ${payment.obligation.weekNumber}` : paymentType === 'SPECIAL' && payment.specialContributionObligation ? payment.specialContributionObligation.specialContribution?.title : '';
-                  return (
-                    <tr key={payment.id} className="hover:bg-slate-50">
-                      <td className="px-5 py-3 text-xs font-mono text-slate-400">{payment.paymentId}</td>
-                      <td className="px-5 py-3">
-                        <p className="text-sm font-medium text-slate-800">{payment.member.fullName}</p>
-                        <p className="text-xs text-slate-400">#{payment.member.memberId}</p>
-                      </td>
-                      <td className="px-5 py-3">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${typeColor}`}>
-                          {typeLabel}
-                        </span>
-                        {typeDetail && <p className="text-xs text-slate-400 mt-1">{typeDetail}</p>}
-                      </td>
-                      <td className="px-5 py-3 text-right text-sm font-bold text-slate-800">
-                        {Number(payment.amount).toLocaleString()} ETB
-                      </td>
-                      <td className="px-5 py-3 text-xs text-slate-500">{payment.paymentMethod.replace(/_/g, ' ')}</td>
-                      <td className="px-5 py-3 text-sm text-slate-500">{new Date(payment.paymentDate).toLocaleDateString()}</td>
-                      <td className="px-5 py-3"><Badge status={payment.status} /></td>
-                    <td className="px-5 py-3">
-                      <div className="flex gap-1 flex-wrap">
-                        {/* Verify — pending only */}
-                        {payment.status === 'PENDING' && isAdmin && (
-                          <button onClick={() => setVerifyTarget(payment)}
-                            className="px-2.5 py-1 bg-emerald-600 text-white text-xs rounded-lg hover:bg-emerald-700 flex items-center gap-1">
-                            <CheckCircle2 size={11} /> Verify
-                          </button>
-                        )}
-                        {/* Edit — both pending and verified (admin only) */}
-                        {isAdmin && (
-                          <button onClick={() => openEdit(payment)}
-                            className={`px-2.5 py-1 border text-xs rounded-lg flex items-center gap-1 hover:bg-slate-50 ${payment.status === 'VERIFIED' ? 'border-amber-200 text-amber-600 hover:bg-amber-50' : 'text-slate-600'}`}
-                            title={payment.status === 'VERIFIED' ? 'Edit verified payment (with rollback)' : 'Edit payment'}>
-                            <Pencil size={11} />
-                          </button>
-                        )}
-                        {/* Rollback — verified only */}
-                        {payment.status === 'VERIFIED' && isAdmin && (
-                          <button
-                            onClick={() => { setRollbackTarget(payment); setRollbackReason(''); setRollbackError(''); }}
-                            className="px-2.5 py-1 border border-red-200 text-red-500 text-xs rounded-lg hover:bg-red-50 flex items-center gap-1"
-                            title="Rollback verified payment">
-                            <RotateCcw size={11} /> Rollback
-                          </button>
-                        )}
-                        {/* Delete — pending only */}
-                        {payment.status === 'PENDING' && isAdmin && (
-                          <button onClick={() => { setDeleteId(payment.id); setDeleteError(''); }}
-                            className="px-2.5 py-1 border border-red-100 text-red-400 text-xs rounded-lg hover:bg-red-50">
-                            <Trash2 size={11} />
-                          </button>
-                        )}
-                        <button onClick={() => viewReceipt(payment.id)}
-                          className="px-2.5 py-1 border text-xs rounded-lg flex items-center gap-1 hover:bg-slate-50 text-slate-600">
-                          <Receipt size={11} /> Receipt
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                  );
-                })}
+                      {/* Grouped payments by week */}
+                      {Object.entries(groupedPayments)
+                        .sort(([keyA], [keyB]) => {
+                          // Sort: newest week first, then penalty, then other
+                          const getWeekNum = (key: string) => {
+                            if (key.startsWith('week-')) {
+                              const parts = key.split('-');
+                              return parseInt(parts[2]) * 1000 + parseInt(parts[1]); // year * 1000 + weekNum
+                            }
+                            return key === 'penalty' ? -1 : -2;
+                          };
+                          return getWeekNum(keyB) - getWeekNum(keyA);
+                        })
+                        .map(([weekKey, weekPayments]) => {
+                          const isCollapsed = collapsedWeeks[weekKey];
+                          const total = weekPayments.reduce((sum, p) => sum + Number(p.amount), 0);
+                          
+                          // Get week display name
+                          let weekDisplay = '';
+                          if (weekKey.startsWith('week-')) {
+                            const parts = weekKey.split('-');
+                            weekDisplay = `Week ${parts[1]}, ${parts[2]}`;
+                          } else if (weekKey === 'penalty') {
+                            weekDisplay = 'Penalty Payments';
+                          } else {
+                            weekDisplay = 'Other Payments';
+                          }
+                          
+                          return (
+                            <>
+                              {/* Week Header (Collapsible) */}
+                              <tr key={`header-${weekKey}`} className="bg-slate-100 hover:bg-slate-200 cursor-pointer" onClick={() => toggleWeek(weekKey)}>
+                                <td colSpan={8} className="px-5 py-3">
+                                  <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-3">
+                                      {isCollapsed ? (
+                                        <ChevronRight size={16} className="text-slate-600" />
+                                      ) : (
+                                        <ChevronDown size={16} className="text-slate-600" />
+                                      )}
+                                      <span className="font-semibold text-slate-800">{weekDisplay}</span>
+                                      <span className="text-xs text-slate-500">
+                                        ({weekPayments.length} {weekPayments.length === 1 ? 'payment' : 'payments'} - {total.toLocaleString()} ETB)
+                                      </span>
+                                    </div>
+                                  </div>
+                                </td>
+                              </tr>
+                              
+                              {/* Week Payments (Show/Hide based on collapse state) */}
+                              {!isCollapsed && weekPayments.map((payment) => {
+                                const paymentType = payment.obligation ? 'WEEKLY' : payment.specialContributionObligation ? 'SPECIAL' : (payment.notes && (payment.notes.includes('Penalty payment') || payment.notes.toLowerCase().includes('penalty'))) ? 'PENALTY' : 'GENERAL';
+                                const typeColor = paymentType === 'WEEKLY' ? 'bg-blue-50 text-blue-700 ring-1 ring-blue-200' : paymentType === 'SPECIAL' ? 'bg-purple-50 text-purple-700 ring-1 ring-purple-200' : paymentType === 'PENALTY' ? 'bg-red-50 text-red-700 ring-1 ring-red-200' : 'bg-slate-50 text-slate-600 ring-1 ring-slate-200';
+                                const typeLabel = paymentType === 'WEEKLY' ? 'Weekly' : paymentType === 'SPECIAL' ? 'Special' : paymentType === 'PENALTY' ? 'Penalty' : 'General';
+                                const typeDetail = paymentType === 'WEEKLY' && payment.obligation ? `Week ${payment.obligation.weekNumber}` : paymentType === 'SPECIAL' && payment.specialContributionObligation ? payment.specialContributionObligation.specialContribution?.title : '';
+                                return (
+                                  <tr key={payment.id} className="hover:bg-slate-50">
+                                    <td className="px-5 py-3 text-xs font-mono text-slate-400">{payment.paymentId}</td>
+                                    <td className="px-5 py-3">
+                                      <p className="text-sm font-medium text-slate-800">{payment.member.fullName}</p>
+                                      <p className="text-xs text-slate-400">#{payment.member.memberId}</p>
+                                    </td>
+                                    <td className="px-5 py-3">
+                                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${typeColor}`}>
+                                        {typeLabel}
+                                      </span>
+                                      {typeDetail && <p className="text-xs text-slate-400 mt-1">{typeDetail}</p>}
+                                    </td>
+                                    <td className="px-5 py-3 text-right text-sm font-bold text-slate-800">
+                                      {Number(payment.amount).toLocaleString()} ETB
+                                    </td>
+                                    <td className="px-5 py-3 text-xs text-slate-500">{payment.paymentMethod.replace(/_/g, ' ')}</td>
+                                    <td className="px-5 py-3 text-sm text-slate-500">{new Date(payment.paymentDate).toLocaleDateString()}</td>
+                                    <td className="px-5 py-3"><Badge status={payment.status} /></td>
+                                    <td className="px-5 py-3">
+                                      <div className="flex gap-1 flex-wrap">
+                                        {/* Verify — pending only */}
+                                        {payment.status === 'PENDING' && isAdmin && (
+                                          <button onClick={() => setVerifyTarget(payment)}
+                                            className="px-2.5 py-1 bg-emerald-600 text-white text-xs rounded-lg hover:bg-emerald-700 flex items-center gap-1">
+                                            <CheckCircle2 size={11} /> Verify
+                                          </button>
+                                        )}
+                                        {/* Edit — both pending and verified (admin only) */}
+                                        {isAdmin && (
+                                          <button onClick={() => openEdit(payment)}
+                                            className={`px-2.5 py-1 border text-xs rounded-lg flex items-center gap-1 hover:bg-slate-50 ${payment.status === 'VERIFIED' ? 'border-amber-200 text-amber-600 hover:bg-amber-50' : 'text-slate-600'}`}
+                                            title={payment.status === 'VERIFIED' ? 'Edit verified payment (with rollback)' : 'Edit payment'}>
+                                            <Pencil size={11} />
+                                          </button>
+                                        )}
+                                        {/* Rollback — verified only */}
+                                        {payment.status === 'VERIFIED' && isAdmin && (
+                                          <button
+                                            onClick={() => { setRollbackTarget(payment); setRollbackReason(''); setRollbackError(''); }}
+                                            className="px-2.5 py-1 border border-red-200 text-red-500 text-xs rounded-lg hover:bg-red-50 flex items-center gap-1"
+                                            title="Rollback verified payment">
+                                            <RotateCcw size={11} /> Rollback
+                                          </button>
+                                        )}
+                                        {/* Delete — pending only */}
+                                        {payment.status === 'PENDING' && isAdmin && (
+                                          <button onClick={() => { setDeleteId(payment.id); setDeleteError(''); }}
+                                            className="px-2.5 py-1 border border-red-100 text-red-400 text-xs rounded-lg hover:bg-red-50">
+                                            <Trash2 size={11} />
+                                          </button>
+                                        )}
+                                        <button onClick={() => viewReceipt(payment.id)}
+                                          className="px-2.5 py-1 border text-xs rounded-lg flex items-center gap-1 hover:bg-slate-50 text-slate-600">
+                                          <Receipt size={11} /> Receipt
+                                        </button>
+                                      </div>
+                                    </td>
+                                  </tr>
+                                );
+                              })}
+                            </>
+                          );
+                        })}
+                      
+                      {/* Unpaid obligations */}
                       {unpaidRows.map((obligation: any) => {
                         const remaining = Number(obligation.amount) - Number(obligation.amountPaid);
                         const isWeekly = obligation.type === 'WEEKLY';

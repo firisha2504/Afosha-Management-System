@@ -1,319 +1,169 @@
-# 📚 Documentation Index - Quick Navigation
+# Afosha Management System - Documentation Index
 
-This file helps you quickly find the right documentation for your needs.
-
----
-
-## 🚀 I Want To... (Quick Links)
-
-### Get Started
-- **Start using the system** → [`START_HERE.md`](START_HERE.md)
-- **Login for the first time** → [`LOGIN_GUIDE.md`](LOGIN_GUIDE.md)
-- **Quick reference for daily tasks** → [`QUICK_REFERENCE.md`](QUICK_REFERENCE.md)
-
-### Understand Core Concepts
-- **Difference between attendance and payment** → [`ATTENDANCE_VS_PAYMENTS_GUIDE.md`](ATTENDANCE_VS_PAYMENTS_GUIDE.md)
-- **How penalties work** → [`HOW_TO_PAY_PENALTIES.md`](HOW_TO_PAY_PENALTIES.md)
-- **Visual penalty workflow** → [`PENALTY_PAYMENT_FLOWCHART.md`](PENALTY_PAYMENT_FLOWCHART.md)
-
-### Record Payments
-- **Record weekly payment step-by-step** → [`RECORD_FIROMSA_PAYMENT.md`](RECORD_FIROMSA_PAYMENT.md)
-- **Pay for past weeks** → [`HOW_TO_PAY_PAST_WEEKS.md`](HOW_TO_PAY_PAST_WEEKS.md)
-- **Pay penalties** → [`HOW_TO_PAY_PENALTIES.md`](HOW_TO_PAY_PENALTIES.md)
-
-### Technical & Deployment
-- **Complete technical overview** → [`ALL_FIXES_COMPLETE.md`](ALL_FIXES_COMPLETE.md)
-- **Deployment checklist** → [`PRODUCTION_CHECKLIST.md`](PRODUCTION_CHECKLIST.md)
-- **What was accomplished** → [`COMPLETION_SUMMARY.md`](COMPLETION_SUMMARY.md)
-- **Project overview** → [`README.md`](README.md)
+**Last Updated**: June 18, 2026
 
 ---
 
-## 👥 By User Role
+## 📋 Quick Start
 
-### 👤 For Members
-You probably want:
-1. [`LOGIN_GUIDE.md`](LOGIN_GUIDE.md) - How to login
-2. [`QUICK_REFERENCE.md`](QUICK_REFERENCE.md) - Daily operations
-3. [`ATTENDANCE_VS_PAYMENTS_GUIDE.md`](ATTENDANCE_VS_PAYMENTS_GUIDE.md) - Important concepts
-
-### 👨‍💼 For Administrators
-You probably want:
-1. [`QUICK_REFERENCE.md`](QUICK_REFERENCE.md) - Quick reference for all tasks
-2. [`RECORD_FIROMSA_PAYMENT.md`](RECORD_FIROMSA_PAYMENT.md) - Payment recording
-3. [`HOW_TO_PAY_PENALTIES.md`](HOW_TO_PAY_PENALTIES.md) - Penalty workflow
-4. [`ADMIN_DASHBOARD_PENALTIES_GUIDE.md`](ADMIN_DASHBOARD_PENALTIES_GUIDE.md) - Dashboard guide
-
-### 💻 For Developers/IT
-You probably want:
-1. [`README.md`](README.md) - Project overview
-2. [`ALL_FIXES_COMPLETE.md`](ALL_FIXES_COMPLETE.md) - Technical details
-3. [`PRODUCTION_CHECKLIST.md`](PRODUCTION_CHECKLIST.md) - Deployment
-4. [`SESSION_SUMMARY_FINAL.md`](SESSION_SUMMARY_FINAL.md) - Recent changes
+- **[START_HERE.md](START_HERE.md)** - Getting started guide for new developers
+- **[README.md](README.md)** - Project overview and setup instructions
+- **[LOGIN_GUIDE.md](LOGIN_GUIDE.md)** - How to access the system
 
 ---
 
-## 📁 All Documentation Files (Organized)
+## 🎯 User Guides
 
-### 🎯 Getting Started (Priority: HIGH)
-```
-📄 START_HERE.md
-   ↳ First document to read - complete getting started guide
+### Core Features
+- **[QUICK_REFERENCE.md](QUICK_REFERENCE.md)** - Quick reference for common tasks
+- **[HOW_PARTIAL_PAYMENT_WORKS.md](HOW_PARTIAL_PAYMENT_WORKS.md)** - Understanding partial payments
+- **[HOW_TO_PAY_PENALTIES.md](HOW_TO_PAY_PENALTIES.md)** - Guide to penalty payments
+- **[BULK_PAYMENT_GUIDE.md](BULK_PAYMENT_GUIDE.md)** - Bulk payment processing
 
-📄 LOGIN_GUIDE.md
-   ↳ How to access the system (credentials included)
-
-📄 QUICK_REFERENCE.md
-   ↳ Quick reference card for daily operations
-   ↳ Most useful for day-to-day work
-```
-
-### 💡 Core Concepts (Priority: HIGH)
-```
-📄 ATTENDANCE_VS_PAYMENTS_GUIDE.md
-   ↳ CRITICAL: Explains attendance ≠ payment
-   ↳ Must read for all users
-
-📄 HOW_TO_PAY_PENALTIES.md
-   ↳ Complete penalty payment workflow
-   ↳ Step-by-step instructions
-
-📄 PENALTY_PAYMENT_FLOWCHART.md
-   ↳ Visual workflow diagram
-   ↳ Shows penalty creation and payment process
-```
-
-### 📝 How-To Guides (Priority: MEDIUM)
-```
-📄 RECORD_FIROMSA_PAYMENT.md
-   ↳ Step-by-step payment recording example
-   ↳ Includes screenshots descriptions
-
-📄 HOW_TO_PAY_PAST_WEEKS.md
-   ↳ How to pay for missed weeks
-   ↳ Late payment handling
-
-📄 ADMIN_DASHBOARD_PENALTIES_GUIDE.md
-   ↳ Understanding dashboard penalty cards
-   ↳ Admin-specific guide
-```
-
-### 💻 Technical Documentation (Priority: LOW - for developers)
-```
-📄 README.md
-   ↳ Main project documentation hub
-   ↳ Links to all other docs
-
-📄 ALL_FIXES_COMPLETE.md
-   ↳ Complete technical summary of all fixes
-   ↳ Includes file paths and implementation details
-
-📄 SESSION_SUMMARY_FINAL.md
-   ↳ Final session summary
-   ↳ What was done in last session
-
-📄 PRODUCTION_CHECKLIST.md
-   ↳ Pre-deployment verification checklist
-   ↳ Testing steps and deployment guide
-
-📄 COMPLETION_SUMMARY.md
-   ↳ Project completion overview
-   ↳ Stats, metrics, and achievements
-```
-
-### 📊 Other Documents (Priority: LOW - reference only)
-```
-📄 ALL_FIXES_SUMMARY.md
-   ↳ Summary of all fixes
-
-📄 ALL_FIXES_TODAY.md
-   ↳ Today's changes log
-
-📄 ALL_ISSUES_FIXED.md
-   ↳ Issue resolution tracking
-
-📄 DOCUMENTATION_INDEX.md
-   ↳ This file - navigation guide
-```
+### Understanding the System
+- **[ATTENDANCE_VS_PAYMENTS_GUIDE.md](ATTENDANCE_VS_PAYMENTS_GUIDE.md)** - Key differences between attendance and payments
+- **[PAYMENT_WORKFLOW_UPDATE.md](PAYMENT_WORKFLOW_UPDATE.md)** - Payment workflow documentation
 
 ---
 
-## 🎯 By Topic
+## 🔄 Recent Updates
 
-### Payment Recording
-1. [`RECORD_FIROMSA_PAYMENT.md`](RECORD_FIROMSA_PAYMENT.md) - Step-by-step guide
-2. [`HOW_TO_PAY_PAST_WEEKS.md`](HOW_TO_PAY_PAST_WEEKS.md) - Late payments
-3. [`QUICK_REFERENCE.md`](QUICK_REFERENCE.md) - Quick reference
+### Latest Features (June 2026)
+- **[ALL_PAGES_GROUPING_COMPLETE.md](ALL_PAGES_GROUPING_COMPLETE.md)** ⭐ **NEW**
+  - Collapsible grouping UI for Payments, Contributions, and Attendance pages
+  - Week-based and meeting-based organization
+  - Improved user experience with accordion-style sections
 
-### Penalties
-1. [`HOW_TO_PAY_PENALTIES.md`](HOW_TO_PAY_PENALTIES.md) - Complete workflow
-2. [`PENALTY_PAYMENT_FLOWCHART.md`](PENALTY_PAYMENT_FLOWCHART.md) - Visual guide
-3. [`ADMIN_DASHBOARD_PENALTIES_GUIDE.md`](ADMIN_DASHBOARD_PENALTIES_GUIDE.md) - Dashboard view
+- **[PWA_SETUP_GUIDE.md](PWA_SETUP_GUIDE.md)** ⭐ **NEW**
+  - Progressive Web App configuration
+  - Mobile app installation guide
+  - Offline support details
 
-### Concepts & Understanding
-1. [`ATTENDANCE_VS_PAYMENTS_GUIDE.md`](ATTENDANCE_VS_PAYMENTS_GUIDE.md) - Core concept
-2. [`START_HERE.md`](START_HERE.md) - System overview
-3. [`README.md`](README.md) - Complete reference
+- **[PUSH_COMPLETE.md](PUSH_COMPLETE.md)** ⭐ **NEW**
+  - Latest Git push details and PR instructions
+  - Branch: `feature/collapsible-grouping-ui`
 
-### Technical & Development
-1. [`ALL_FIXES_COMPLETE.md`](ALL_FIXES_COMPLETE.md) - Technical details
-2. [`PRODUCTION_CHECKLIST.md`](PRODUCTION_CHECKLIST.md) - Deployment
-3. [`README.md`](README.md) - Tech stack & structure
+### Completed Work
+- **[ALL_FIXES_COMPLETE.md](ALL_FIXES_COMPLETE.md)** - Summary of all bug fixes
+- **[ALL_FIXES_SUMMARY.md](ALL_FIXES_SUMMARY.md)** - Detailed fix documentation
+- **[ATTENDANCE_CLEANUP_COMPLETE.md](ATTENDANCE_CLEANUP_COMPLETE.md)** - Attendance page cleanup
+- **[PROJECT_CLEANUP_SUMMARY.md](PROJECT_CLEANUP_SUMMARY.md)** - Code cleanup summary
 
 ---
 
-## 🔍 Quick Search Guide
+## 🚀 Deployment
+
+- **[PRODUCTION_CHECKLIST.md](PRODUCTION_CHECKLIST.md)** - Pre-deployment checklist
+- **[GIT_PUSH_SUMMARY.md](GIT_PUSH_SUMMARY.md)** - Git workflow and push guidelines
+
+---
+
+## 📂 Document Organization
+
+### Essential Documents (Keep)
+These documents are actively maintained and referenced:
+- START_HERE.md
+- README.md
+- QUICK_REFERENCE.md
+- ALL_PAGES_GROUPING_COMPLETE.md
+- PWA_SETUP_GUIDE.md
+- ATTENDANCE_VS_PAYMENTS_GUIDE.md
+- PRODUCTION_CHECKLIST.md
+
+### User Guides (Keep)
+- LOGIN_GUIDE.md
+- HOW_PARTIAL_PAYMENT_WORKS.md
+- HOW_TO_PAY_PENALTIES.md
+- BULK_PAYMENT_GUIDE.md
+- PAYMENT_WORKFLOW_UPDATE.md
+
+### Status/Summary Documents (Keep for reference)
+- ALL_FIXES_COMPLETE.md
+- ALL_FIXES_SUMMARY.md
+- PUSH_COMPLETE.md
+- GIT_PUSH_SUMMARY.md
+
+### Archived/Removed Documents
+These were implementation-specific and have been removed:
+- ~~COLLAPSIBLE_GROUPING_ANALYSIS.md~~ (merged into ALL_PAGES_GROUPING_COMPLETE.md)
+- ~~PAYMENT_GROUPING_IMPLEMENTATION.md~~ (implementation complete)
+- ~~PAYMENT_GROUPING_IMPLEMENTATION_STATUS.md~~ (implementation complete)
+- ~~TASK_COMPLETE_PAYMENT_GROUPING.md~~ (implementation complete)
+- ~~WEEKLY_PAYMENTS_GROUPING_GUIDE.md~~ (merged into ALL_PAGES_GROUPING_COMPLETE.md)
+- ~~CONTRIBUTIONS_PAGE_GROUPING_COMPLETE.md~~ (merged into ALL_PAGES_GROUPING_COMPLETE.md)
+- ~~ATTENDANCE_PAGE_COMPLETE.md~~ (merged into ALL_PAGES_GROUPING_COMPLETE.md)
+- ~~PENALTIES_PAGE_BADGE_FIX.md~~ (merged into ALL_FIXES_SUMMARY.md)
+- ~~PENALTY_STATUS_FIX.md~~ (merged into ALL_FIXES_SUMMARY.md)
+- ~~PWA_QUICK_FIX.md~~ (merged into PWA_SETUP_GUIDE.md)
+- ~~DUPLICATION_FIX.md~~ (merged into ALL_PAGES_GROUPING_COMPLETE.md)
+
+---
+
+## 🔍 Finding Information
 
 ### "How do I...?"
 
-**...login to the system?**
-→ [`LOGIN_GUIDE.md`](LOGIN_GUIDE.md)
+**...set up the development environment?**
+→ See [START_HERE.md](START_HERE.md)
 
-**...record a weekly payment?**
-→ [`RECORD_FIROMSA_PAYMENT.md`](RECORD_FIROMSA_PAYMENT.md)
+**...understand the payment system?**
+→ See [HOW_PARTIAL_PAYMENT_WORKS.md](HOW_PARTIAL_PAYMENT_WORKS.md)
 
-**...pay a penalty?**
-→ [`HOW_TO_PAY_PENALTIES.md`](HOW_TO_PAY_PENALTIES.md)
+**...process bulk payments?**
+→ See [BULK_PAYMENT_GUIDE.md](BULK_PAYMENT_GUIDE.md)
 
-**...pay for a past week?**
-→ [`HOW_TO_PAY_PAST_WEEKS.md`](HOW_TO_PAY_PAST_WEEKS.md)
+**...understand the new collapsible UI?**
+→ See [ALL_PAGES_GROUPING_COMPLETE.md](ALL_PAGES_GROUPING_COMPLETE.md)
 
-**...understand the dashboard?**
-→ [`ADMIN_DASHBOARD_PENALTIES_GUIDE.md`](ADMIN_DASHBOARD_PENALTIES_GUIDE.md)
+**...set up PWA/mobile app?**
+→ See [PWA_SETUP_GUIDE.md](PWA_SETUP_GUIDE.md)
 
-**...start the system?**
-→ [`START_HERE.md`](START_HERE.md)
+**...prepare for production deployment?**
+→ See [PRODUCTION_CHECKLIST.md](PRODUCTION_CHECKLIST.md)
 
-**...deploy to production?**
-→ [`PRODUCTION_CHECKLIST.md`](PRODUCTION_CHECKLIST.md)
-
-**...understand the code changes?**
-→ [`ALL_FIXES_COMPLETE.md`](ALL_FIXES_COMPLETE.md)
-
-### "What is...?"
-
-**...the difference between attendance and payment?**
-→ [`ATTENDANCE_VS_PAYMENTS_GUIDE.md`](ATTENDANCE_VS_PAYMENTS_GUIDE.md)
-
-**...the penalty system?**
-→ [`HOW_TO_PAY_PENALTIES.md`](HOW_TO_PAY_PENALTIES.md)
-
-**...the project status?**
-→ [`COMPLETION_SUMMARY.md`](COMPLETION_SUMMARY.md)
-
-**...the system architecture?**
-→ [`README.md`](README.md)
+**...understand attendance vs payments?**
+→ See [ATTENDANCE_VS_PAYMENTS_GUIDE.md](ATTENDANCE_VS_PAYMENTS_GUIDE.md)
 
 ---
 
-## 📖 Reading Order (Recommended)
+## 📝 Document Maintenance
 
-### For New Users:
-1. [`START_HERE.md`](START_HERE.md) - Get oriented
-2. [`LOGIN_GUIDE.md`](LOGIN_GUIDE.md) - Access the system
-3. [`ATTENDANCE_VS_PAYMENTS_GUIDE.md`](ATTENDANCE_VS_PAYMENTS_GUIDE.md) - Learn key concept
-4. [`QUICK_REFERENCE.md`](QUICK_REFERENCE.md) - Daily operations
-5. Keep [`QUICK_REFERENCE.md`](QUICK_REFERENCE.md) handy for reference
+### When to Create New Documents
+- New major features (like PWA, collapsible grouping)
+- User guides for complex workflows
+- Production/deployment checklists
+- Breaking changes or migration guides
 
-### For Administrators:
-1. [`START_HERE.md`](START_HERE.md) - Overview
-2. [`ATTENDANCE_VS_PAYMENTS_GUIDE.md`](ATTENDANCE_VS_PAYMENTS_GUIDE.md) - Critical concept
-3. [`QUICK_REFERENCE.md`](QUICK_REFERENCE.md) - All operations
-4. [`RECORD_FIROMSA_PAYMENT.md`](RECORD_FIROMSA_PAYMENT.md) - Payment workflow
-5. [`HOW_TO_PAY_PENALTIES.md`](HOW_TO_PAY_PENALTIES.md) - Penalty workflow
-6. [`ADMIN_DASHBOARD_PENALTIES_GUIDE.md`](ADMIN_DASHBOARD_PENALTIES_GUIDE.md) - Dashboard guide
+### When to Update Existing Documents
+- Bug fixes (update ALL_FIXES_SUMMARY.md)
+- Feature enhancements (update relevant guide)
+- Process changes (update workflow docs)
 
-### For Developers:
-1. [`README.md`](README.md) - Project overview
-2. [`ALL_FIXES_COMPLETE.md`](ALL_FIXES_COMPLETE.md) - Technical details
-3. [`SESSION_SUMMARY_FINAL.md`](SESSION_SUMMARY_FINAL.md) - Recent changes
-4. [`PRODUCTION_CHECKLIST.md`](PRODUCTION_CHECKLIST.md) - Deployment
-5. [`COMPLETION_SUMMARY.md`](COMPLETION_SUMMARY.md) - Stats & metrics
+### When to Archive/Remove Documents
+- Implementation-specific tasks completed
+- Duplicate information (merge into consolidated doc)
+- Outdated information (update or remove)
 
 ---
 
-## 📊 Documentation Stats
+## 💡 Tips
 
-```
-Total Documentation Files: 15+
-
-By Category:
-  Getting Started:    3 files
-  Core Concepts:      3 files
-  How-To Guides:      3 files
-  Technical:          4 files
-  Reference:          3 files
-
-By Priority:
-  HIGH (Must Read):   6 files
-  MEDIUM (Should):    4 files
-  LOW (Optional):     5+ files
-
-Total Pages: 150+ pages of documentation
-```
+1. **Start with START_HERE.md** if you're new
+2. **Check QUICK_REFERENCE.md** for common tasks
+3. **Use ALL_PAGES_GROUPING_COMPLETE.md** to understand the UI changes
+4. **Refer to PRODUCTION_CHECKLIST.md** before deployment
 
 ---
 
-## 🎯 Most Important Documents (Top 5)
+## 📞 Support
 
-### 🥇 #1: QUICK_REFERENCE.md
-**Why**: Daily operations quick card - you'll use this constantly
-**Who**: Everyone (users, admins, developers)
-
-### 🥈 #2: ATTENDANCE_VS_PAYMENTS_GUIDE.md
-**Why**: Critical concept - attendance ≠ payment
-**Who**: Everyone (especially new users)
-
-### 🥉 #3: START_HERE.md
-**Why**: Complete getting started guide
-**Who**: New users, new administrators
-
-### 4️⃣ #4: HOW_TO_PAY_PENALTIES.md
-**Why**: Complete penalty workflow (common task)
-**Who**: Administrators
-
-### 5️⃣ #5: ALL_FIXES_COMPLETE.md
-**Why**: Complete technical documentation
-**Who**: Developers, technical team
+For questions or issues:
+1. Check this documentation index first
+2. Review the relevant guide
+3. Check ALL_FIXES_SUMMARY.md for known issues
+4. Contact the development team
 
 ---
 
-## 🆘 Need Help?
-
-### Can't Find What You Need?
-1. Check [`QUICK_REFERENCE.md`](QUICK_REFERENCE.md) first - it covers 80% of tasks
-2. Check [`README.md`](README.md) - main documentation hub with links
-3. Search this index for keywords
-4. Check the "How do I...?" section above
-
-### Still Stuck?
-- Check [`QUICK_REFERENCE.md`](QUICK_REFERENCE.md) Troubleshooting section
-- Review [`START_HERE.md`](START_HERE.md) for basics
-- Consult [`ALL_FIXES_COMPLETE.md`](ALL_FIXES_COMPLETE.md) for technical details
-
----
-
-## ✅ Documentation Checklist
-
-Before starting, make sure you've read:
-
-**For All Users:**
-- [ ] [`START_HERE.md`](START_HERE.md)
-- [ ] [`LOGIN_GUIDE.md`](LOGIN_GUIDE.md)
-- [ ] [`ATTENDANCE_VS_PAYMENTS_GUIDE.md`](ATTENDANCE_VS_PAYMENTS_GUIDE.md)
-
-**For Administrators:**
-- [ ] [`QUICK_REFERENCE.md`](QUICK_REFERENCE.md)
-- [ ] [`RECORD_FIROMSA_PAYMENT.md`](RECORD_FIROMSA_PAYMENT.md)
-- [ ] [`HOW_TO_PAY_PENALTIES.md`](HOW_TO_PAY_PENALTIES.md)
-
-**For Developers:**
-- [ ] [`README.md`](README.md)
-- [ ] [`ALL_FIXES_COMPLETE.md`](ALL_FIXES_COMPLETE.md)
-- [ ] [`PRODUCTION_CHECKLIST.md`](PRODUCTION_CHECKLIST.md)
-
----
-
-**Last Updated**: June 17, 2026  
-**Total Documents**: 15+  
-**All Documents**: Complete ✅
+**Maintained by**: Development Team  
+**Repository**: https://github.com/firisha2504/Afosha-Management-System
