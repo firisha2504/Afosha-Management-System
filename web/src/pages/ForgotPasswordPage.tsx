@@ -7,7 +7,7 @@ import { api } from '../lib/api';
 type Step = 'identifier' | 'otp' | 'newPassword' | 'success';
 
 export default function ForgotPasswordPage() {
-  const { t, i18n } = useTranslation();
+  const { i18n } = useTranslation();
   const isOm = i18n.language === 'om';
   const navigate = useNavigate();
 

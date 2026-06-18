@@ -1,5 +1,5 @@
-import { useEffect, useState, Fragment } from 'react';
-import { CheckCircle2, XCircle, Clock, AlertTriangle, RefreshCw, TrendingUp, ChevronDown, ChevronUp, Zap } from 'lucide-react';
+import { useEffect, useState, Fragment, useMemo } from 'react';
+import { CheckCircle2, XCircle, Clock, AlertTriangle, RefreshCw, TrendingUp, ChevronDown, ChevronUp, Zap, ChevronRight } from 'lucide-react';
 import { api } from '../lib/api';
 import { PageHeader, LoadingSpinner, Badge, Modal, btnPrimary } from '../components/ui';
 import { useAuth } from '../contexts/AuthContext';
@@ -29,11 +29,14 @@ interface Summary {
   totalPenalties: number; noObligation: number;
 }
 
-interface WeekData {
-  week: number; year: number;
-  members: MemberStatus[];
-  availableWeeks: WeekOption[];
-  summary: Summary;
+interface AllWeeksData {
+  [key: string]: {
+    week: number;
+    year: number;
+    dueDate: string;
+    members: MemberStatus[];
+    summary: Summary;
+  };
 }
 
 // ── Status helpers ────────────────────────────────────────────────────────────
@@ -62,13 +65,15 @@ export default function ContributionsPage() {
   const { user } = useAuth();
   const isAdmin = user?.role === 'ADMIN';
 
-  const [data, setData] = useState<WeekData | null>(null);
+  const [allWeeksData, setAllWeeksData] = useState<AllWeeksData>({});
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
-  const [selectedWeek, setSelectedWeek] = useState<{ week: number; year: number } | null>(null);
   const [generateResult, setGenerateResult] = useState<{ totalCreated: number; weeksSummary: any[] } | null>(null);
   const [weeksToGenerate, setWeeksToGenerate] = useState(1); // Number of weeks to generate
   const [showWeeksSelector, setShowWeeksSelector] = useState(false); // Show/hide weeks dropdown
+
+  // Collapsible weeks
+  const [collapsedWeeks, setCollapsedWeeks] = useState<Record<string, boolean>>({});
 
   // Table filters
   const [search, setSearch] = useState('');
@@ -77,24 +82,45 @@ export default function ContributionsPage() {
   // Expanded row (to show payments detail)
   const [expanded, setExpanded] = useState<string | null>(null);
 
-  const load = async (week?: number, year?: number) => {
+  const toggleWeek = (weekKey: string) => {
+    setCollapsedWeeks(prev => ({ ...prev, [weekKey]: !prev[weekKey] }));
+  };
+
+  const loadAllWeeks = async () => {
     setLoading(true);
     try {
-      const params: Record<string, string> = {};
-      if (week) params.week = String(week);
-      if (year) params.year = String(year);
-      const { data: res } = await api.get('/finance/contributions/weekly', { params });
-      setData(res.data);
-      setSelectedWeek({ week: res.data.week, year: res.data.year });
-    } finally { setLoading(false); }
+      // First, get available weeks
+      const { data: initialRes } = await api.get('/finance/contributions/weekly');
+      const weeks = initialRes.data.availableWeeks || [];
+
+      // Load data for all available weeks
+      const allData: AllWeeksData = {};
+      await Promise.all(
+        weeks.map(async (w: WeekOption) => {
+          try {
+            const { data: res } = await api.get('/finance/contributions/weekly', {
+              params: { week: w.weekNumber, year: w.year }
+            });
+            const weekKey = `${w.weekNumber}-${w.year}`;
+            allData[weekKey] = {
+              week: res.data.week,
+              year: res.data.year,
+              dueDate: w.dueDate,
+              members: res.data.members,
+              summary: res.data.summary
+            };
+          } catch (error) {
+            console.error(`Failed to load week ${w.weekNumber}, ${w.year}:`, error);
+          }
+        })
+      );
+      setAllWeeksData(allData);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  useEffect(() => { load(); }, []);
-
-  const handleWeekChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const [w, y] = e.target.value.split('-').map(Number);
-    load(w, y);
-  };
+  useEffect(() => { loadAllWeeks(); }, []);
 
   const generateObligations = async () => {
     if (!isAdmin) return;
@@ -103,24 +129,43 @@ export default function ContributionsPage() {
       const { data: res } = await api.post('/finance/contributions/weekly/generate', { weeks: weeksToGenerate });
       setGenerateResult({ totalCreated: res.data.totalCreated, weeksSummary: res.data.weeksSummary });
       setShowWeeksSelector(false);
-      load(selectedWeek?.week, selectedWeek?.year);
+      loadAllWeeks(); // Reload all weeks after generation
     } finally { setGenerating(false); }
   };
 
-  // Filtered members
-  const filtered = (data?.members || []).filter((m) => {
-    const matchSearch = search === '' ||
-      m.fullName.toLowerCase().includes(search.toLowerCase()) ||
-      m.memberNumber.toLowerCase().includes(search.toLowerCase());
-    const matchStatus = filterStatus === 'ALL' || m.status === filterStatus;
-    return matchSearch && matchStatus;
-  });
+  // Calculate overall summary across all weeks
+  const overallSummary = useMemo(() => {
+    const summary = {
+      paid: 0, pending: 0, overdue: 0, partial: 0, total: 0,
+      totalCollected: 0, totalExpected: 0, totalPenalties: 0, noObligation: 0
+    };
+    
+    Object.values(allWeeksData).forEach(weekData => {
+      const s = weekData.summary;
+      summary.paid += s.paid;
+      summary.pending += s.pending;
+      summary.overdue += s.overdue;
+      summary.partial += s.partial;
+      summary.total += s.total;
+      summary.totalCollected += s.totalCollected;
+      summary.totalExpected += s.totalExpected;
+      summary.totalPenalties += s.totalPenalties;
+      summary.noObligation += s.noObligation;
+    });
+    
+    return summary;
+  }, [allWeeksData]);
 
-  // Sorted: overdue → pending → partial → paid → no_obligation
-  const ORDER = ['OVERDUE', 'PENDING', 'PARTIAL', 'PAID', 'NO_OBLIGATION'];
-  const sorted = [...filtered].sort((a, b) => ORDER.indexOf(a.status) - ORDER.indexOf(b.status));
-
-  const s = data?.summary;
+  // Sort weeks: newest first
+  const sortedWeeks = useMemo(() => {
+    return Object.entries(allWeeksData)
+      .sort(([keyA], [keyB]) => {
+        const [weekA, yearA] = keyA.split('-').map(Number);
+        const [weekB, yearB] = keyB.split('-').map(Number);
+        if (yearB !== yearA) return yearB - yearA;
+        return weekB - weekA;
+      });
+  }, [allWeeksData]);
 
   return (
     <div>
@@ -128,20 +173,6 @@ export default function ContributionsPage() {
         title="Weekly Contributions"
         action={
           <div className="flex gap-2 items-center">
-            {/* Week selector */}
-            {data && data.availableWeeks && data.availableWeeks.length > 0 && (
-              <select
-                className="border rounded-xl px-3 py-2 text-sm text-slate-700 bg-white shadow-sm"
-                value={`${selectedWeek?.week}-${selectedWeek?.year}`}
-                onChange={handleWeekChange}
-              >
-                {data.availableWeeks.map((w) => (
-                  <option key={`${w.weekNumber}-${w.year}`} value={`${w.weekNumber}-${w.year}`}>
-                    Week {w.weekNumber}, {w.year} — {new Date(w.dueDate).toLocaleDateString()}
-                  </option>
-                ))}
-              </select>
-            )}
             {/* Generate button - always show for admin */}
             {isAdmin && (
               <div className="flex items-center gap-2">
@@ -190,19 +221,23 @@ export default function ContributionsPage() {
         }
       />
 
-      {loading ? <LoadingSpinner /> : !data ? null : (
+      {loading ? <LoadingSpinner /> : sortedWeeks.length === 0 ? (
+        <div className="text-center py-10 text-slate-400">
+          No weekly contributions data available.
+        </div>
+      ) : (
         <>
-          {/* ── Summary Cards ── */}
+          {/* ── Overall Summary Cards ── */}
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3 mb-6">
             {[
-              { label: 'Total Members', value: s!.total, color: '#64748b', bg: '#f8fafc' },
-              { label: 'Paid', value: s!.paid, color: '#16a34a', bg: '#f0fdf4' },
-              { label: 'Pending', value: s!.pending, color: '#ca8a04', bg: '#fefce8' },
-              { label: 'Overdue', value: s!.overdue, color: '#dc2626', bg: '#fef2f2' },
-              { label: 'Partial', value: s!.partial, color: '#2563eb', bg: '#eff6ff' },
-              { label: 'No Record', value: s!.noObligation, color: '#94a3b8', bg: '#f8fafc' },
-              { label: 'Collected', value: `${s!.totalCollected.toLocaleString()} ETB`, color: '#0d9488', bg: '#f0fdfa' },
-              { label: 'Penalties', value: `${s!.totalPenalties.toLocaleString()} ETB`, color: '#dc2626', bg: '#fef2f2' },
+              { label: 'Total Members', value: overallSummary.total, color: '#64748b', bg: '#f8fafc' },
+              { label: 'Paid', value: overallSummary.paid, color: '#16a34a', bg: '#f0fdf4' },
+              { label: 'Pending', value: overallSummary.pending, color: '#ca8a04', bg: '#fefce8' },
+              { label: 'Overdue', value: overallSummary.overdue, color: '#dc2626', bg: '#fef2f2' },
+              { label: 'Partial', value: overallSummary.partial, color: '#2563eb', bg: '#eff6ff' },
+              { label: 'No Record', value: overallSummary.noObligation, color: '#94a3b8', bg: '#f8fafc' },
+              { label: 'Collected', value: `${overallSummary.totalCollected.toLocaleString()} ETB`, color: '#0d9488', bg: '#f0fdfa' },
+              { label: 'Penalties', value: `${overallSummary.totalPenalties.toLocaleString()} ETB`, color: '#dc2626', bg: '#fef2f2' },
             ].map((card) => (
               <div key={card.label} className="rounded-xl border p-3 text-center"
                 style={{ background: card.bg, borderColor: card.color + '30' }}>
@@ -212,29 +247,29 @@ export default function ContributionsPage() {
             ))}
           </div>
 
-          {/* Collection progress bar */}
-          {s!.totalExpected > 0 && (
+          {/* Overall Collection progress bar */}
+          {overallSummary.totalExpected > 0 && (
             <div className="bg-white rounded-xl border p-4 mb-6">
               <div className="flex justify-between text-xs text-slate-600 mb-2">
-                <span className="font-medium">Collection Progress</span>
+                <span className="font-medium">Overall Collection Progress</span>
                 <span className="font-semibold text-emerald-600">
-                  {s!.totalCollected.toLocaleString()} / {s!.totalExpected.toLocaleString()} ETB
-                  &nbsp;({Math.round((s!.totalCollected / s!.totalExpected) * 100)}%)
+                  {overallSummary.totalCollected.toLocaleString()} / {overallSummary.totalExpected.toLocaleString()} ETB
+                  &nbsp;({Math.round((overallSummary.totalCollected / overallSummary.totalExpected) * 100)}%)
                 </span>
               </div>
               <div className="h-3 rounded-full bg-slate-100 overflow-hidden">
                 <div
                   className="h-full rounded-full transition-all"
                   style={{
-                    width: `${Math.min(100, Math.round((s!.totalCollected / s!.totalExpected) * 100))}%`,
+                    width: `${Math.min(100, Math.round((overallSummary.totalCollected / overallSummary.totalExpected) * 100))}%`,
                     background: 'linear-gradient(90deg, #16a34a, #22c55e)',
                   }}
                 />
               </div>
-              {s!.totalPenalties > 0 && (
+              {overallSummary.totalPenalties > 0 && (
                 <p className="text-xs text-red-500 mt-2 flex items-center gap-1">
                   <AlertTriangle size={11} />
-                  {s!.totalPenalties.toLocaleString()} ETB in auto-calculated penalties included in totals
+                  {overallSummary.totalPenalties.toLocaleString()} ETB in auto-calculated penalties included in totals
                 </p>
               )}
             </div>
@@ -257,123 +292,194 @@ export default function ContributionsPage() {
                       ? 'bg-white shadow-sm text-slate-800'
                       : 'text-slate-500 hover:text-slate-700'
                   }`}>
-                  {s === 'NO_OBLIGATION' ? 'No Record' : s === 'ALL' ? `All (${data.members.length})` : s.charAt(0) + s.slice(1).toLowerCase()}
+                  {s === 'NO_OBLIGATION' ? 'No Record' : s === 'ALL' ? 'All' : s.charAt(0) + s.slice(1).toLowerCase()}
                 </button>
               ))}
             </div>
           </div>
 
-          {/* ── Member Table ── */}
-          <div className="bg-white rounded-xl border overflow-hidden">
-            <table className="w-full">
-              <thead className="bg-slate-50 border-b">
-                <tr>
-                  <th className="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Member</th>
-                  <th className="px-5 py-3 text-right text-xs font-semibold text-slate-500 uppercase">Contribution</th>
-                  <th className="px-5 py-3 text-right text-xs font-semibold text-slate-500 uppercase">Total Due</th>
-                  <th className="px-5 py-3 text-right text-xs font-semibold text-slate-500 uppercase">Paid</th>
-                  <th className="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Status</th>
-                  <th className="px-5 py-3 text-right text-xs font-semibold text-slate-500 uppercase">Outstanding</th>
-                  <th className="px-5 py-3"></th>
-                </tr>
-              </thead>
-              <tbody className="divide-y">
-                {sorted.length === 0 ? (
-                  <tr><td colSpan={7} className="px-5 py-10 text-center text-sm text-slate-400">No members found.</td></tr>
-                ) : sorted.map((m) => (
-                  <Fragment key={m.memberId}>
-                    <tr
-                      key={m.memberId}
-                      className={`hover:bg-slate-50 transition-colors ${
-                        m.status === 'OVERDUE' ? 'bg-red-50/40' :
-                        m.status === 'PENDING' ? 'bg-amber-50/30' : ''
-                      }`}
-                    >
-                      {/* Member */}
-                      <td className="px-5 py-3">
-                        <div className="flex items-center gap-2">
-                          <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0"
-                            style={{ background: m.status === 'PAID' ? '#16a34a' : m.status === 'OVERDUE' ? '#dc2626' : '#94a3b8' }}>
-                            {m.fullName[0]}
-                          </div>
-                          <div>
-                            <p className="text-sm font-medium text-slate-800">{m.fullName}</p>
-                            <p className="text-xs text-slate-400">#{m.memberNumber}</p>
-                          </div>
-                        </div>
-                      </td>
+          {/* ── Collapsible Week Sections ── */}
+          <div className="space-y-4">
+            {sortedWeeks.map(([weekKey, weekData]) => {
+              const isCollapsed = collapsedWeeks[weekKey];
+              const s = weekData.summary;
+              
+              // Filter members for this week
+              const filtered = weekData.members.filter((m) => {
+                const matchSearch = search === '' ||
+                  m.fullName.toLowerCase().includes(search.toLowerCase()) ||
+                  m.memberNumber.toLowerCase().includes(search.toLowerCase());
+                const matchStatus = filterStatus === 'ALL' || m.status === filterStatus;
+                return matchSearch && matchStatus;
+              });
 
-                      {/* Contribution */}
-                      <td className="px-5 py-3 text-right text-sm text-slate-600">
-                        {m.contributionAmount != null ? `${m.contributionAmount.toLocaleString()} ETB` : '—'}
-                      </td>
+              // Sorted: overdue → pending → partial → paid → no_obligation
+              const ORDER = ['OVERDUE', 'PENDING', 'PARTIAL', 'PAID', 'NO_OBLIGATION'];
+              const sorted = [...filtered].sort((a, b) => ORDER.indexOf(a.status) - ORDER.indexOf(b.status));
 
-                      {/* Total Due */}
-                      <td className="px-5 py-3 text-right text-sm font-semibold text-slate-700">
-                        {m.totalDue != null ? `${m.totalDue.toLocaleString()} ETB` : '—'}
-                      </td>
-
-                      {/* Amount Paid */}
-                      <td className="px-5 py-3 text-right text-sm font-medium text-emerald-600">
-                        {m.amountPaid > 0 ? `${m.amountPaid.toLocaleString()} ETB` : '—'}
-                      </td>
-
-                      {/* Status */}
-                      <td className="px-5 py-3">
-                        <StatusBadge status={m.status} />
-                      </td>
-
-                      {/* Outstanding balance (cumulative) */}
-                      <td className="px-5 py-3 text-right">
-                        {m.outstandingBalance > 0 ? (
-                          <span className="text-sm font-bold text-red-600">{m.outstandingBalance.toLocaleString()} ETB</span>
-                        ) : (
-                          <span className="text-xs text-emerald-500 flex items-center justify-end gap-1">
-                            <CheckCircle2 size={12} /> Clear
+              return (
+                <div key={weekKey} className="bg-white rounded-xl border overflow-hidden">
+                  {/* Week Header (Collapsible) */}
+                  <div
+                    className="px-5 py-4 bg-slate-100 hover:bg-slate-200 cursor-pointer flex items-center justify-between"
+                    onClick={() => toggleWeek(weekKey)}
+                  >
+                    <div className="flex items-center gap-3">
+                      {isCollapsed ? (
+                        <ChevronRight size={18} className="text-slate-600" />
+                      ) : (
+                        <ChevronDown size={18} className="text-slate-600" />
+                      )}
+                      <div>
+                        <h3 className="text-lg font-bold text-slate-800">
+                          Week {weekData.week}, {weekData.year}
+                        </h3>
+                        <p className="text-xs text-slate-500">
+                          Due: {new Date(weekData.dueDate).toLocaleDateString()} • {s.total} members
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-4 text-sm">
+                      <div className="text-right">
+                        <p className="font-bold text-emerald-600">{s.totalCollected.toLocaleString()} ETB</p>
+                        <p className="text-xs text-slate-500">Collected</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-bold text-slate-700">{s.totalExpected.toLocaleString()} ETB</p>
+                        <p className="text-xs text-slate-500">Expected</p>
+                      </div>
+                      <div className="flex gap-2">
+                        <span className="px-2 py-1 rounded-full bg-green-100 text-green-700 text-xs font-semibold">
+                          {s.paid} Paid
+                        </span>
+                        {s.pending > 0 && (
+                          <span className="px-2 py-1 rounded-full bg-yellow-100 text-yellow-700 text-xs font-semibold">
+                            {s.pending} Pending
                           </span>
                         )}
-                      </td>
-
-                      {/* Expand payments */}
-                      <td className="px-5 py-3">
-                        {m.payments.length > 0 && (
-                          <button
-                            onClick={() => setExpanded(expanded === m.memberId ? null : m.memberId)}
-                            className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400"
-                          >
-                            {expanded === m.memberId ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-                          </button>
+                        {s.overdue > 0 && (
+                          <span className="px-2 py-1 rounded-full bg-red-100 text-red-700 text-xs font-semibold">
+                            {s.overdue} Overdue
+                          </span>
                         )}
-                      </td>
-                    </tr>
+                      </div>
+                    </div>
+                  </div>
 
-                    {/* Expanded: payments breakdown */}
-                    {expanded === m.memberId && m.payments.length > 0 && (
-                      <tr key={`${m.memberId}-exp`} className="bg-slate-50">
-                        <td colSpan={7} className="px-5 py-3">
-                          <div className="ml-10">
-                            <p className="text-xs font-semibold text-slate-500 uppercase mb-2 flex items-center gap-1">
-                              <TrendingUp size={11} /> Payment Records
-                            </p>
-                            <div className="space-y-1.5">
-                              {m.payments.map((p) => (
-                                <div key={p.id} className="flex items-center gap-4 bg-white rounded-lg border px-4 py-2 text-xs">
-                                  <span className="font-semibold text-emerald-600">{Number(p.amount).toLocaleString()} ETB</span>
-                                  <span className="text-slate-500">{p.paymentMethod.replace('_', ' ')}</span>
-                                  <span className="text-slate-400">{new Date(p.paymentDate).toLocaleDateString()}</span>
-                                  {p.receiptNumber && <span className="text-slate-400 font-mono">#{p.receiptNumber}</span>}
-                                  <Badge status={p.status} />
+                  {/* Week Members Table (Show/Hide based on collapse state) */}
+                  {!isCollapsed && (
+                    <table className="w-full">
+                      <thead className="bg-slate-50 border-b">
+                        <tr>
+                          <th className="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Member</th>
+                          <th className="px-5 py-3 text-right text-xs font-semibold text-slate-500 uppercase">Contribution</th>
+                          <th className="px-5 py-3 text-right text-xs font-semibold text-slate-500 uppercase">Total Due</th>
+                          <th className="px-5 py-3 text-right text-xs font-semibold text-slate-500 uppercase">Paid</th>
+                          <th className="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Status</th>
+                          <th className="px-5 py-3 text-right text-xs font-semibold text-slate-500 uppercase">Outstanding</th>
+                          <th className="px-5 py-3"></th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y">
+                        {sorted.length === 0 ? (
+                          <tr><td colSpan={7} className="px-5 py-10 text-center text-sm text-slate-400">No members found.</td></tr>
+                        ) : sorted.map((m) => (
+                          <Fragment key={m.memberId}>
+                            <tr
+                              className={`hover:bg-slate-50 transition-colors ${
+                                m.status === 'OVERDUE' ? 'bg-red-50/40' :
+                                m.status === 'PENDING' ? 'bg-amber-50/30' : ''
+                              }`}
+                            >
+                              {/* Member */}
+                              <td className="px-5 py-3">
+                                <div className="flex items-center gap-2">
+                                  <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0"
+                                    style={{ background: m.status === 'PAID' ? '#16a34a' : m.status === 'OVERDUE' ? '#dc2626' : '#94a3b8' }}>
+                                    {m.fullName[0]}
+                                  </div>
+                                  <div>
+                                    <p className="text-sm font-medium text-slate-800">{m.fullName}</p>
+                                    <p className="text-xs text-slate-400">#{m.memberNumber}</p>
+                                  </div>
                                 </div>
-                              ))}
-                            </div>
-                          </div>
-                        </td>
-                      </tr>
-                    )}
-                  </Fragment>
-                ))}
-              </tbody>
-            </table>
+                              </td>
+
+                              {/* Contribution */}
+                              <td className="px-5 py-3 text-right text-sm text-slate-600">
+                                {m.contributionAmount != null ? `${m.contributionAmount.toLocaleString()} ETB` : '—'}
+                              </td>
+
+                              {/* Total Due */}
+                              <td className="px-5 py-3 text-right text-sm font-semibold text-slate-700">
+                                {m.totalDue != null ? `${m.totalDue.toLocaleString()} ETB` : '—'}
+                              </td>
+
+                              {/* Amount Paid */}
+                              <td className="px-5 py-3 text-right text-sm font-medium text-emerald-600">
+                                {m.amountPaid > 0 ? `${m.amountPaid.toLocaleString()} ETB` : '—'}
+                              </td>
+
+                              {/* Status */}
+                              <td className="px-5 py-3">
+                                <StatusBadge status={m.status} />
+                              </td>
+
+                              {/* Outstanding balance (cumulative) */}
+                              <td className="px-5 py-3 text-right">
+                                {m.outstandingBalance > 0 ? (
+                                  <span className="text-sm font-bold text-red-600">{m.outstandingBalance.toLocaleString()} ETB</span>
+                                ) : (
+                                  <span className="text-xs text-emerald-500 flex items-center justify-end gap-1">
+                                    <CheckCircle2 size={12} /> Clear
+                                  </span>
+                                )}
+                              </td>
+
+                              {/* Expand payments */}
+                              <td className="px-5 py-3">
+                                {m.payments.length > 0 && (
+                                  <button
+                                    onClick={() => setExpanded(expanded === `${weekKey}-${m.memberId}` ? null : `${weekKey}-${m.memberId}`)}
+                                    className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400"
+                                  >
+                                    {expanded === `${weekKey}-${m.memberId}` ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                                  </button>
+                                )}
+                              </td>
+                            </tr>
+
+                            {/* Expanded: payments breakdown */}
+                            {expanded === `${weekKey}-${m.memberId}` && m.payments.length > 0 && (
+                              <tr key={`${weekKey}-${m.memberId}-exp`} className="bg-slate-50">
+                                <td colSpan={7} className="px-5 py-3">
+                                  <div className="ml-10">
+                                    <p className="text-xs font-semibold text-slate-500 uppercase mb-2 flex items-center gap-1">
+                                      <TrendingUp size={11} /> Payment Records
+                                    </p>
+                                    <div className="space-y-1.5">
+                                      {m.payments.map((p) => (
+                                        <div key={p.id} className="flex items-center gap-4 bg-white rounded-lg border px-4 py-2 text-xs">
+                                          <span className="font-semibold text-emerald-600">{Number(p.amount).toLocaleString()} ETB</span>
+                                          <span className="text-slate-500">{p.paymentMethod.replace('_', ' ')}</span>
+                                          <span className="text-slate-400">{new Date(p.paymentDate).toLocaleDateString()}</span>
+                                          {p.receiptNumber && <span className="text-slate-400 font-mono">#{p.receiptNumber}</span>}
+                                          <Badge status={p.status} />
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+                                </td>
+                              </tr>
+                            )}
+                          </Fragment>
+                        ))}
+                      </tbody>
+                    </table>
+                  )}
+                </div>
+              );
+            })}
           </div>
 
           {/* Legend */}

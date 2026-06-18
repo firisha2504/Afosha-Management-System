@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Plus, Pencil, Trash2, Users, ClipboardList } from 'lucide-react';
+import { Plus, Pencil, Trash2, Users, ClipboardList, ChevronDown, ChevronRight } from 'lucide-react';
 import { api } from '../lib/api';
 import { PageHeader, Badge, LoadingSpinner, Modal, inputClass, btnPrimary, btnSecondary } from '../components/ui';
 import { useAuth } from '../contexts/AuthContext';
@@ -41,8 +41,12 @@ export default function AttendancePage() {
   // Delete confirm
   const [deleteTarget, setDeleteTarget] = useState<{ type: 'meeting' | 'attendance'; id: string; label: string } | null>(null);
 
-  // Filter by meeting
-  const [filterMeeting, setFilterMeeting] = useState('');
+  // Collapsible meetings
+  const [collapsedMeetings, setCollapsedMeetings] = useState<Record<string, boolean>>({});
+
+  const toggleMeeting = (meetingId: string) => {
+    setCollapsedMeetings(prev => ({ ...prev, [meetingId]: !prev[meetingId] }));
+  };
 
   const load = async () => {
     setLoading(true);
@@ -167,13 +171,29 @@ export default function AttendancePage() {
     load();
   };
 
-  const filteredRecords = filterMeeting
-    ? records.filter((r) => r.meetingId === filterMeeting)
-    : records;
+  // Group records by meeting
+  const groupedRecords = useMemo(() => {
+    const groups: Record<string, AttendanceRecord[]> = {};
+    records.forEach(record => {
+      const meetingId = record.meetingId;
+      if (!groups[meetingId]) {
+        groups[meetingId] = [];
+      }
+      groups[meetingId].push(record);
+    });
+    return groups;
+  }, [records]);
 
-  const presentCount = filteredRecords.filter((r) => r.status === 'PRESENT').length;
-  const absentCount = filteredRecords.filter((r) => r.status === 'ABSENT').length;
-  const excusedCount = filteredRecords.filter((r) => r.status === 'EXCUSED').length;
+  // Sort meetings by date (newest first)
+  const sortedMeetings = useMemo(() => {
+    return [...meetings].sort((a, b) => {
+      return new Date(b.meetingDate).getTime() - new Date(a.meetingDate).getTime();
+    });
+  }, [meetings]);
+
+  const totalPresent = records.filter((r) => r.status === 'PRESENT').length;
+  const totalAbsent = records.filter((r) => r.status === 'ABSENT').length;
+  const totalExcused = records.filter((r) => r.status === 'EXCUSED').length;
 
   return (
     <div>
@@ -202,86 +222,149 @@ export default function AttendancePage() {
               <p className="text-xs text-slate-500 mt-1">Total Meetings</p>
             </div>
             <div className="bg-white rounded-xl border p-4 text-center">
-              <p className="text-2xl font-bold text-emerald-600">{presentCount}</p>
+              <p className="text-2xl font-bold text-emerald-600">{totalPresent}</p>
               <p className="text-xs text-slate-500 mt-1">Present</p>
             </div>
             <div className="bg-white rounded-xl border p-4 text-center">
-              <p className="text-2xl font-bold text-red-500">{absentCount}</p>
+              <p className="text-2xl font-bold text-red-500">{totalAbsent}</p>
               <p className="text-xs text-slate-500 mt-1">Absent</p>
             </div>
             <div className="bg-white rounded-xl border p-4 text-center">
-              <p className="text-2xl font-bold text-amber-500">{excusedCount}</p>
+              <p className="text-2xl font-bold text-amber-500">{totalExcused}</p>
               <p className="text-xs text-slate-500 mt-1">Excused</p>
             </div>
           </div>
 
-          {/* Meetings list */}
-          <div className="grid md:grid-cols-3 gap-4 mb-8">
-            {meetings.map((m) => (
-              <div key={m.id} className="bg-white border rounded-xl p-4 flex justify-between items-start">
-                <div>
-                  <h3 className="font-semibold text-sm">{m.title}</h3>
-                  <p className="text-xs text-slate-500">{new Date(m.meetingDate).toLocaleDateString()}{m.meetingTime ? ` · ${m.meetingTime}` : ''}</p>
-                  {m.location && <p className="text-xs text-slate-400">{m.location}</p>}
-                </div>
-                {isAdmin && (
-                  <div className="flex gap-1 ml-2">
-                    <button onClick={() => openEditMeeting(m)} className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-500"><Pencil size={13} /></button>
-                    <button onClick={() => setDeleteTarget({ type: 'meeting', id: m.id, label: m.title })} className="p-1.5 rounded-lg hover:bg-red-50 text-red-400"><Trash2 size={13} /></button>
-                  </div>
-                )}
+          {/* Collapsible Attendance Records by Meeting */}
+          <div className="space-y-4">
+            {sortedMeetings.length === 0 ? (
+              <div className="bg-white rounded-xl border p-10 text-center text-slate-400">
+                <Users size={40} className="mx-auto mb-3 opacity-40" />
+                <p className="text-sm">No meetings scheduled yet.</p>
               </div>
-            ))}
-          </div>
+            ) : sortedMeetings.map((meeting) => {
+              const meetingRecords = groupedRecords[meeting.id] || [];
+              const isCollapsed = collapsedMeetings[meeting.id];
+              const present = meetingRecords.filter(r => r.status === 'PRESENT').length;
+              const absent = meetingRecords.filter(r => r.status === 'ABSENT').length;
+              const excused = meetingRecords.filter(r => r.status === 'EXCUSED').length;
+              const total = meetingRecords.length;
 
-          {/* Attendance records table */}
-          <div className="bg-white rounded-xl border overflow-hidden">
-            <div className="px-6 py-4 border-b flex items-center justify-between">
-              <h3 className="font-semibold text-sm text-slate-700 flex items-center gap-2">
-                <Users size={15} /> Attendance Records
-              </h3>
-              <select
-                className="border rounded-lg px-3 py-1.5 text-xs text-slate-600"
-                value={filterMeeting}
-                onChange={(e) => setFilterMeeting(e.target.value)}
-              >
-                <option value="">All meetings</option>
-                {meetings.map((m) => (
-                  <option key={m.id} value={m.id}>{m.title} · {new Date(m.meetingDate).toLocaleDateString()}</option>
-                ))}
-              </select>
-            </div>
-            <table className="w-full">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Member</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Meeting</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Remarks</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y">
-                {filteredRecords.length === 0 ? (
-                  <tr><td colSpan={6} className="px-6 py-10 text-center text-sm text-slate-400">No attendance records found.</td></tr>
-                ) : filteredRecords.map((r) => (
-                  <tr key={r.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-3 text-sm font-medium">{r.member.fullName}</td>
-                    <td className="px-6 py-3 text-sm text-slate-600">{r.meeting.title}</td>
-                    <td className="px-6 py-3 text-sm text-slate-500">{new Date(r.meeting.meetingDate).toLocaleDateString()}</td>
-                    <td className="px-6 py-3"><Badge status={r.status} /></td>
-                    <td className="px-6 py-3 text-xs text-slate-400">{r.remarks || '—'}</td>
-                    <td className="px-6 py-3 flex gap-1">
-                      <button onClick={() => openEditRecord(r)} className="px-2.5 py-1 rounded-lg border text-xs flex items-center gap-1 hover:bg-slate-50"><Pencil size={11} />Edit</button>
-                      {isAdmin && (
-                        <button onClick={() => setDeleteTarget({ type: 'attendance', id: r.id, label: `${r.member.fullName} - ${r.meeting.title}` })} className="px-2.5 py-1 rounded-lg border border-red-100 text-red-500 text-xs hover:bg-red-50"><Trash2 size={11} /></button>
+              return (
+                <div key={meeting.id} className="bg-white rounded-xl border overflow-hidden">
+                  {/* Meeting Header (Collapsible) */}
+                  <div
+                    className="px-6 py-4 bg-slate-100 hover:bg-slate-200 cursor-pointer flex items-center justify-between"
+                    onClick={() => toggleMeeting(meeting.id)}
+                  >
+                    <div className="flex items-center gap-3 flex-1">
+                      {isCollapsed ? (
+                        <ChevronRight size={18} className="text-slate-600" />
+                      ) : (
+                        <ChevronDown size={18} className="text-slate-600" />
                       )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                      <div>
+                        <h3 className="font-semibold text-sm text-slate-800">{meeting.title}</h3>
+                        <p className="text-xs text-slate-500">
+                          {new Date(meeting.meetingDate).toLocaleDateString()}
+                          {meeting.meetingTime && ` · ${meeting.meetingTime}`}
+                          {meeting.location && ` · ${meeting.location}`}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <div className="text-right">
+                        <p className="text-lg font-bold text-slate-800">{total}</p>
+                        <p className="text-xs text-slate-500">Records</p>
+                      </div>
+                      <div className="flex gap-2">
+                        {present > 0 && (
+                          <span className="px-2 py-1 rounded-full bg-emerald-100 text-emerald-700 text-xs font-semibold">
+                            {present} Present
+                          </span>
+                        )}
+                        {absent > 0 && (
+                          <span className="px-2 py-1 rounded-full bg-red-100 text-red-700 text-xs font-semibold">
+                            {absent} Absent
+                          </span>
+                        )}
+                        {excused > 0 && (
+                          <span className="px-2 py-1 rounded-full bg-amber-100 text-amber-700 text-xs font-semibold">
+                            {excused} Excused
+                          </span>
+                        )}
+                      </div>
+                      {isAdmin && (
+                        <div className="flex gap-1 ml-2" onClick={(e) => e.stopPropagation()}>
+                          <button 
+                            onClick={() => openEditMeeting(meeting)} 
+                            className="p-1.5 rounded-lg hover:bg-slate-300 text-slate-600"
+                            title="Edit meeting"
+                          >
+                            <Pencil size={14} />
+                          </button>
+                          <button 
+                            onClick={() => setDeleteTarget({ type: 'meeting', id: meeting.id, label: meeting.title })} 
+                            className="p-1.5 rounded-lg hover:bg-red-100 text-red-500"
+                            title="Delete meeting"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Meeting Attendance Records (Show/Hide based on collapse state) */}
+                  {!isCollapsed && (
+                    <table className="w-full">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Member</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Remarks</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y">
+                        {meetingRecords.length === 0 ? (
+                          <tr>
+                            <td colSpan={4} className="px-6 py-10 text-center text-sm text-slate-400">
+                              No attendance recorded for this meeting.
+                            </td>
+                          </tr>
+                        ) : meetingRecords.map((r) => (
+                          <tr key={r.id} className="hover:bg-gray-50">
+                            <td className="px-6 py-3">
+                              <p className="text-sm font-medium text-slate-800">{r.member.fullName}</p>
+                              <p className="text-xs text-slate-400">#{r.member.memberId}</p>
+                            </td>
+                            <td className="px-6 py-3"><Badge status={r.status} /></td>
+                            <td className="px-6 py-3 text-xs text-slate-400">{r.remarks || '—'}</td>
+                            <td className="px-6 py-3 flex gap-1">
+                              <button 
+                                onClick={() => openEditRecord(r)} 
+                                className="px-2.5 py-1 rounded-lg border text-xs flex items-center gap-1 hover:bg-slate-50"
+                              >
+                                <Pencil size={11} />Edit
+                              </button>
+                              {isAdmin && (
+                                <button 
+                                  onClick={() => setDeleteTarget({ type: 'attendance', id: r.id, label: `${r.member.fullName} - ${meeting.title}` })} 
+                                  className="px-2.5 py-1 rounded-lg border border-red-100 text-red-500 text-xs hover:bg-red-50"
+                                >
+                                  <Trash2 size={11} />
+                                </button>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </>
       )}

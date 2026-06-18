@@ -91,7 +91,7 @@ export default function Layout({ children }: LayoutProps) {
 
         {/* Nav */}
         <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
-          {navItems.map(({ to, icon: Icon, labelKey, label }) => (
+          {navItems.map(({ to, icon: Icon, labelKey }) => (
             <NavLink
               key={to}
               to={to}
@@ -107,7 +107,7 @@ export default function Layout({ children }: LayoutProps) {
               {({ isActive }) => (
                 <>
                   <Icon size={17} className={isActive ? 'text-green-400' : 'text-slate-500 group-hover:text-slate-300'} />
-                  <span className="flex-1">{label ? label : t(labelKey)}</span>
+                  <span className="flex-1">{t(labelKey)}</span>
                   {isActive && <ChevronRight size={14} className="text-green-400 opacity-60" />}
                 </>
               )}
