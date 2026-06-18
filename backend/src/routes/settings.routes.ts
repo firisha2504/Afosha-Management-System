@@ -242,15 +242,22 @@ router.get('/reports/:type', authenticate, authorize('ADMIN', 'AUDITOR'), async 
       break;
     }
     case 'contributions':
-      data = await prisma.payment.findMany({
+      // Only show weekly contribution payments (exclude penalty payments)
+      const allPayments = await prisma.payment.findMany({
         where: { paymentDate: dateFilter, status: 'VERIFIED' },
         include: { member: { select: { fullName: true, memberId: true } } },
         orderBy: { paymentDate: 'desc' },
       });
+      // Filter out penalty payments (those with "penalty" in notes)
+      data = allPayments.filter(p => !p.notes?.toLowerCase().includes('penalty'));
       break;
     case 'penalties':
+      // Only show SETTLED penalties (actually paid penalties) in the report
       data = await prisma.penalty.findMany({
-        where: { createdAt: dateFilter },
+        where: { 
+          createdAt: dateFilter,
+          status: 'SETTLED', // Only show paid penalties
+        },
         include: { member: { select: { fullName: true, memberId: true } } },
         orderBy: { createdAt: 'desc' },
       });
@@ -340,11 +347,13 @@ router.get('/reports/:type/export', authenticate, authorize('ADMIN', 'AUDITOR'),
 
   switch (type) {
     case 'contributions': {
-      const payments = await prisma.payment.findMany({
+      const allPayments = await prisma.payment.findMany({
         where: { paymentDate: dateFilter, status: 'VERIFIED' },
         include: { member: { select: { fullName: true, memberId: true } } },
         orderBy: { paymentDate: 'desc' },
       });
+      // Filter out penalty payments
+      const payments = allPayments.filter(p => !p.notes?.toLowerCase().includes('penalty'));
       exportConfig = {
         title: t(lang, 'reports.titleContributions'),
         pdfHeaders: [

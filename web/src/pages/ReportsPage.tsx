@@ -105,7 +105,12 @@ function ContributionsTableFull({ data }: { data: Payment[] }) {
       <p className="text-sm">No records found for the selected period.</p>
     </div>
   );
-  const total = data.reduce((s, p) => s + Number(p.amount), 0);
+  // Calculate total - ensure all amounts are properly converted to numbers
+  const total = data.reduce((sum, payment) => {
+    const amount = Number(payment.amount) || 0;
+    return sum + amount;
+  }, 0);
+  
   return (
     <>
       <div className="overflow-x-auto">
@@ -132,7 +137,9 @@ function ContributionsTableFull({ data }: { data: Payment[] }) {
           </tbody>
           <tfoot>
             <tr className="bg-green-50 border-t-2 border-green-200">
-              <td colSpan={3} className="px-4 py-3 font-semibold text-gray-700">Total</td>
+              <td colSpan={3} className="px-4 py-3 font-semibold text-gray-700">
+                Total ({data.length} records found)
+              </td>
               <td className="px-4 py-3 font-bold text-green-700">{total.toLocaleString()}</td>
               <td colSpan={3} />
             </tr>

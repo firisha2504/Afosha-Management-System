@@ -201,10 +201,10 @@ router.get('/charts', authenticate, authorize('ADMIN'), async (req: AuthRequest,
     const start = new Date(d.getFullYear(), d.getMonth(), 1);
     const end = new Date(d.getFullYear(), d.getMonth() + 1, 0);
 
-    const [contributions, penalties] = await Promise.all([
-      prisma.payment.aggregate({
+    const [allPayments, penalties] = await Promise.all([
+      prisma.payment.findMany({
         where: { paymentDate: { gte: start, lte: end }, status: 'VERIFIED' },
-        _sum: { amount: true },
+        select: { amount: true, notes: true },
       }),
       prisma.penalty.aggregate({
         where: { createdAt: { gte: start, lte: end } },
@@ -212,9 +212,13 @@ router.get('/charts', authenticate, authorize('ADMIN'), async (req: AuthRequest,
       }),
     ]);
 
+    // Filter out penalty payments from contributions
+    const weeklyPayments = allPayments.filter(p => !p.notes?.toLowerCase().includes('penalty'));
+    const contributionsTotal = weeklyPayments.reduce((sum, p) => sum + Number(p.amount), 0);
+
     months.push({
       month: start.toLocaleString('en', { month: 'short' }),
-      contributions: Number(contributions._sum.amount || 0),
+      contributions: contributionsTotal,
       penalties: Number(penalties._sum.amount || 0),
     });
   }
