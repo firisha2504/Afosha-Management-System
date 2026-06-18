@@ -1,0 +1,10 @@
+{
+  "@@locale": "en",
+  "appTitle": "Afosha Management System",
+  "login": "Login",
+  "dashboard": "Dashboard",
+  "profile": "Profile",
+  "contributions": "Contributions",
+  "notifications": "Notifications",
+  "logout": "Logout"
+}

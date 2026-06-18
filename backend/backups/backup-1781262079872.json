@@ -1,0 +1,235 @@
+{
+  "timestamp": "2026-06-12T11:01:19.872Z",
+  "members": [
+    {
+      "id": "f4e2fdf3-5f94-4c10-894f-a4281cc7e707",
+      "memberId": "AF20264861",
+      "userId": "f22ee451-93ff-4a8a-86c9-8c8d6b31a675",
+      "fullName": "Firo",
+      "gender": "MALE",
+      "dateOfBirth": "2026-06-11T00:00:00.000Z",
+      "address": "dire dawa",
+      "occupation": "developer",
+      "profilePicture": "/uploads/1781174227238-339427392.jpg",
+      "registrationDate": "2026-06-11T05:49:00.126Z",
+      "status": "APPROVED",
+      "rejectionReason": null,
+      "totalSavings": "0",
+      "totalCredit": "0",
+      "outstandingBalance": "0",
+      "createdAt": "2026-06-11T05:49:00.126Z",
+      "updatedAt": "2026-06-12T09:23:31.513Z"
+    },
+    {
+      "id": "730c360e-aa22-4c41-9ac0-2cff8c3002cd",
+      "memberId": "AF20265256",
+      "userId": "c9622529-cf6c-468a-be2b-5c32188e1e46",
+      "fullName": "cala",
+      "gender": "MALE",
+      "dateOfBirth": "2026-06-11T00:00:00.000Z",
+      "address": "DD",
+      "occupation": "student",
+      "profilePicture": null,
+      "registrationDate": "2026-06-11T20:10:02.912Z",
+      "status": "APPROVED",
+      "rejectionReason": null,
+      "totalSavings": "0",
+      "totalCredit": "0",
+      "outstandingBalance": "0",
+      "createdAt": "2026-06-11T20:10:02.912Z",
+      "updatedAt": "2026-06-12T09:41:41.832Z"
+    },
+    {
+      "id": "70cbad44-d9d5-45e5-8bf3-59e1de2d6890",
+      "memberId": "AF20262671",
+      "userId": "03327625-e0a0-47ba-b75b-9c21f3a337f5",
+      "fullName": "ABCD",
+      "gender": "MALE",
+      "dateOfBirth": "2026-06-10T00:00:00.000Z",
+      "address": "DD",
+      "occupation": "Student",
+      "profilePicture": "/uploads/1781260225604-675005962.jpg",
+      "registrationDate": "2026-06-11T20:07:42.972Z",
+      "status": "APPROVED",
+      "rejectionReason": null,
+      "totalSavings": "0",
+      "totalCredit": "0",
+      "outstandingBalance": "0",
+      "createdAt": "2026-06-11T20:07:42.972Z",
+      "updatedAt": "2026-06-12T10:30:25.632Z"
+    }
+  ],
+  "payments": [
+    {
+      "id": "31ca693c-858a-48a2-a87f-d844eff33ad5",
+      "paymentId": "PAY-1781208951696-229",
+      "memberId": "70cbad44-d9d5-45e5-8bf3-59e1de2d6890",
+      "obligationId": null,
+      "specialContributionObligationId": null,
+      "amount": "0",
+      "paymentDate": "2026-06-11T00:00:00.000Z",
+      "paymentMethod": "CASH",
+      "transactionReference": null,
+      "status": "PENDING",
+      "recordedById": "a0596129-9ebb-497a-b6c0-cc7f803979ec",
+      "verifiedById": null,
+      "verifiedAt": null,
+      "receiptNumber": "RCP-1781208951696-8023",
+      "notes": null,
+      "createdAt": "2026-06-11T20:15:51.699Z",
+      "updatedAt": "2026-06-12T06:49:53.018Z"
+    },
+    {
+      "id": "83963af2-b93d-442e-bac9-23dc7bd44a1a",
+      "paymentId": "PAY-1781249428875-820",
+      "memberId": "f4e2fdf3-5f94-4c10-894f-a4281cc7e707",
+      "obligationId": "002f19eb-c4bd-4d56-901b-d62cf5f9e823",
+      "specialContributionObligationId": null,
+      "amount": "50",
+      "paymentDate": "2026-06-12T07:30:29.066Z",
+      "paymentMethod": "CASH",
+      "transactionReference": null,
+      "status": "VERIFIED",
+      "recordedById": "a0596129-9ebb-497a-b6c0-cc7f803979ec",
+      "verifiedById": "a0596129-9ebb-497a-b6c0-cc7f803979ec",
+      "verifiedAt": "2026-06-12T07:30:28.875Z",
+      "receiptNumber": "RCP-1781249428875-1686",
+      "notes": null,
+      "createdAt": "2026-06-12T07:30:29.066Z",
+      "updatedAt": "2026-06-12T07:30:29.066Z"
+    },
+    {
+      "id": "e48a2101-2ed0-4ccc-ad4a-f6c3328fe755",
+      "paymentId": "PAY-1781249429233-702",
+      "memberId": "730c360e-aa22-4c41-9ac0-2cff8c3002cd",
+      "obligationId": "a0c75ecb-ae2b-4680-8d69-5b1115724bd1",
+      "specialContributionObligationId": null,
+      "amount": "50",
+      "paymentDate": "2026-06-12T07:30:29.239Z",
+      "paymentMethod": "CASH",
+      "transactionReference": null,
+      "status": "VERIFIED",
+      "recordedById": "a0596129-9ebb-497a-b6c0-cc7f803979ec",
+      "verifiedById": "a0596129-9ebb-497a-b6c0-cc7f803979ec",
+      "verifiedAt": "2026-06-12T07:30:29.233Z",
+      "receiptNumber": "RCP-1781249429233-857",
+      "notes": null,
+      "createdAt": "2026-06-12T07:30:29.239Z",
+      "updatedAt": "2026-06-12T07:30:29.239Z"
+    }
+  ],
+  "settings": [
+    {
+      "id": "d6c35c4f-73be-49b7-a912-efba07d047bd",
+      "key": "organization_name",
+      "value": "Afosha",
+      "label": "Organization Name",
+      "labelOm": "Maqaa Dhaabbataa",
+      "updatedAt": "2026-06-12T11:01:11.256Z"
+    },
+    {
+      "id": "b5c751fb-382c-4745-80a6-6cb491a24d93",
+      "key": "graduation_contribution",
+      "value": "100",
+      "label": "Graduation Contribution Amount",
+      "labelOm": "Hanga Kaffaltii Eebbifamuu",
+      "updatedAt": "2026-06-12T11:01:11.256Z"
+    },
+    {
+      "id": "737464de-d308-4cb6-b704-50ac8de549e1",
+      "key": "bereavement_contribution",
+      "value": "100",
+      "label": "Bereavement Contribution Amount",
+      "labelOm": "Hanga Kaffaltii Du'aa",
+      "updatedAt": "2026-06-12T11:01:11.256Z"
+    },
+    {
+      "id": "6a93d94e-67d3-422b-8567-62563871c522",
+      "key": "sms_template_meeting_reminder_en",
+      "value": "Reminder: A meeting is scheduled on {meetingDate}. Your attendance is required.",
+      "label": "SMS Meeting Reminder (English)",
+      "labelOm": "Ergaa SMS Yaadachiisa Walgahii (Ingliffa)",
+      "updatedAt": "2026-06-12T11:01:11.257Z"
+    },
+    {
+      "id": "b7015f81-1fc2-4e58-9b3e-2bf038e0635b",
+      "key": "organization_motto",
+      "value": "Tokkummaan Ciminaa fi Milkaayina",
+      "label": "Motto",
+      "labelOm": "Mata Duree",
+      "updatedAt": "2026-06-12T11:01:11.256Z"
+    },
+    {
+      "id": "f89bca57-1638-46c5-ac88-e198a2f66660",
+      "key": "meeting_day",
+      "value": "6",
+      "label": "Meeting Day (0=Sun, 6=Sat)",
+      "labelOm": "Guyyaa Walga'ii",
+      "updatedAt": "2026-06-12T11:01:11.256Z"
+    },
+    {
+      "id": "9e616bee-54e4-493a-ad37-e66007d51002",
+      "key": "monthly_penalty",
+      "value": "100",
+      "label": "Monthly Penalty Amount",
+      "labelOm": "Hanga Adabbii Ji'aati",
+      "updatedAt": "2026-06-12T11:01:11.256Z"
+    },
+    {
+      "id": "1b32d746-ccd9-4506-b135-26623c4342f2",
+      "key": "sms_template_meeting_reminder_om",
+      "value": "Yaadachiisa: Walgahiin guyyaa {meetingDate} qophaa'eera. Hirmaachuu dirqama.",
+      "label": "SMS Meeting Reminder (Afan Oromo)",
+      "labelOm": "Ergaa SMS Yaadachiisa Walgahii (Afaan Oromoo)",
+      "updatedAt": "2026-06-12T11:01:11.257Z"
+    },
+    {
+      "id": "a2dad439-067d-4434-a5ca-7e59a012a30b",
+      "key": "organization_name_om",
+      "value": "Afosha",
+      "label": "Organization Name (Oromo)",
+      "labelOm": "Maqaa Dhaabbataa (Afaan Oromoo)",
+      "updatedAt": "2026-06-12T11:01:11.256Z"
+    },
+    {
+      "id": "de49ea01-c7b8-4252-89f9-f7984617102c",
+      "key": "sms_template_payment_reminder_om",
+      "value": "Yaadachiisa: Gumaata tiyya Birr {amount} kaffalamuu qaba. Guyyaa {dueDate} dura kaffali.",
+      "label": "SMS Payment Reminder (Afan Oromo)",
+      "labelOm": "Ergaa SMS Yaadachiisa Kaffaltii (Afaan Oromoo)",
+      "updatedAt": "2026-06-12T11:01:11.257Z"
+    },
+    {
+      "id": "6a208ddf-1912-4ff3-8bfd-895a14197afa",
+      "key": "sms_template_payment_reminder_en",
+      "value": "Reminder: Your weekly contribution of Birr {amount} is unpaid. Please pay before {dueDate}.",
+      "label": "SMS Payment Reminder (English)",
+      "labelOm": "Ergaa SMS Yaadachiisa Kaffaltii (Ingliffa)",
+      "updatedAt": "2026-06-12T11:01:11.257Z"
+    },
+    {
+      "id": "885ea8d1-b791-403f-8512-f9550bbf11ef",
+      "key": "weekly_contribution",
+      "value": "50",
+      "label": "Weekly Contribution Amount",
+      "labelOm": "Hanga Kaffaltii Torbanii",
+      "updatedAt": "2026-06-12T11:01:11.257Z"
+    },
+    {
+      "id": "35ffc549-5204-473f-a15e-73a342b066a7",
+      "key": "weekly_penalty",
+      "value": "50",
+      "label": "Weekly Penalty Amount",
+      "labelOm": "Hanga Adabbii Torbanii",
+      "updatedAt": "2026-06-12T11:01:11.257Z"
+    },
+    {
+      "id": "b514a9a8-679f-4be4-a595-e8cece0a1a1a",
+      "key": "user_avatar_a0596129-9ebb-497a-b6c0-cc7f803979ec",
+      "value": "/uploads/1781184350260-770548382.png",
+      "label": "User Avatar",
+      "labelOm": null,
+      "updatedAt": "2026-06-12T11:01:11.257Z"
+    }
+  ]
+}
