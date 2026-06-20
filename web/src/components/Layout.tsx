@@ -25,6 +25,7 @@ const adminNav = [
   { to: '/history', icon: History, labelKey: 'nav.history' },
   { to: '/audit-logs', icon: Shield, labelKey: 'nav.auditLogs' },
   { to: '/settings', icon: Settings, labelKey: 'nav.settings' },
+  { to: '/public-content', icon: Globe, labelKey: 'Public Content' },
   { to: '/backup', icon: Database, labelKey: 'nav.backup' },
   { to: '/profile', icon: UserCircle, labelKey: 'nav.profile' },
 ];
