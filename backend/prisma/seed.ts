@@ -97,43 +97,43 @@ async function main() {
     },
     {
       slug: 'heera-danbii',
-      title: 'Heera fi Danbii',
+      title: 'Rules & Regulations',
       titleOm: 'Heera fi Danbii',
-      content: `Bu'uura akka Heera mootummaa dimokraatawaa rippaabilika Itoophiyaa keewwata (FDRE) 31 jalatti eerameen "namni kamiyyuu haala seera biyyattii, aadaa fi duudhaa hawaasaa hin faallessinen kaayyoo ykn sababa fedheef gurmaa'uu ykn gamtaadhaan ijaaramuu mirga qaba".
+      content: `Based on the Federal Democratic Republic of Ethiopia (FDRE) Constitution Article 31, which states: "Every person has the right to freedom of association for any cause or purpose, in accordance with the law, culture, and traditions of society."
 
-Kanaafuu Gamtaan dargaggoota melka jabdu qaxaa araati bu'uura heera kanaatin gamtaa seera qabeessa ta'e seera biyyatti bu'uura godhachuun, akkasumaas aadaa fi duudhaa ummataa haala hin faalleessineen fuulbana 1/1/2017 akka lakk. Itoophiyaatti hundaa'eera.
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-KAAYYOO, QAJEELTOO BU'UURAA, HAALA HIRMANNAA, MIRGA FI DIRQAMOOTA MISEENSOOTA GAMTICHAA
+Therefore, the Gamtaa Dargaggoota Melka Jabdu (Youth Association of Melka Jabdu) was established on January 1, 2017 (Ethiopian Calendar), based on this constitutional provision as a legally recognized association, founded on national law and respecting the culture and traditions of the people.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Kaayyoo Ijoo Gamtichaa
-
-Gamtaan dargaggoo melka jabdu Kaayyoo armaan gadii ni qabaatu:
-
-1. Dargaggoon akka waliin jiraatan walbarsiisuu, ijaaruu fi akka walgargaaran taasisuu.
-
-2. Walitti dhufeenya dargaggoo Tokkummaa fi Hawaasummaa jajjabeessuu.
-
-3. Waan xiqqoo qaban walitti fiduudhaan, dargaggoo balaan uumamaa fi nam-tolcheen irra dhaqqabe gargaaruu.
-
-4. Hawaasaf deeggarsa namuumma kennuun hawaasni keenya akka walitti dhufeenya gaarii uumaan godhuu/taasisu.
-
-5. Yeroo rakkoos (gaddaa) ta'ee balloos (gammachuu) wal-cinaa dhaabbachuu.
-
-6. Safuu fi duudhaa Kutaa irraa dhufnee akka hin cabsine eeguu fi wal kabachiisuu.
-
-7. Aadaa, duudhaa fi hawaasummaan gaariin jidduu akka jiraatu godhu.
-
-8. Dhaloota wal gargaarsa aadeeffate, jaalalaa fi quuqama namummaa qabu oomishu.
-
-9. Aadaa fi amantaa ofii waliif kajuu — keessumattuu Qabxii 1ffaa fi 9 caalmaatti irratti xiyyeeffannee kan hoojjannu amma.
+OBJECTIVES, FUNDAMENTAL PRINCIPLES, MEMBERSHIP CONDITIONS, RIGHTS AND RESPONSIBILITIES OF MEMBERS
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-#Tokkummaan Ciminaa fi Milkaayina`,
+Core Objectives of the Association
+
+The Gamtaa Dargaggoota Melka Jabdu has the following objectives:
+
+1. To educate, build, and enable young people to live together and support one another.
+
+2. To strengthen the unity and solidarity of young people.
+
+3. To assist young people affected by natural or man-made disasters by pooling small resources together.
+
+4. To provide humanitarian support to the community and create positive community relationships.
+
+5. To stand by each other in times of sorrow (grief) and joy (celebration).
+
+6. To respect and uphold the culture and traditions we inherited from our ancestors.
+
+7. To promote good culture, tradition, and communal living.
+
+8. To create a generation that embraces mutual support, love, and human compassion.
+
+9. To respect each other's culture and beliefs — currently focusing primarily on objectives 1 and 9.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+#Unity is Strength and Success`,
       contentOm: `Bu'uura akka Heera mootummaa dimokraatawaa rippaabilika Itoophiyaa keewwata (FDRE) 31 jalatti eerameen "namni kamiyyuu haala seera biyyattii, aadaa fi duudhaa hawaasaa hin faallessinen kaayyoo ykn sababa fedheef gurmaa'uu ykn gamtaadhaan ijaaramuu mirga qaba".
 
 Kanaafuu Gamtaan dargaggoota melka jabdu qaxaa araati bu'uura heera kanaatin gamtaa seera qabeessa ta'e seera biyyatti bu'uura godhachuun, akkasumaas aadaa fi duudhaa ummataa haala hin faalleessineen fuulbana 1/1/2017 akka lakk. Itoophiyaatti hundaa'eera.
