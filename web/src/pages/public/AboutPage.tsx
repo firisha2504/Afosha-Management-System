@@ -113,7 +113,7 @@ export default function AboutPage() {
                       {isOm ? 'Moto Keenya' : 'Our Motto'}
                     </p>
                     <p className="text-lg font-bold italic" style={{ color: '#14532d' }}>
-                      "Tokkummaan Ciminaa fi Milkaayina"
+                      {isOm ? '"Tokkummaan Ciminaa fi Milkaayina"' : '"Unity is Strength and Success"'}
                     </p>
                   </div>
                 )}
