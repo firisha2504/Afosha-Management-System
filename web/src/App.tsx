@@ -21,6 +21,7 @@ import HistoryPage from './pages/HistoryPage';
 import PublicHomePage from './pages/public/PublicHomePage';
 import AboutPage from './pages/public/AboutPage';
 import ProfilePage from './pages/ProfilePage';
+import PublicContentPage from './pages/PublicContentPage';
 import './i18n';
 
 function App() {
@@ -47,6 +48,7 @@ function App() {
             <Route path="/audit-logs" element={<AuditLogsPage />} />
             <Route path="/history" element={<HistoryPage />} />
             <Route path="/settings" element={<SettingsPage />} />
+            <Route path="/public-content" element={<PublicContentPage />} />
             <Route path="/backup" element={<BackupPage />} />
             <Route path="/profile" element={<ProfilePage />} />
           </Route>

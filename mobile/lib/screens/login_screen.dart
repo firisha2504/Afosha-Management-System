@@ -36,11 +36,12 @@ class _LoginScreenState extends State<LoginScreen> {
 
     return Scaffold(
       body: SafeArea(
-        child: Padding(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              const SizedBox(height: 40),
               Container(
                 width: 80,
                 height: 80,
@@ -115,7 +116,29 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               if (_error != null) ...[
                 const SizedBox(height: 12),
-                Text(_error!, style: const TextStyle(color: Colors.red)),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.red.shade50,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.red.shade200),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.error_outline, color: Colors.red.shade700, size: 20),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          _getErrorMessage(_error!),
+                          style: TextStyle(
+                            color: Colors.red.shade700,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ],
               const SizedBox(height: 24),
               SizedBox(
@@ -127,7 +150,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ? const SizedBox(
                           width: 24,
                           height: 24,
-                          child: CircularProgressIndicator(strokeWidth: 2),
+                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                         )
                       : Text(locale.locale.languageCode == 'om' ? 'Seeni' : 'Login'),
                 ),
@@ -139,10 +162,32 @@ class _LoginScreenState extends State<LoginScreen> {
                   locale.locale.languageCode == 'om' ? 'English' : 'Afaan Oromoo',
                 ),
               ),
+              const SizedBox(height: 40),
             ],
           ),
         ),
       ),
     );
+  }
+
+  String _getErrorMessage(String error) {
+    // Convert technical errors to user-friendly messages
+    if (error.contains('SocketException') || error.contains('Connection timed out')) {
+      return context.read<LocaleProvider>().locale.languageCode == 'om'
+          ? 'Walitti dhufeenya interneetii mirkaneessi'
+          : 'Check your internet connection';
+    } else if (error.contains('Invalid') || error.contains('credentials')) {
+      return context.read<LocaleProvider>().locale.languageCode == 'om'
+          ? 'Lakkoofsa bilbilaa ykn jecha iccitii dogoggora'
+          : 'Invalid phone number or password';
+    } else if (error.contains('timeout')) {
+      return context.read<LocaleProvider>().locale.languageCode == 'om'
+          ? 'Yeroon isaanii darbeera. Irra deebi\'i yaali'
+          : 'Connection timeout. Please try again';
+    } else {
+      return context.read<LocaleProvider>().locale.languageCode == 'om'
+          ? 'Dogongorri uumame. Irra deebi\'i yaali'
+          : 'An error occurred. Please try again';
+    }
   }
 }

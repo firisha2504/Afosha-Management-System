@@ -20,23 +20,6 @@ export default function PublicLayout({ children }: PublicLayoutProps) {
   return (
     <div className="min-h-screen flex flex-col" style={{ background: '#f8faf8' }}>
 
-      {/* ── Top bar ── */}
-      <div style={{ background: '#14532d' }} className="text-white text-xs py-2">
-        <div className="max-w-6xl mx-auto px-4 flex items-center justify-between">
-          <span style={{ color: '#86efac' }}>
-            {isOm ? 'Tokkummaan Ciminaa fi Milkaayina' : 'Unity is Strength and Success'}
-          </span>
-          <div className="flex items-center gap-4">
-            <span className="flex items-center gap-1" style={{ color: '#86efac' }}>
-              <Phone size={11} /> +251 900 000 000
-            </span>
-            <span className="flex items-center gap-1" style={{ color: '#86efac' }}>
-              <Mail size={11} /> info@afosha.org
-            </span>
-          </div>
-        </div>
-      </div>
-
       {/* ── Main navbar ── */}
       <header className="sticky top-0 z-50 shadow-md"
         style={{ background: 'linear-gradient(135deg, #166534 0%, #15803d 100%)' }}>
