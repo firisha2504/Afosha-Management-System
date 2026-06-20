@@ -25,36 +25,67 @@ echo Removing com.afosha.ams_mobile...
 adb uninstall com.afosha.ams_mobile 2>nul
 echo Removing com.example.ams_mobile...
 adb uninstall com.example.ams_mobile 2>nul
+echo Done.
 echo.
 timeout /t 2 /nobreak >nul
 
 echo [Step 2/6] Cleaning build cache...
 echo ------------------------------------------------------------------------
-flutter clean
+call flutter clean
+if %ERRORLEVEL% NEQ 0 (
+    echo ERROR: Flutter clean failed!
+    pause
+    exit /b 1
+)
+echo Done.
 echo.
 timeout /t 2 /nobreak >nul
 
 echo [Step 3/6] Getting dependencies...
 echo ------------------------------------------------------------------------
-flutter pub get
+call flutter pub get
+if %ERRORLEVEL% NEQ 0 (
+    echo ERROR: Flutter pub get failed!
+    pause
+    exit /b 1
+)
+echo Done.
 echo.
 timeout /t 2 /nobreak >nul
 
 echo [Step 4/6] Generating app icons (Green "A" logo)...
 echo ------------------------------------------------------------------------
-flutter pub run flutter_launcher_icons
+call flutter pub run flutter_launcher_icons
+if %ERRORLEVEL% NEQ 0 (
+    echo ERROR: Icon generation failed!
+    pause
+    exit /b 1
+)
+echo Done.
 echo.
 timeout /t 2 /nobreak >nul
 
 echo [Step 5/6] Building release APK...
 echo ------------------------------------------------------------------------
-flutter build apk --release
+call flutter build apk --release
+if %ERRORLEVEL% NEQ 0 (
+    echo ERROR: Build failed!
+    pause
+    exit /b 1
+)
+echo Done.
 echo.
 timeout /t 2 /nobreak >nul
 
 echo [Step 6/6] Installing on your phone...
 echo ------------------------------------------------------------------------
-adb install build\app\outputs\flutter-apk\app-release.apk
+call adb install build\app\outputs\flutter-apk\app-release.apk
+if %ERRORLEVEL% NEQ 0 (
+    echo ERROR: Installation failed! Is your phone connected?
+    pause
+    exit /b 1
+)
+echo Done.
 echo.
 
 echo ========================================================================

@@ -190,3 +190,4 @@ class _LoginScreenState extends State<LoginScreen> {
           : 'An error occurred. Please try again';
     }
   }
+}
