@@ -83,7 +83,7 @@ export function startScheduledJobs(): void {
       console.log(`[Cron] Found ${unpaidObligations.length} unpaid obligations`);
       
       // Get penalty settings
-      const penaltySetting = await prisma.setting.findUnique({
+      const penaltySetting = await prisma.systemSetting.findUnique({
         where: { key: 'weekly_penalty' },
       });
       const penaltyAmount = penaltySetting ? parseFloat(penaltySetting.value) : 50;

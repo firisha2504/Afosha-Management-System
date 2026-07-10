@@ -503,65 +503,8 @@ router.post('/attendance', authenticate, authorize('ADMIN', 'AUDITOR'), validate
     )
   );
 
-  // Auto-create penalties for ABSENT members (not EXCUSED)
-  // Only create if no penalty already exists for this member/week/year (avoid duplicates)
-  for (const r of records) {
-    if (r.status === 'ABSENT') {
-      const existing = await prisma.penalty.findFirst({
-        where: {
-          memberId: r.memberId,
-          weekNumber,
-          year,
-          reason: { contains: 'meeting' },
-        },
-      });
-
-      if (!existing) {
-        await prisma.penalty.create({
-          data: {
-            memberId: r.memberId,
-            amount: attendancePenaltyAmount,
-            reason: `Absent from meeting: ${meeting?.title || 'Weekly Meeting'} (${meetingDate.toLocaleDateString()})`,
-            weekNumber,
-            year,
-            isMonthly: false,
-            status: 'OUTSTANDING',
-          },
-        });
-
-        // Also update member's outstanding balance
-        await prisma.member.update({
-          where: { id: r.memberId },
-          data: { outstandingBalance: { increment: attendancePenaltyAmount } },
-        });
-      }
-    }
-    // If status changed FROM absent TO present/excused, WAIVE the auto-created penalty
-    // (only if still OUTSTANDING — never touch SETTLED penalties, they are paid history)
-    if (r.status === 'PRESENT' || r.status === 'EXCUSED') {
-      const absentPenalty = await prisma.penalty.findFirst({
-        where: {
-          memberId: r.memberId,
-          weekNumber,
-          year,
-          status: 'OUTSTANDING',
-          reason: { contains: 'meeting' },
-        },
-      });
-      if (absentPenalty) {
-        await prisma.penalty.update({
-          where: { id: absentPenalty.id },
-          data: { status: 'WAIVED' },
-        });
-        const mb1 = await prisma.member.findUnique({ where: { id: r.memberId }, select: { outstandingBalance: true } });
-        const safe1 = Math.max(0, Number(mb1?.outstandingBalance ?? 0) - Number(absentPenalty.amount));
-        await prisma.member.update({
-          where: { id: r.memberId },
-          data: { outstandingBalance: safe1 },
-        });
-      }
-    }
-  }
+  // Penalties are created automatically by the scheduler for non-payment
+  // Attendance tracking is separate from penalties - no attendance-based penalties
 
   await createAuditEntry(req.user!.userId, 'ATTENDANCE_RECORDED', 'attendance', { meetingId, count: records.length }, req.ip);
   sendSuccess(res, results, 'general.success', lang, 201);
@@ -597,55 +540,8 @@ router.patch('/attendance/:id', authenticate, authorize('ADMIN', 'AUDITOR'), asy
     include: { member: { select: { fullName: true, memberId: true } } },
   });
 
-  // Handle penalty changes if status changed
-  if (existing && status && status !== existing.status) {
-    const meetingDate = existing.meeting ? new Date(existing.meeting.meetingDate) : new Date();
-    const startOfYear = new Date(meetingDate.getFullYear(), 0, 1);
-    const dayOfYear = Math.ceil((meetingDate.getTime() - startOfYear.getTime()) / (1000 * 60 * 60 * 24));
-    const weekNumber = Math.ceil(dayOfYear / 7);
-    const year = meetingDate.getFullYear();
-
-    const penaltySetting = await prisma.systemSetting.findUnique({ where: { key: 'weekly_penalty' } });
-    const attendancePenaltyAmount = penaltySetting ? parseFloat(penaltySetting.value) : 50;
-
-    if (status === 'ABSENT' && existing.status !== 'ABSENT') {
-      // Changed to absent — create penalty if not exists
-      const existingPenalty = await prisma.penalty.findFirst({
-        where: { memberId: record.id, weekNumber, year, reason: { contains: 'meeting' } },
-      });
-      if (!existingPenalty) {
-        await prisma.penalty.create({
-          data: {
-            memberId: existing.memberId,
-            amount: attendancePenaltyAmount,
-            reason: `Absent from meeting: ${existing.meeting?.title || 'Weekly Meeting'} (${meetingDate.toLocaleDateString()})`,
-            weekNumber, year, isMonthly: false, status: 'OUTSTANDING',
-          },
-        });
-        await prisma.member.update({
-          where: { id: existing.memberId },
-          data: { outstandingBalance: { increment: attendancePenaltyAmount } },
-        });
-      }
-    } else if ((status === 'PRESENT' || status === 'EXCUSED') && existing.status === 'ABSENT') {
-      // Changed away from absent — WAIVE penalty if still OUTSTANDING (never touch SETTLED ones)
-      const absentPenalty = await prisma.penalty.findFirst({
-        where: { memberId: existing.memberId, weekNumber, year, status: 'OUTSTANDING', reason: { contains: 'meeting' } },
-      });
-      if (absentPenalty) {
-        await prisma.penalty.update({
-          where: { id: absentPenalty.id },
-          data: { status: 'WAIVED' },
-        });
-        const mb2 = await prisma.member.findUnique({ where: { id: existing.memberId }, select: { outstandingBalance: true } });
-        const safe2 = Math.max(0, Number(mb2?.outstandingBalance ?? 0) - Number(absentPenalty.amount));
-        await prisma.member.update({
-          where: { id: existing.memberId },
-          data: { outstandingBalance: safe2 },
-        });
-      }
-    }
-  }
+  // Penalties are based on payment status only, not attendance
+  // No penalty logic needed when editing attendance records
 
   await createAuditEntry(req.user!.userId, 'ATTENDANCE_UPDATED', 'attendance', { attendanceId: record.id }, req.ip);
   sendSuccess(res, record, 'general.success', lang);

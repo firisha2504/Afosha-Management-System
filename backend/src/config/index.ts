@@ -41,6 +41,13 @@ export const config = {
     username: process.env.AT_USERNAME || 'sandbox',
     senderId: process.env.AT_SENDER_ID || 'AMS',
   },
+  ethiotelecom: {
+    apiKey: process.env.ETHIO_TELECOM_API_KEY,
+    apiUrl: process.env.ETHIO_TELECOM_API_URL || 'https://api.ethiotelecom.et/sms/send',
+    senderId: process.env.ETHIO_TELECOM_SENDER_ID || 'AFOSHA',
+    username: process.env.ETHIO_TELECOM_USERNAME,
+    password: process.env.ETHIO_TELECOM_PASSWORD,
+  },
   twilio: {
     accountSid: process.env.TWILIO_ACCOUNT_SID,
     authToken: process.env.TWILIO_AUTH_TOKEN,

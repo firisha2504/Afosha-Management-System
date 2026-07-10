@@ -1,6 +1,7 @@
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Globe, Mail, Phone, MapPin, Heart, Share2, MessageCircle, Users } from 'lucide-react';
+import { Globe, Mail, Phone, MapPin, Heart, Share2, MessageCircle, Users, ArrowLeft } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
 
 interface PublicLayoutProps {
   children: React.ReactNode;
@@ -9,6 +10,8 @@ interface PublicLayoutProps {
 export default function PublicLayout({ children }: PublicLayoutProps) {
   const { t, i18n } = useTranslation();
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user } = useAuth();
   const isOm = i18n.language === 'om';
 
   const toggleLanguage = () => {
@@ -58,16 +61,31 @@ export default function PublicLayout({ children }: PublicLayoutProps) {
 
           {/* Actions */}
           <div className="flex items-center gap-2">
+            {/* Back to Dashboard button - only show if logged in */}
+            {user && (
+              <button
+                onClick={() => navigate('/dashboard')}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold shadow-sm transition-all hover:scale-105"
+                style={{ background: 'linear-gradient(135deg, #d97706, #f59e0b)', color: '#14532d' }}
+              >
+                <ArrowLeft size={16} />
+                {isOm ? 'Gara Deshboorditti' : 'Back to Dashboard'}
+              </button>
+            )}
+            
             <button onClick={toggleLanguage}
               className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm text-green-100 hover:bg-white/10 transition-all">
               <Globe size={15} />
               {isOm ? 'EN' : 'OM'}
             </button>
-            <Link to="/login"
-              className="px-4 py-2 rounded-lg text-sm font-semibold shadow-sm transition-all"
-              style={{ background: 'linear-gradient(135deg, #d97706, #f59e0b)', color: '#14532d' }}>
-              {t('auth.login')}
-            </Link>
+            
+            {!user && (
+              <Link to="/login"
+                className="px-4 py-2 rounded-lg text-sm font-semibold shadow-sm transition-all"
+                style={{ background: 'linear-gradient(135deg, #d97706, #f59e0b)', color: '#14532d' }}>
+                {t('auth.login')}
+              </Link>
+            )}
           </div>
         </div>
       </header>

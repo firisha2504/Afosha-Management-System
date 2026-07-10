@@ -319,7 +319,6 @@ router.get('/:id', authenticate, authorize('ADMIN', 'AUDITOR'), async (req: Auth
       user: { select: { phone: true, email: true, isActive: true } },
       emergencyContact: true,
       penalties: { orderBy: { createdAt: 'desc' }, take: 10 },
-      savingsRecords: { orderBy: { savingsDate: 'desc' }, take: 10 },
     },
   });
 
