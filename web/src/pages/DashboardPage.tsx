@@ -56,14 +56,26 @@ export default function DashboardPage() {
       <div>
         <div className="flex items-center justify-between mb-1">
           <PageHeader title={t('dashboard.title')} />
-          <Link to="/" className="inline-flex items-center gap-1.5 text-xs text-slate-400 hover:text-green-700 transition-colors mb-8">
-            <Home size={14} /> Public Website
+          <Link 
+            to="/"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-green-700 hover:text-white bg-green-50 hover:bg-green-600 border border-green-200 rounded-lg transition-all duration-200 mb-8"
+          >
+            <Home size={16} /> Public Website
           </Link>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <StatCard title={t('dashboard.totalMembers')} value={adminData.totalMembers} icon={<Users size={24} />} />
           <StatCard title={t('dashboard.activeMembers')} value={adminData.activeMembers} icon={<UserCheck size={24} />} color="bg-green-500" />
-          <StatCard title="Total Financial Summary" value={`${(Number(adminData.weeklyContributions) + Number(adminData.totalSpecialContributions || 0)).toLocaleString()} ETB`} icon={<Wallet size={24} />} color="bg-blue-600" />
+          <StatCard 
+            title="Total Financial Summary" 
+            value={`${(
+              Number(adminData.weeklyContributions) + 
+              Number(adminData.totalSpecialContributions || 0) + 
+              Number(adminData.paidPenalties || 0)
+            ).toLocaleString()} ETB`} 
+            icon={<Wallet size={24} />} 
+            color="bg-blue-600" 
+          />
           <StatCard title={t('dashboard.weeklyContributions')} value={`${Number(adminData.weeklyContributions).toLocaleString()} ETB`} icon={<CreditCard size={24} />} />
           <StatCard title="Unpaid Penalties" value={`${Number(adminData.unpaidPenalties || 0).toLocaleString()} ETB`} icon={<AlertTriangle size={24} />} color="bg-red-500" />
           <StatCard title="Paid Penalties" value={`${Number(adminData.paidPenalties || 0).toLocaleString()} ETB`} icon={<AlertTriangle size={24} />} color="bg-green-500" />

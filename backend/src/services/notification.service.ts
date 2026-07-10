@@ -54,7 +54,47 @@ export async function verifyOtp(
 
 export async function sendSms(phone: string, message: string): Promise<boolean> {
   try {
-    // Africa's Talking — primary provider
+    // Ethio Telecom — primary provider for Ethiopia
+    if (config.ethiotelecom.apiKey && config.ethiotelecom.username) {
+      console.log(`[Ethio Telecom] Sending SMS to ${phone}`);
+      
+      // Format phone number for Ethio Telecom (remove + if present, ensure starts with 251)
+      let formattedPhone = phone.replace(/\+/g, '');
+      if (formattedPhone.startsWith('0')) {
+        formattedPhone = '251' + formattedPhone.substring(1);
+      } else if (!formattedPhone.startsWith('251')) {
+        formattedPhone = '251' + formattedPhone;
+      }
+
+      const response = await fetch(config.ethiotelecom.apiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${config.ethiotelecom.apiKey}`,
+        },
+        body: JSON.stringify({
+          username: config.ethiotelecom.username,
+          password: config.ethiotelecom.password,
+          to: formattedPhone,
+          message: message,
+          sender: config.ethiotelecom.senderId,
+        }),
+      });
+
+      const result = await response.json();
+      
+      if (response.ok) {
+        await prisma.smsLog.create({ 
+          data: { phone, message, status: 'sent', provider: 'ethiotelecom' } 
+        });
+        console.log(`[Ethio Telecom] SMS sent successfully to ${phone}`);
+        return true;
+      } else {
+        throw new Error(`Ethio Telecom API error: ${JSON.stringify(result)}`);
+      }
+    }
+
+    // Africa's Talking — secondary provider
     if (config.africastalking.apiKey) {
       console.log(`[AT] Using key: ${config.africastalking.apiKey?.substring(0, 20)}... username: ${config.africastalking.username}`);
       const { default: AfricasTalking } = await import('africastalking') as { default: (opts: { apiKey: string; username: string }) => { SMS: { send(o: { to: string[]; message: string; from?: string }): Promise<unknown> } } };
@@ -71,7 +111,7 @@ export async function sendSms(phone: string, message: string): Promise<boolean> 
       return true;
     }
 
-    // Twilio — secondary provider
+    // Twilio — tertiary provider
     if (config.twilio.accountSid && config.twilio.authToken) {
       const twilio = await import('twilio');
       const client = twilio.default(config.twilio.accountSid, config.twilio.authToken);

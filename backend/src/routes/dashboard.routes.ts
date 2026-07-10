@@ -26,7 +26,7 @@ router.get('/admin', authenticate, authorize('ADMIN'), async (req: AuthRequest, 
     prisma.member.count({ where: { status: 'PENDING' } }),
     prisma.payment.aggregate({ where: { status: 'VERIFIED', obligationId: { not: null } }, _sum: { amount: true } }),
     prisma.penalty.aggregate({ where: { status: 'OUTSTANDING' }, _sum: { amount: true } }),
-    prisma.penalty.aggregate({ where: { status: { in: ['SETTLED', 'WAIVED'] } }, _sum: { amount: true } }),
+    prisma.penalty.aggregate({ where: { status: 'SETTLED' }, _sum: { amount: true } }), // Only SETTLED, not WAIVED
     prisma.member.aggregate({ _sum: { outstandingBalance: true } }),
     prisma.specialContributionObligation.aggregate({
       where: { status: 'PAID' },
@@ -201,13 +201,16 @@ router.get('/charts', authenticate, authorize('ADMIN'), async (req: AuthRequest,
     const start = new Date(d.getFullYear(), d.getMonth(), 1);
     const end = new Date(d.getFullYear(), d.getMonth() + 1, 0);
 
-    const [allPayments, penalties] = await Promise.all([
+    const [allPayments, settledPenalties] = await Promise.all([
       prisma.payment.findMany({
         where: { paymentDate: { gte: start, lte: end }, status: 'VERIFIED' },
         select: { amount: true, notes: true },
       }),
       prisma.penalty.aggregate({
-        where: { createdAt: { gte: start, lte: end } },
+        where: { 
+          status: 'SETTLED', // Only penalties that were actually paid
+          paidAt: { gte: start, lte: end }, // Paid in this month
+        },
         _sum: { amount: true },
       }),
     ]);
@@ -219,7 +222,7 @@ router.get('/charts', authenticate, authorize('ADMIN'), async (req: AuthRequest,
     months.push({
       month: start.toLocaleString('en', { month: 'short' }),
       contributions: contributionsTotal,
-      penalties: Number(penalties._sum.amount || 0),
+      penalties: Number(settledPenalties._sum.amount || 0), // Only penalties that were actually paid
     });
   }
 
