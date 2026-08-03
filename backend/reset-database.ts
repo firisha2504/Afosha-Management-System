@@ -107,7 +107,7 @@ async function resetDatabase() {
     await prisma.user.updateMany({
       where: { role: 'ADMIN' },
       data: {
-        password: hashedPassword,
+        passwordHash: hashedPassword,
         mustChangePassword: true
       }
     });

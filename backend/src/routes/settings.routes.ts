@@ -252,19 +252,41 @@ router.get('/reports/:type', authenticate, authorize('ADMIN', 'AUDITOR'), async 
         orderBy: { paymentDate: 'desc' },
       });
       
-      // Calculate contribution portion only (exclude penalties from payment amounts)
-      data = allPayments.map(payment => {
-        const amount = Number(payment.amount);
-        const contributionAmount = payment.obligation ? Number(payment.obligation.contributionAmount) : amount;
-        // Only count up to the contribution amount (not the penalty part)
-        const contributionPortion = Math.min(amount, contributionAmount);
+      // Group payments by obligationId to handle multiple payments for same obligation
+      const paymentsByObligation = new Map();
+      for (const payment of allPayments) {
+        const obligId = payment.obligationId;
+        if (!paymentsByObligation.has(obligId)) {
+          paymentsByObligation.set(obligId, {
+            payments: [],
+            contributionAmount: payment.obligation ? Number(payment.obligation.contributionAmount) : 0
+          });
+        }
+        paymentsByObligation.get(obligId).payments.push(payment);
+      }
+      
+      // Calculate contribution portion for each obligation
+      const contributions: any[] = [];
+      for (const [obligId, info] of paymentsByObligation.entries()) {
+        const totalPaid = info.payments.reduce((sum: number, p: any) => sum + Number(p.amount), 0);
+        const contributionPortion = Math.min(totalPaid, info.contributionAmount);
+        const penaltyPortion = Math.max(0, totalPaid - info.contributionAmount);
         
-        return {
-          ...payment,
-          amount: contributionPortion, // Replace with contribution portion only
-          obligation: undefined, // Remove obligation from response
-        };
-      });
+        // Split the contribution portion proportionally across payments
+        for (const payment of info.payments) {
+          const paymentAmount = Number(payment.amount);
+          const proportionalContribution = info.payments.length === 1 
+            ? contributionPortion 
+            : (paymentAmount / totalPaid) * contributionPortion;
+          
+          contributions.push({
+            ...payment,
+            amount: Math.round(proportionalContribution), // Only contribution portion
+            obligation: undefined,
+          });
+        }
+      }
+      data = contributions;
       break;
     case 'penalties':
       // Only show SETTLED penalties (actually paid penalties) in the report
