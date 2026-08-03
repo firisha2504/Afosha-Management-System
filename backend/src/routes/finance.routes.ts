@@ -264,16 +264,18 @@ router.get('/contributions/weekly', authenticate, authorize('ADMIN', 'AUDITOR'),
   const overdue = withObligation.filter((m) => m.status === 'OVERDUE').length;
   const partial = withObligation.filter((m) => m.status === 'PARTIAL').length;
   
-  // totalCollected should only count contribution amounts, NOT penalties
-  // Calculate: min(amountPaid, contributionAmount) for each member
+  // For Weekly Contributions page:
+  // - totalCollected should be contribution amounts ONLY (not penalties)
+  // - totalExpected should be contribution amounts ONLY (not penalties)
+  // Penalties are tracked separately in the Penalties tab
   const totalCollected = withObligation.reduce((s, m) => {
     if (m.contributionAmount === null) return s;
-    // Only count up to the contribution amount (don't include penalty payments)
+    // Only count the contribution portion, not penalty payments
     const contributionPaid = Math.min(m.amountPaid, m.contributionAmount);
     return s + contributionPaid;
   }, 0);
   
-  const totalExpected = withObligation.reduce((s, m) => s + (m.totalDue || 0), 0);
+  const totalExpected = withObligation.reduce((s, m) => s + (m.contributionAmount || 0), 0);
   const totalPenalties = withObligation.reduce((s, m) => s + m.penaltyAmount, 0);
 
   sendSuccess(res, {

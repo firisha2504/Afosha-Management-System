@@ -11,11 +11,21 @@ const router = Router();
 router.get('/admin', authenticate, authorize('ADMIN'), async (req: AuthRequest, res: Response) => {
   const lang = req.lang || 'om';
 
+  // Get all obligations to calculate weekly contributions properly
+  const allObligations = await prisma.weeklyObligation.findMany({
+    select: { amountPaid: true, contributionAmount: true },
+  });
+
+  // Calculate weekly contributions (contributions only, not penalties)
+  const weeklyContributionsTotal = allObligations.reduce((sum, obl) => {
+    const contributionPaid = Math.min(Number(obl.amountPaid), Number(obl.contributionAmount));
+    return sum + contributionPaid;
+  }, 0);
+
   const [
     totalMembers,
     activeMembers,
     pendingMembers,
-    weeklyContributions,
     unpaidPenalties,
     paidPenalties,
     outstandingBalance,
@@ -24,7 +34,6 @@ router.get('/admin', authenticate, authorize('ADMIN'), async (req: AuthRequest, 
     prisma.member.count(),
     prisma.member.count({ where: { status: 'APPROVED' } }),
     prisma.member.count({ where: { status: 'PENDING' } }),
-    prisma.payment.aggregate({ where: { status: 'VERIFIED', obligationId: { not: null } }, _sum: { amount: true } }),
     prisma.penalty.aggregate({ where: { status: 'OUTSTANDING' }, _sum: { amount: true } }),
     prisma.penalty.aggregate({ where: { status: 'SETTLED' }, _sum: { amount: true } }), // Only SETTLED, not WAIVED
     prisma.member.aggregate({ _sum: { outstandingBalance: true } }),
@@ -40,7 +49,7 @@ router.get('/admin', authenticate, authorize('ADMIN'), async (req: AuthRequest, 
       totalMembers,
       activeMembers,
       pendingMembers,
-      weeklyContributions: weeklyContributions._sum.amount || 0,
+      weeklyContributions: weeklyContributionsTotal,
       unpaidPenalties: unpaidPenalties._sum.amount || 0,
       paidPenalties: paidPenalties._sum.amount || 0,
       totalOutstandingBalance: outstandingBalance._sum.outstandingBalance || 0,
@@ -204,7 +213,9 @@ router.get('/charts', authenticate, authorize('ADMIN'), async (req: AuthRequest,
     const [allPayments, settledPenalties] = await Promise.all([
       prisma.payment.findMany({
         where: { paymentDate: { gte: start, lte: end }, status: 'VERIFIED' },
-        select: { amount: true, notes: true },
+        include: {
+          obligation: { select: { contributionAmount: true, penaltyAmount: true } },
+        },
       }),
       prisma.penalty.aggregate({
         where: { 
@@ -215,14 +226,31 @@ router.get('/charts', authenticate, authorize('ADMIN'), async (req: AuthRequest,
       }),
     ]);
 
-    // Filter out penalty payments from contributions
-    const weeklyPayments = allPayments.filter(p => !p.notes?.toLowerCase().includes('penalty'));
-    const contributionsTotal = weeklyPayments.reduce((sum, p) => sum + Number(p.amount), 0);
+    // Properly separate contributions from penalty payments
+    let contributionsTotal = 0;
+    let penaltiesInPayments = 0;
+    
+    for (const payment of allPayments) {
+      const amount = Number(payment.amount);
+      
+      if (payment.obligation) {
+        // Payment linked to obligation - split into contribution and penalty parts
+        const contrib = Number(payment.obligation.contributionAmount);
+        const contributionPart = Math.min(amount, contrib);
+        const penaltyPart = Math.max(0, amount - contrib);
+        
+        contributionsTotal += contributionPart;
+        penaltiesInPayments += penaltyPart;
+      } else {
+        // Payment without obligation - count as contribution
+        contributionsTotal += amount;
+      }
+    }
 
     months.push({
       month: start.toLocaleString('en', { month: 'short' }),
       contributions: contributionsTotal,
-      penalties: Number(settledPenalties._sum.amount || 0), // Only penalties that were actually paid
+      penalties: penaltiesInPayments + Number(settledPenalties._sum.amount || 0),
     });
   }
 

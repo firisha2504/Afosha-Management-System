@@ -242,14 +242,29 @@ router.get('/reports/:type', authenticate, authorize('ADMIN', 'AUDITOR'), async 
       break;
     }
     case 'contributions':
-      // Only show weekly contribution payments (exclude penalty payments)
+      // Only show weekly contribution amounts (exclude penalty portions)
       const allPayments = await prisma.payment.findMany({
-        where: { paymentDate: dateFilter, status: 'VERIFIED' },
-        include: { member: { select: { fullName: true, memberId: true } } },
+        where: { paymentDate: dateFilter, status: 'VERIFIED', obligationId: { not: null } },
+        include: { 
+          member: { select: { fullName: true, memberId: true } },
+          obligation: { select: { contributionAmount: true, penaltyAmount: true } },
+        },
         orderBy: { paymentDate: 'desc' },
       });
-      // Filter out penalty payments (those with "penalty" in notes)
-      data = allPayments.filter(p => !p.notes?.toLowerCase().includes('penalty'));
+      
+      // Calculate contribution portion only (exclude penalties from payment amounts)
+      data = allPayments.map(payment => {
+        const amount = Number(payment.amount);
+        const contributionAmount = payment.obligation ? Number(payment.obligation.contributionAmount) : amount;
+        // Only count up to the contribution amount (not the penalty part)
+        const contributionPortion = Math.min(amount, contributionAmount);
+        
+        return {
+          ...payment,
+          amount: contributionPortion, // Replace with contribution portion only
+          obligation: undefined, // Remove obligation from response
+        };
+      });
       break;
     case 'penalties':
       // Only show SETTLED penalties (actually paid penalties) in the report
