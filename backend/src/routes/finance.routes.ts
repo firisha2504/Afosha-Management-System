@@ -263,7 +263,16 @@ router.get('/contributions/weekly', authenticate, authorize('ADMIN', 'AUDITOR'),
   const pending = withObligation.filter((m) => m.status === 'PENDING').length;
   const overdue = withObligation.filter((m) => m.status === 'OVERDUE').length;
   const partial = withObligation.filter((m) => m.status === 'PARTIAL').length;
-  const totalCollected = withObligation.reduce((s, m) => s + m.amountPaid, 0);
+  
+  // totalCollected should only count contribution amounts, NOT penalties
+  // Calculate: min(amountPaid, contributionAmount) for each member
+  const totalCollected = withObligation.reduce((s, m) => {
+    if (m.contributionAmount === null) return s;
+    // Only count up to the contribution amount (don't include penalty payments)
+    const contributionPaid = Math.min(m.amountPaid, m.contributionAmount);
+    return s + contributionPaid;
+  }, 0);
+  
   const totalExpected = withObligation.reduce((s, m) => s + (m.totalDue || 0), 0);
   const totalPenalties = withObligation.reduce((s, m) => s + m.penaltyAmount, 0);
 

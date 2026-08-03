@@ -422,6 +422,28 @@ router.get('/:id/receipt', authenticate, async (req: AuthRequest, res: Response)
       member: { select: { fullName: true, memberId: true } },
       recordedBy: { select: { username: true } },
       verifiedBy: { select: { username: true } },
+      obligation: {
+        select: {
+          weekNumber: true,
+          year: true,
+          contributionAmount: true,
+          penaltyAmount: true,
+          totalDue: true,
+          amountPaid: true,
+        },
+      },
+      specialContributionObligation: {
+        select: {
+          specialContribution: {
+            select: {
+              title: true,
+              titleOm: true,
+              type: true,
+            },
+          },
+          amount: true,
+        },
+      },
     },
   });
 
@@ -438,6 +460,46 @@ router.get('/:id/receipt', authenticate, async (req: AuthRequest, res: Response)
     }
   }
 
+  // Calculate breakdown for weekly contribution payments
+  let breakdown = null;
+  if (payment.obligation) {
+    const contributionAmount = Number(payment.obligation.contributionAmount);
+    const penaltyAmount = Number(payment.obligation.penaltyAmount);
+    const paidAmount = Number(payment.amount);
+    
+    // Determine what was paid
+    const contributionPaid = Math.min(paidAmount, contributionAmount);
+    const penaltyPaid = Math.max(0, Math.min(paidAmount - contributionPaid, penaltyAmount));
+    
+    breakdown = {
+      type: 'WEEKLY_CONTRIBUTION',
+      weekNumber: payment.obligation.weekNumber,
+      year: payment.obligation.year,
+      contributionAmount,
+      penaltyAmount,
+      contributionPaid,
+      penaltyPaid,
+      totalPaid: paidAmount,
+    };
+  } else if (payment.specialContributionObligation) {
+    breakdown = {
+      type: 'SPECIAL_CONTRIBUTION',
+      title: lang === 'om' 
+        ? payment.specialContributionObligation.specialContribution.titleOm 
+        : payment.specialContributionObligation.specialContribution.title,
+      contributionType: payment.specialContributionObligation.specialContribution.type,
+      amount: Number(payment.specialContributionObligation.amount),
+      totalPaid: Number(payment.amount),
+    };
+  } else {
+    // Standalone payment (no obligation link)
+    breakdown = {
+      type: 'OTHER',
+      totalPaid: Number(payment.amount),
+      notes: payment.notes,
+    };
+  }
+
   sendSuccess(res, {
     receiptNumber: payment.receiptNumber,
     memberName: payment.member.fullName,
@@ -447,6 +509,7 @@ router.get('/:id/receipt', authenticate, async (req: AuthRequest, res: Response)
     paymentDate: payment.paymentDate,
     auditorName: payment.verifiedBy?.username || payment.recordedBy.username,
     status: payment.status,
+    breakdown, // New: detailed breakdown
   }, 'general.success', lang);
 });
 

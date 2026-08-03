@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { AlertCircle, CheckCircle2, DollarSign, Gift, Receipt, XCircle } from 'lucide-react';
+import { AlertCircle, CheckCircle2, Gift, XCircle } from 'lucide-react';
 import { api } from '../lib/api';
-import { PageHeader, LoadingSpinner, Modal, inputClass, btnPrimary, btnSecondary } from '../components/ui';
+import { PageHeader, LoadingSpinner, Modal, inputClass, btnSecondary } from '../components/ui';
 import { useAuth } from '../contexts/AuthContext';
 
 interface Penalty {
@@ -31,8 +31,6 @@ interface Member {
   memberId: string;
 }
 
-const PAYMENT_METHODS = ['CASH', 'BANK_TRANSFER', 'MOBILE_MONEY'];
-
 export default function PenaltiesPage() {
   const { t } = useTranslation();
   const { user } = useAuth();
@@ -48,26 +46,11 @@ export default function PenaltiesPage() {
   const [selectedMemberId, setSelectedMemberId] = useState<string>('');
   const [memberPenalties, setMemberPenalties] = useState<Penalty[]>([]);
   
-  // Pay penalty modal - using single state for better synchronization
-  const [payPenalty, setPayPenalty] = useState<Penalty | null>(null);
-  const [payForm, setPayForm] = useState({
-    amount: '',
-    paymentMethod: 'CASH',
-    transactionReference: '',
-    notes: ''
-  });
-  const [payError, setPayError] = useState('');
-  const [paySuccess, setPaySuccess] = useState('');
-  const [paying, setPaying] = useState(false);
-
   // Waive penalty modal - using single state for better synchronization
   const [waivePenalty, setWaivePenalty] = useState<Penalty | null>(null);
   const [waiveReason, setWaiveReason] = useState('');
   const [waiveError, setWaiveError] = useState('');
   const [waiving, setWaiving] = useState(false);
-
-  // Receipt modal - using single state for better synchronization
-  const [receiptData, setReceiptData] = useState<any>(null);
 
   const loadPenalties = async () => {
     setLoading(true);
@@ -120,77 +103,6 @@ export default function PenaltiesPage() {
       loadMemberPenalties(selectedMemberId);
     }
   }, [selectedMemberId]);
-
-
-
-  const openPayModal = (penalty: Penalty) => {
-    if (!penalty) {
-      console.error('ERROR: penalty is null or undefined!');
-      return;
-    }
-    
-    // Set the penalty (this also controls modal visibility)
-    setPayPenalty(penalty);
-    
-    // Set form data
-    setPayForm({
-      amount: penalty.amount.toString(),
-      paymentMethod: 'CASH',
-      transactionReference: '',
-      notes: `Payment for Week ${penalty.weekNumber}, ${penalty.year}`
-    });
-    
-    // Clear messages
-    setPayError('');
-    setPaySuccess('');
-  };
-
-  const handlePayPenalty = async () => {
-    if (!payPenalty) return;
-    
-    setPayError('');
-    setPaySuccess('');
-    
-    if (!payForm.amount || Number(payForm.amount) <= 0) {
-      setPayError('Please enter a valid amount');
-      return;
-    }
-    
-    if (Number(payForm.amount) !== Number(payPenalty.amount)) {
-      setPayError(`Amount must equal the penalty amount: ${payPenalty.amount} Birr`);
-      return;
-    }
-
-    setPaying(true);
-    try {
-      const response = await api.post('/penalties/pay', {
-        penaltyId: payPenalty.id,
-        amount: Number(payForm.amount),
-        paymentMethod: payForm.paymentMethod,
-        transactionReference: payForm.transactionReference || undefined,
-        notes: payForm.notes || undefined
-      });
-      
-      setPaySuccess('Penalty payment recorded successfully!');
-      setReceiptData(response.data.data);
-      
-      // Reload data
-      await loadPenalties();
-      if (selectedMemberId) {
-        await loadMemberPenalties(selectedMemberId);
-      }
-      
-      // Close pay modal and show receipt
-      setTimeout(() => {
-        setPayPenalty(null);
-        setReceiptData(response.data.data);
-      }, 1500);
-    } catch (error: any) {
-      setPayError(error.response?.data?.message || 'Failed to pay penalty');
-    } finally {
-      setPaying(false);
-    }
-  };
 
   const openWaiveModal = (penalty: Penalty) => {
     setWaivePenalty(penalty);
@@ -354,24 +266,7 @@ export default function PenaltiesPage() {
                 <div className="flex items-center justify-center gap-2" style={{ position: 'relative', zIndex: 10 }}>
                   {(penalty.status === 'OUTSTANDING' || (!penalty.status && !penalty.paidAt)) && (
                     <>
-                      <button
-                        onClick={(e) => {
-                          try {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            openPayModal(penalty);
-                          } catch (error) {
-                            console.error('ERROR in button click handler:', error);
-                          }
-                        }}
-                        className="px-3 py-1.5 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 text-xs font-medium inline-flex items-center gap-1 cursor-pointer transition-colors"
-                        title="Pay Penalty"
-                        type="button"
-                        style={{ pointerEvents: 'all', cursor: 'pointer' }}
-                      >
-                        <DollarSign size={14} />
-                        Pay
-                      </button>
+                      {/* Removed Pay button - penalties are paid on Weekly Contributions page */}
                       {isAdmin && (
                         <button
                           onClick={(e) => {
@@ -388,13 +283,20 @@ export default function PenaltiesPage() {
                           Waive
                         </button>
                       )}
+                      {!isAdmin && (
+                        <span className="text-xs text-amber-600 font-medium">⏳ Pending</span>
+                      )}
                     </>
                   )}
                   {(penalty.status === 'SETTLED' || (!penalty.status && penalty.paidAt)) && (
-                    <span className="text-xs text-emerald-600 font-medium">✓ Paid</span>
+                    <span className="text-xs text-emerald-600 font-medium flex items-center gap-1">
+                      <CheckCircle2 size={12} /> Paid
+                    </span>
                   )}
                   {penalty.status === 'WAIVED' && (
-                    <span className="text-xs text-blue-600 font-medium">✓ Waived</span>
+                    <span className="text-xs text-blue-600 font-medium flex items-center gap-1">
+                      <Gift size={12} /> Waived
+                    </span>
                   )}
                 </div>
               </td>
@@ -413,6 +315,23 @@ export default function PenaltiesPage() {
         <LoadingSpinner />
       ) : (
         <>
+          {/* Info Banner - How to Pay Penalties */}
+          <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="text-blue-600 mt-0.5 shrink-0" size={20} />
+              <div>
+                <h3 className="font-semibold text-blue-900 mb-1">💡 How to Pay Penalties</h3>
+                <p className="text-sm text-blue-800">
+                  Penalties are automatically added to your weekly contribution obligations. 
+                  Pay them together on the <strong>Weekly Contributions</strong> page.
+                </p>
+                <p className="text-xs text-blue-700 mt-2">
+                  Example: If you have a 50 ETB contribution + 50 ETB penalty = Pay 100 ETB total on Weekly Contributions page.
+                </p>
+              </div>
+            </div>
+          </div>
+
           {/* Summary Cards */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
             <div className="bg-white rounded-xl border p-4">
@@ -533,116 +452,6 @@ export default function PenaltiesPage() {
         </>
       )}
 
-      {/* Pay Penalty Modal */}
-      <Modal
-        open={!!payPenalty}
-        onClose={() => setPayPenalty(null)}
-        title="Pay Penalty"
-      >
-        {payPenalty && (
-          <div className="space-y-4">
-            {payError && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-sm text-red-800">
-                {payError}
-              </div>
-            )}
-            {paySuccess && (
-              <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3 text-sm text-emerald-800">
-                {paySuccess}
-              </div>
-            )}
-            
-            <div className="bg-slate-50 rounded-lg p-4 space-y-2">
-              <p className="text-sm">
-                <span className="text-slate-500">Week:</span>{' '}
-                <span className="font-semibold">Week {payPenalty.weekNumber}, {payPenalty.year}</span>
-              </p>
-              <p className="text-sm">
-                <span className="text-slate-500">Reason:</span>{' '}
-                <span className="text-slate-700">{payPenalty.reason}</span>
-              </p>
-              <p className="text-sm">
-                <span className="text-slate-500">Penalty Amount:</span>{' '}
-                <span className="font-bold text-lg text-slate-800">
-                  {Number(payPenalty.amount).toLocaleString()} Birr
-                </span>
-              </p>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
-                Amount (must equal penalty amount)
-              </label>
-              <input
-                type="number"
-                className={inputClass}
-                value={payForm.amount}
-                onChange={(e) => setPayForm({ ...payForm, amount: e.target.value })}
-                disabled
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
-                Payment Method
-              </label>
-              <select
-                className={inputClass}
-                value={payForm.paymentMethod}
-                onChange={(e) => setPayForm({ ...payForm, paymentMethod: e.target.value })}
-              >
-                {PAYMENT_METHODS.map(method => (
-                  <option key={method} value={method}>{method.replace('_', ' ')}</option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
-                Transaction Reference (optional)
-              </label>
-              <input
-                type="text"
-                className={inputClass}
-                value={payForm.transactionReference}
-                onChange={(e) => setPayForm({ ...payForm, transactionReference: e.target.value })}
-                placeholder="Enter transaction reference"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
-                Notes (optional)
-              </label>
-              <textarea
-                className={inputClass}
-                rows={3}
-                value={payForm.notes}
-                onChange={(e) => setPayForm({ ...payForm, notes: e.target.value })}
-                placeholder="Enter any additional notes"
-              />
-            </div>
-
-            <div className="flex gap-3 pt-4">
-              <button
-                onClick={handlePayPenalty}
-                disabled={paying}
-                className={btnPrimary}
-              >
-                {paying ? 'Processing...' : `Pay ${Number(payPenalty.amount).toLocaleString()} Birr`}
-              </button>
-              <button
-                onClick={() => setPayPenalty(null)}
-                disabled={paying}
-                className={btnSecondary}
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        )}
-      </Modal>
-
       {/* Waive Penalty Modal */}
       <Modal
         open={!!waivePenalty}
@@ -709,65 +518,6 @@ export default function PenaltiesPage() {
                 Cancel
               </button>
             </div>
-          </div>
-        )}
-      </Modal>
-
-      {/* Receipt Modal */}
-      <Modal
-        open={!!receiptData}
-        onClose={() => setReceiptData(null)}
-        title="Payment Receipt"
-      >
-        {receiptData && (
-          <div className="space-y-4">
-            <div className="text-center">
-              <Receipt className="mx-auto text-emerald-600 mb-3" size={48} />
-              <h3 className="text-lg font-bold text-slate-800">Payment Successful!</h3>
-              <p className="text-sm text-slate-500 mt-1">
-                Receipt #{receiptData.payment?.receiptNumber}
-              </p>
-            </div>
-
-            <div className="bg-slate-50 rounded-lg p-4 space-y-3">
-              <div className="flex justify-between text-sm">
-                <span className="text-slate-500">Amount Paid:</span>
-                <span className="font-bold text-emerald-600">
-                  {Number(receiptData.payment?.amount).toLocaleString()} Birr
-                </span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-slate-500">Payment Method:</span>
-                <span className="font-medium text-slate-800">
-                  {receiptData.payment?.paymentMethod}
-                </span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-slate-500">Week:</span>
-                <span className="font-medium text-slate-800">
-                  Week {receiptData.penalty?.weekNumber}, {receiptData.penalty?.year}
-                </span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-slate-500">Status:</span>
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200">
-                  Settled
-                </span>
-              </div>
-            </div>
-
-            <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3 text-sm text-emerald-800">
-              ✓ Penalty has been marked as SETTLED<br />
-              ✓ Member's balance has been updated<br />
-              ✓ Member has been notified
-            </div>
-
-            <button
-              onClick={() => setReceiptData(null)}
-              className={btnPrimary + ' w-full'}
-            >
-              Close
-            </button>
           </div>
         )}
       </Modal>
