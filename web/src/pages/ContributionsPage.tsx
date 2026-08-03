@@ -373,6 +373,7 @@ export default function ContributionsPage() {
                         <tr>
                           <th className="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Member</th>
                           <th className="px-5 py-3 text-right text-xs font-semibold text-slate-500 uppercase">Contribution</th>
+                          <th className="px-5 py-3 text-right text-xs font-semibold text-slate-500 uppercase">Penalty</th>
                           <th className="px-5 py-3 text-right text-xs font-semibold text-slate-500 uppercase">Total Due</th>
                           <th className="px-5 py-3 text-right text-xs font-semibold text-slate-500 uppercase">Paid</th>
                           <th className="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Status</th>
@@ -382,7 +383,7 @@ export default function ContributionsPage() {
                       </thead>
                       <tbody className="divide-y">
                         {sorted.length === 0 ? (
-                          <tr><td colSpan={7} className="px-5 py-10 text-center text-sm text-slate-400">No members found.</td></tr>
+                          <tr><td colSpan={8} className="px-5 py-10 text-center text-sm text-slate-400">No members found.</td></tr>
                         ) : sorted.map((m) => (
                           <Fragment key={m.memberId}>
                             <tr
@@ -408,6 +409,16 @@ export default function ContributionsPage() {
                               {/* Contribution */}
                               <td className="px-5 py-3 text-right text-sm text-slate-600">
                                 {m.contributionAmount != null ? `${m.contributionAmount.toLocaleString()} ETB` : '—'}
+                              </td>
+
+                              {/* Penalty */}
+                              <td className="px-5 py-3 text-right text-sm">
+                                {/* Only show penalty if status is PENDING, PARTIAL, or OVERDUE (unpaid) */}
+                                {(m.status === 'PENDING' || m.status === 'PARTIAL' || m.status === 'OVERDUE') && m.penaltyAmount > 0 ? (
+                                  <span className="font-semibold text-red-600">{m.penaltyAmount.toLocaleString()} ETB</span>
+                                ) : (
+                                  <span className="text-slate-300">—</span>
+                                )}
                               </td>
 
                               {/* Total Due */}
@@ -452,7 +463,7 @@ export default function ContributionsPage() {
                             {/* Expanded: payments breakdown */}
                             {expanded === `${weekKey}-${m.memberId}` && m.payments.length > 0 && (
                               <tr key={`${weekKey}-${m.memberId}-exp`} className="bg-slate-50">
-                                <td colSpan={7} className="px-5 py-3">
+                                <td colSpan={8} className="px-5 py-3">
                                   <div className="ml-10">
                                     <p className="text-xs font-semibold text-slate-500 uppercase mb-2 flex items-center gap-1">
                                       <TrendingUp size={11} /> Payment Records
