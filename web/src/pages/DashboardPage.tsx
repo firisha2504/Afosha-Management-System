@@ -1,8 +1,17 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import { Users, UserCheck, CreditCard, AlertTriangle, Wallet, HeartHandshake, Home } from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import { Users, UserCheck, CreditCard, AlertTriangle, Wallet, HeartHandshake, Home, TrendingUp } from 'lucide-react';
+import { 
+  AreaChart, 
+  Area, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  ResponsiveContainer, 
+  Legend 
+} from 'recharts';
 import { api } from '../lib/api';
 import { StatCard, PageHeader, LoadingSpinner } from '../components/ui';
 import { useAuth } from '../contexts/AuthContext';
@@ -85,18 +94,77 @@ export default function DashboardPage() {
           <StatCard title={t('dashboard.specialContributions')} value={`${Number(adminData.totalSpecialContributions || 0).toLocaleString()} ETB`} icon={<HeartHandshake className="w-full h-full" />} color="bg-teal-500" />
         </div>
         {chartData && (
-          <div className="bg-white rounded-lg sm:rounded-xl border p-4 sm:p-6">
-            <h2 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4">Contribution & Penalty Trends</h2>
-            <ResponsiveContainer width="100%" height={250} className="sm:h-[300px]">
-              <BarChart data={chartData.trends}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Bar dataKey="contributions" fill="#16a34a" name="Contributions" />
-                <Bar dataKey="penalties" fill="#ef4444" name="Penalties" />
-              </BarChart>
+          <div className="bg-gradient-to-br from-white to-slate-50 rounded-xl sm:rounded-2xl border border-slate-200 p-5 sm:p-8 shadow-sm">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h2 className="text-lg sm:text-xl font-bold text-slate-900 flex items-center gap-2">
+                  <TrendingUp className="text-green-600" size={24} />
+                  Financial Trends
+                </h2>
+                <p className="text-sm text-slate-500 mt-1">Monthly contribution and penalty overview</p>
+              </div>
+            </div>
+            <ResponsiveContainer width="100%" height={320} className="sm:h-[380px]">
+              <AreaChart data={chartData.trends} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="colorContributions" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#16a34a" stopOpacity={0.8}/>
+                    <stop offset="95%" stopColor="#16a34a" stopOpacity={0.1}/>
+                  </linearGradient>
+                  <linearGradient id="colorPenalties" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#ef4444" stopOpacity={0.8}/>
+                    <stop offset="95%" stopColor="#ef4444" stopOpacity={0.1}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" strokeOpacity={0.5} />
+                <XAxis 
+                  dataKey="month" 
+                  stroke="#64748b"
+                  style={{ fontSize: '12px', fontWeight: 500 }}
+                  tick={{ fill: '#64748b' }}
+                />
+                <YAxis 
+                  stroke="#64748b"
+                  style={{ fontSize: '12px', fontWeight: 500 }}
+                  tick={{ fill: '#64748b' }}
+                />
+                <Tooltip 
+                  contentStyle={{
+                    backgroundColor: 'rgba(255, 255, 255, 0.98)',
+                    border: '1px solid #e2e8f0',
+                    borderRadius: '12px',
+                    boxShadow: '0 10px 40px rgba(0,0,0,0.1)',
+                    padding: '12px 16px'
+                  }}
+                  labelStyle={{ fontWeight: 600, color: '#1e293b', marginBottom: '8px' }}
+                  itemStyle={{ padding: '4px 0', fontSize: '13px' }}
+                />
+                <Legend 
+                  wrapperStyle={{ paddingTop: '20px' }}
+                  iconType="circle"
+                  formatter={(value) => <span style={{ color: '#475569', fontWeight: 500, fontSize: '14px' }}>{value}</span>}
+                />
+                <Area 
+                  type="monotone" 
+                  dataKey="contributions" 
+                  stroke="#16a34a" 
+                  strokeWidth={3}
+                  fillOpacity={1} 
+                  fill="url(#colorContributions)" 
+                  name="Contributions"
+                  animationDuration={1500}
+                />
+                <Area 
+                  type="monotone" 
+                  dataKey="penalties" 
+                  stroke="#ef4444" 
+                  strokeWidth={3}
+                  fillOpacity={1} 
+                  fill="url(#colorPenalties)" 
+                  name="Penalties"
+                  animationDuration={1500}
+                />
+              </AreaChart>
             </ResponsiveContainer>
           </div>
         )}
