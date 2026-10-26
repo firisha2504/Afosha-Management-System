@@ -26,16 +26,16 @@ export default function PublicLayout({ children }: PublicLayoutProps) {
       {/* ── Main navbar ── */}
       <header className="sticky top-0 z-50 shadow-md"
         style={{ background: 'linear-gradient(135deg, #0d1e5e 0%, #091540 100%)' }}>
-        <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+        <div className="max-w-6xl mx-auto px-3 sm:px-4 py-3 sm:py-4 flex items-center justify-between">
 
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-3 group">
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center font-bold text-lg shadow-md"
+          <Link to="/" className="flex items-center gap-2 sm:gap-3 group">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl flex items-center justify-center font-bold text-base sm:text-lg shadow-md"
               style={{ background: 'linear-gradient(135deg, #d97706, #f59e0b)', color: '#1e1b4b' }}>
               A
             </div>
-            <div>
-              <p className="text-white font-bold text-base leading-tight">Afosha</p>
+            <div className="hidden xs:block">
+              <p className="text-white font-bold text-sm sm:text-base leading-tight">Afosha</p>
               <p className="text-xs leading-tight" style={{ color: '#93c5fd' }}>
                 {isOm ? 'Sirna Bulchiinsa' : 'Management System'}
               </p>
@@ -49,7 +49,7 @@ export default function PublicLayout({ children }: PublicLayoutProps) {
               { to: '/about', label: isOm ? 'Waa\'ee Keenya' : 'About' },
             ].map(({ to, label }) => (
               <Link key={to} to={to}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                className={`px-3 lg:px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                   location.pathname === to
                     ? 'text-white bg-white/15'
                     : 'text-blue-100 hover:text-white hover:bg-white/10'
@@ -60,28 +60,29 @@ export default function PublicLayout({ children }: PublicLayoutProps) {
           </nav>
 
           {/* Actions */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2">
             {/* Back to Dashboard button - only show if logged in */}
             {user && (
               <button
                 onClick={() => navigate('/dashboard')}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold shadow-sm transition-all hover:scale-105"
+                className="hidden sm:flex items-center gap-1.5 px-3 lg:px-4 py-2 rounded-lg text-xs lg:text-sm font-semibold shadow-sm transition-all hover:scale-105"
                 style={{ background: 'linear-gradient(135deg, #d97706, #f59e0b)', color: '#1e1b4b' }}
               >
-                <ArrowLeft size={16} />
-                {isOm ? 'Gara Deshboorditti' : 'Back to Dashboard'}
+                <ArrowLeft size={15} className="hidden lg:inline" />
+                <span className="hidden md:inline">{isOm ? 'Gara Deshboorditti' : 'Dashboard'}</span>
+                <ArrowLeft size={18} className="md:hidden" />
               </button>
             )}
             
             <button onClick={toggleLanguage}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm text-blue-100 hover:bg-white/10 transition-all">
-              <Globe size={15} />
-              {isOm ? 'EN' : 'OM'}
+              className="flex items-center gap-1.5 px-2.5 sm:px-3 py-2 rounded-lg text-xs sm:text-sm text-blue-100 hover:bg-white/10 transition-all">
+              <Globe size={14} sm:size={15} />
+              <span className="hidden sm:inline">{isOm ? 'EN' : 'OM'}</span>
             </button>
             
             {!user && (
               <Link to="/login"
-                className="px-4 py-2 rounded-lg text-sm font-semibold shadow-sm transition-all"
+                className="px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold shadow-sm transition-all"
                 style={{ background: 'linear-gradient(135deg, #d97706, #f59e0b)', color: '#1e1b4b' }}>
                 {t('auth.login')}
               </Link>
@@ -98,8 +99,8 @@ export default function PublicLayout({ children }: PublicLayoutProps) {
         className="text-white mt-16">
 
         {/* Main footer grid */}
-        <div className="max-w-6xl mx-auto px-4 py-16">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-10">
+        <div className="max-w-6xl mx-auto px-4 py-10 sm:py-12 md:py-16">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 md:gap-10">
 
             {/* Col 1 — Brand */}
             <div className="md:col-span-1">
@@ -236,8 +237,8 @@ export default function PublicLayout({ children }: PublicLayoutProps) {
 
         {/* Bottom bar */}
         <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', background: 'rgba(0,0,0,0.2)' }}>
-          <div className="max-w-6xl mx-auto px-4 py-5 flex flex-col md:flex-row items-center justify-between gap-3">
-            <p className="text-xs flex items-center gap-1.5" style={{ color: '#93c5fd' }}>
+          <div className="max-w-6xl mx-auto px-4 py-4 sm:py-5 flex flex-col sm:flex-row items-center justify-between gap-2 sm:gap-3">
+            <p className="text-xs text-center sm:text-left flex items-center gap-1.5" style={{ color: '#93c5fd' }}>
               © {new Date().getFullYear()} Afosha Management System. {isOm ? 'Mirgi Keenya Eegame.' : 'All rights reserved.'}
             </p>
             <p className="text-xs flex items-center gap-1.5" style={{ color: '#93c5fd' }}>

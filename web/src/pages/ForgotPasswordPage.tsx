@@ -79,7 +79,7 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <div className="min-h-screen flex">
+    <div className="min-h-screen flex flex-col lg:flex-row">
 
       {/* ── Left panel ── */}
       <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden"
@@ -129,7 +129,7 @@ export default function ForgotPasswordPage() {
       </div>
 
       {/* ── Right panel ── */}
-      <div className="flex-1 flex items-center justify-center p-8" style={{ background: '#091540' }}>
+      <div className="flex-1 flex items-center justify-center p-4 sm:p-6 lg:p-8" style={{ background: '#091540' }}>
         <div className="w-full max-w-md">
 
           {/* Mobile logo */}

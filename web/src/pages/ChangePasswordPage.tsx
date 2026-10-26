@@ -49,8 +49,8 @@ export default function ChangePasswordPage() {
   ];
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4" style={{ background: '#091540' }}>
-      <div className="w-full max-w-md rounded-2xl border p-8" style={{ background: 'rgba(255,255,255,0.05)', borderColor: 'rgba(255,255,255,0.1)' }}>
+    <div className="min-h-screen flex items-center justify-center p-3 sm:p-4" style={{ background: '#091540' }}>
+      <div className="w-full max-w-md rounded-xl sm:rounded-2xl border p-6 sm:p-8" style={{ background: 'rgba(255,255,255,0.05)', borderColor: 'rgba(255,255,255,0.1)' }}>
 
         <div className="text-center mb-8">
           <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"

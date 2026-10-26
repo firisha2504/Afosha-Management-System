@@ -44,11 +44,11 @@ export default function AboutPage() {
     <PublicLayout>
 
       {/* Hero banner */}
-      <div className="py-16 text-center" style={{
+      <div className="py-10 sm:py-12 md:py-16 text-center" style={{
         background: 'linear-gradient(135deg, #060e33 0%, #091540 60%, #0d1e5e 100%)',
       }}>
         <div className="max-w-2xl mx-auto px-4">
-          <h1 className="text-4xl font-bold text-white mb-3">{t('public.about')}</h1>
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-3">{t('public.about')}</h1>
           <p className="text-lg italic" style={{ color: '#bfdbfe' }}>
             "{t('public.motto')}"
           </p>
@@ -74,24 +74,24 @@ export default function AboutPage() {
       </div>
 
       {/* All sections stacked */}
-      <div className="max-w-5xl mx-auto px-4 py-12 space-y-8">
+      <div className="max-w-5xl mx-auto px-4 py-8 sm:py-10 md:py-12 space-y-6 sm:space-y-8">
         {loading ? <LoadingSpinner /> : (
           tabs.length ? (
             tabs.map((tab) => (
               <div
                 key={tab.slug}
                 id={tab.slug}
-                className="rounded-2xl border p-8 scroll-mt-32"
+                className="rounded-xl sm:rounded-2xl border p-5 sm:p-6 md:p-8 scroll-mt-32"
                 style={{ background: 'rgba(255,255,255,0.04)', borderColor: 'rgba(255,255,255,0.08)' }}>
 
                 {/* Section header */}
-                <div className="flex items-center gap-3 mb-6 pb-5"
+                <div className="flex items-center gap-2.5 sm:gap-3 mb-5 sm:mb-6 pb-4 sm:pb-5"
                   style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
-                  <div className="w-10 h-10 rounded-xl flex items-center justify-center font-bold text-white shrink-0"
+                  <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl flex items-center justify-center font-bold text-white shrink-0 text-base sm:text-lg"
                     style={{ background: 'linear-gradient(135deg, #1e3a8a, #1d4ed8)' }}>
                     {(isOm && tab.titleOm ? tab.titleOm : tab.title)[0]}
                   </div>
-                  <h2 className="text-xl font-bold" style={{ color: '#e2e8f0' }}>
+                  <h2 className="text-lg sm:text-xl font-bold" style={{ color: '#e2e8f0' }}>
                     {isOm && tab.titleOm ? tab.titleOm : tab.title}
                   </h2>
                 </div>
