@@ -3,8 +3,8 @@ import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { Users, UserCheck, CreditCard, AlertTriangle, Wallet, HeartHandshake, Home, TrendingUp } from 'lucide-react';
 import { 
-  AreaChart, 
-  Area, 
+  BarChart,
+  Bar,
   XAxis, 
   YAxis, 
   CartesianGrid, 
@@ -105,35 +105,57 @@ export default function DashboardPage() {
               </div>
             </div>
             <ResponsiveContainer width="100%" height={320} className="sm:h-[380px]">
-              <AreaChart data={chartData.trends} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+              <BarChart 
+                data={chartData.trends} 
+                margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
+                barGap={8}
+                barCategoryGap="20%"
+              >
                 <defs>
-                  <linearGradient id="colorContributions" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#16a34a" stopOpacity={0.8}/>
-                    <stop offset="95%" stopColor="#16a34a" stopOpacity={0.1}/>
+                  {/* Gradient for Contributions bars */}
+                  <linearGradient id="contributionsGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#22c55e" stopOpacity={1}/>
+                    <stop offset="100%" stopColor="#15803d" stopOpacity={1}/>
                   </linearGradient>
-                  <linearGradient id="colorPenalties" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#ef4444" stopOpacity={0.8}/>
-                    <stop offset="95%" stopColor="#ef4444" stopOpacity={0.1}/>
+                  {/* Gradient for Penalties bars */}
+                  <linearGradient id="penaltiesGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#f87171" stopOpacity={1}/>
+                    <stop offset="100%" stopColor="#dc2626" stopOpacity={1}/>
                   </linearGradient>
+                  {/* Shadow filter for 3D effect */}
+                  <filter id="shadow" height="130%">
+                    <feGaussianBlur in="SourceAlpha" stdDeviation="3"/>
+                    <feOffset dx="0" dy="4" result="offsetblur"/>
+                    <feComponentTransfer>
+                      <feFuncA type="linear" slope="0.2"/>
+                    </feComponentTransfer>
+                    <feMerge> 
+                      <feMergeNode/>
+                      <feMergeNode in="SourceGraphic"/> 
+                    </feMerge>
+                  </filter>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" strokeOpacity={0.5} />
+                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" strokeOpacity={0.5} vertical={false} />
                 <XAxis 
                   dataKey="month" 
                   stroke="#64748b"
                   style={{ fontSize: '12px', fontWeight: 500 }}
                   tick={{ fill: '#64748b' }}
+                  axisLine={{ stroke: '#e2e8f0' }}
                 />
                 <YAxis 
                   stroke="#64748b"
                   style={{ fontSize: '12px', fontWeight: 500 }}
                   tick={{ fill: '#64748b' }}
+                  axisLine={{ stroke: '#e2e8f0' }}
                 />
                 <Tooltip 
+                  cursor={{ fill: 'rgba(148, 163, 184, 0.1)', radius: 8 }}
                   contentStyle={{
                     backgroundColor: 'rgba(255, 255, 255, 0.98)',
                     border: '1px solid #e2e8f0',
                     borderRadius: '12px',
-                    boxShadow: '0 10px 40px rgba(0,0,0,0.1)',
+                    boxShadow: '0 10px 40px rgba(0,0,0,0.15)',
                     padding: '12px 16px'
                   }}
                   labelStyle={{ fontWeight: 600, color: '#1e293b', marginBottom: '8px' }}
@@ -144,27 +166,23 @@ export default function DashboardPage() {
                   iconType="circle"
                   formatter={(value) => <span style={{ color: '#475569', fontWeight: 500, fontSize: '14px' }}>{value}</span>}
                 />
-                <Area 
-                  type="monotone" 
+                <Bar 
                   dataKey="contributions" 
-                  stroke="#16a34a" 
-                  strokeWidth={3}
-                  fillOpacity={1} 
-                  fill="url(#colorContributions)" 
+                  fill="url(#contributionsGradient)" 
                   name="Contributions"
-                  animationDuration={1500}
+                  radius={[8, 8, 0, 0]}
+                  animationDuration={1200}
+                  filter="url(#shadow)"
                 />
-                <Area 
-                  type="monotone" 
+                <Bar 
                   dataKey="penalties" 
-                  stroke="#ef4444" 
-                  strokeWidth={3}
-                  fillOpacity={1} 
-                  fill="url(#colorPenalties)" 
+                  fill="url(#penaltiesGradient)" 
                   name="Penalties"
-                  animationDuration={1500}
+                  radius={[8, 8, 0, 0]}
+                  animationDuration={1200}
+                  filter="url(#shadow)"
                 />
-              </AreaChart>
+              </BarChart>
             </ResponsiveContainer>
           </div>
         )}
