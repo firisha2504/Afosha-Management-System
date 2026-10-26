@@ -9,6 +9,13 @@ import { config } from '../config/index.js';
 import { exportToExcel, exportToPdf } from '../services/export.service.js';
 import { t, Language } from '../utils/i18n.js';
 import { sendSms } from '../services/notification.service.js';
+import { upload } from '../middleware/upload.js';
+import path from 'path';
+import fs from 'fs/promises';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const router = Router();
 
@@ -732,6 +739,58 @@ router.get('/backups', authenticate, authorize('ADMIN'), async (req: AuthRequest
   const lang = req.lang || 'om';
   const backups = await prisma.backup.findMany({ orderBy: { createdAt: 'desc' } });
   sendSuccess(res, backups, 'general.success', lang);
+});
+
+// Upload mobile app logo
+router.post('/logo', authenticate, authorize('ADMIN'), upload.single('logo'), async (req: AuthRequest, res: Response) => {
+  const lang = req.lang || 'om';
+  
+  if (!req.file) {
+    sendError(res, 'No logo file uploaded', lang, 400);
+    return;
+  }
+
+  // Save logo path to SystemSetting
+  const logoPath = `/uploads/${req.file.filename}`;
+  await prisma.systemSetting.upsert({
+    where: { key: 'mobile_app_logo' },
+    create: { 
+      key: 'mobile_app_logo', 
+      value: logoPath,
+      label: 'Mobile App Logo',
+      labelOm: 'Sajoo Bilbilaa Mobaayilaa'
+    },
+    update: { value: logoPath },
+  });
+
+  await createAuditEntry(req.user!.userId, 'LOGO_UPLOADED', 'settings', { logoPath }, req.ip);
+  sendSuccess(res, { logoPath }, 'general.success', lang);
+});
+
+// Get current logo (public endpoint)
+router.get('/logo', async (_req, res: Response) => {
+  try {
+    const logoSetting = await prisma.systemSetting.findUnique({
+      where: { key: 'mobile_app_logo' },
+    });
+
+    if (!logoSetting || !logoSetting.value) {
+      res.status(404).json({ success: false, message: 'No logo uploaded' });
+      return;
+    }
+
+    const logoPath = path.join(__dirname, '..', '..', logoSetting.value);
+    
+    // Check if file exists
+    try {
+      await fs.access(logoPath);
+      res.sendFile(logoPath);
+    } catch {
+      res.status(404).json({ success: false, message: 'Logo file not found' });
+    }
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Error fetching logo' });
+  }
 });
 
 export default router;
