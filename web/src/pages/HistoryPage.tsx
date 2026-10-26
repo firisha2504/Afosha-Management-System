@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { CreditCard, FileText, Activity, HeartHandshake, Search, CalendarCheck } from 'lucide-react';
 import { api } from '../lib/api';
 import { PageHeader, LoadingSpinner, Badge, inputClass } from '../components/ui';
+import { formatMeetingShort } from '../lib/meetingUtils';
 
 interface Payment {
   id: string;
@@ -273,7 +274,7 @@ export default function HistoryPage() {
                   const paymentType = payment.obligation ? 'WEEKLY' : payment.specialContributionObligation ? 'SPECIAL' : isPenaltyPayment ? 'PENALTY' : 'GENERAL';
                   const typeColor = paymentType === 'WEEKLY' ? 'bg-blue-50 text-blue-700 ring-1 ring-blue-200' : paymentType === 'SPECIAL' ? 'bg-purple-50 text-purple-700 ring-1 ring-purple-200' : paymentType === 'PENALTY' ? 'bg-red-50 text-red-700 ring-1 ring-red-200' : 'bg-slate-50 text-slate-600 ring-1 ring-slate-200';
                   const typeLabel = paymentType === 'WEEKLY' ? 'Weekly' : paymentType === 'SPECIAL' ? 'Special' : paymentType === 'PENALTY' ? 'Penalty' : 'General';
-                  const typeDetail = paymentType === 'WEEKLY' && payment.obligation ? `Week ${payment.obligation.weekNumber}` : paymentType === 'SPECIAL' && payment.specialContributionObligation ? payment.specialContributionObligation.specialContribution?.title : paymentType === 'PENALTY' ? '' : '';
+                  const typeDetail = paymentType === 'WEEKLY' && payment.obligation ? formatMeetingShort(payment.obligation.weekNumber) : paymentType === 'SPECIAL' && payment.specialContributionObligation ? payment.specialContributionObligation.specialContribution?.title : paymentType === 'PENALTY' ? '' : '';
                   return (
                     <tr key={payment.id} className="hover:bg-slate-50">
                       <td className="px-5 py-3 text-xs font-mono text-slate-400">{payment.paymentId}</td>

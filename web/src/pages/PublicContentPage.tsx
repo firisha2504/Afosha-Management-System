@@ -65,7 +65,7 @@ export default function PublicContentPage() {
         contentOm: current.contentOm,
       });
       alert('Content saved successfully!');
-    } catch (error) {
+    } catch {
       alert('Failed to save content. Please try again.');
     } finally {
       setSaving(false);
@@ -97,7 +97,7 @@ export default function PublicContentPage() {
       alert('Logo uploaded successfully!');
       setLogoFile(null);
       setLogoPreview('');
-    } catch (error) {
+    } catch {
       alert('Failed to upload logo. Please try again.');
     }
   };

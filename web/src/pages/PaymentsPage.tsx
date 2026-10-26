@@ -4,6 +4,7 @@ import { Plus, Receipt, Pencil, Trash2, Users, CheckCircle2, AlertCircle, Rotate
 import { api } from '../lib/api';
 import { PageHeader, Badge, LoadingSpinner, Modal, inputClass, btnPrimary, btnSecondary } from '../components/ui';
 import { useAuth } from '../contexts/AuthContext';
+import { formatMeetingLabel, formatMeetingShort } from '../lib/meetingUtils';
 
 interface Payment {
   id: string; paymentId: string; amount: number; paymentDate: string;
@@ -153,7 +154,7 @@ export default function PaymentsPage() {
       const obligations = (data.data || []).map((o: any) => ({
         ...o,
         title: o.type === 'WEEKLY'
-          ? `Week ${o.weekNumber} - ${new Date(o.dueDate).toLocaleDateString()}`
+          ? formatMeetingLabel(o.weekNumber, o.year, o.dueDate)
           : o.title || 'Special Contribution',
       }));
       setObligations(obligations);
@@ -172,7 +173,7 @@ export default function PaymentsPage() {
       const obligations = (data.data || []).map((o: any) => ({
         ...o,
         title: o.type === 'WEEKLY'
-          ? `Week ${o.weekNumber} - ${new Date(o.dueDate).toLocaleDateString()}`
+          ? formatMeetingLabel(o.weekNumber, o.year, o.dueDate)
           : o.title || 'Special Contribution',
       }));
       setBulkObligations(obligations);
@@ -583,7 +584,7 @@ export default function PaymentsPage() {
                             </td>
                             <td className="px-5 py-3">
                               {obligation.type === 'WEEKLY' || paymentTypeTab === 'WEEKLY' ? (
-                                <span className="text-sm text-slate-600">Week {obligation.weekNumber}, {obligation.year}</span>
+                                <span className="text-sm text-slate-600">{formatMeetingLabel(obligation.weekNumber, obligation.year, obligation.dueDate)}</span>
                               ) : (
                                 <div>
                                   <p className="text-sm font-medium text-slate-800">{obligation.title}</p>
@@ -662,10 +663,11 @@ export default function PaymentsPage() {
                           const total = weekPayments.reduce((sum, p) => sum + Number(p.amount), 0);
                           
                           // Get week display name
-                          let weekDisplay = '';
+                          let weekDisplay: string;
                           if (weekKey.startsWith('week-')) {
                             const parts = weekKey.split('-');
-                            weekDisplay = `Week ${parts[1]}, ${parts[2]}`;
+                            const firstDueDate = weekPayments[0]?.obligation?.dueDate;
+                            weekDisplay = formatMeetingLabel(Number(parts[1]), Number(parts[2]), firstDueDate);
                           } else if (weekKey === 'penalty') {
                             weekDisplay = 'Penalty Payments';
                           } else {
@@ -698,7 +700,7 @@ export default function PaymentsPage() {
                                 const paymentType = payment.obligation ? 'WEEKLY' : payment.specialContributionObligation ? 'SPECIAL' : (payment.notes && (payment.notes.includes('Penalty payment') || payment.notes.toLowerCase().includes('penalty'))) ? 'PENALTY' : 'GENERAL';
                                 const typeColor = paymentType === 'WEEKLY' ? 'bg-blue-50 text-blue-700 ring-1 ring-blue-200' : paymentType === 'SPECIAL' ? 'bg-purple-50 text-purple-700 ring-1 ring-purple-200' : paymentType === 'PENALTY' ? 'bg-red-50 text-red-700 ring-1 ring-red-200' : 'bg-slate-50 text-slate-600 ring-1 ring-slate-200';
                                 const typeLabel = paymentType === 'WEEKLY' ? 'Weekly' : paymentType === 'SPECIAL' ? 'Special' : paymentType === 'PENALTY' ? 'Penalty' : 'General';
-                                const typeDetail = paymentType === 'WEEKLY' && payment.obligation ? `Week ${payment.obligation.weekNumber}` : paymentType === 'SPECIAL' && payment.specialContributionObligation ? payment.specialContributionObligation.specialContribution?.title : '';
+                                const typeDetail = paymentType === 'WEEKLY' && payment.obligation ? formatMeetingShort(payment.obligation.weekNumber) : paymentType === 'SPECIAL' && payment.specialContributionObligation ? payment.specialContributionObligation.specialContribution?.title : '';
                                 return (
                                   <tr key={payment.id} className="hover:bg-slate-50">
                                     <td className="px-5 py-3 text-xs font-mono text-slate-400">{payment.paymentId}</td>
@@ -771,7 +773,7 @@ export default function PaymentsPage() {
                         const typeColor = isWeekly ? 'bg-blue-50 text-blue-700 ring-1 ring-blue-200' : 'bg-purple-50 text-purple-700 ring-1 ring-purple-200';
                         const typeLabel = isWeekly ? 'Weekly' : 'Special';
                         const typeDetail = isWeekly
-                          ? `Week ${obligation.weekNumber}`
+                          ? formatMeetingShort(obligation.weekNumber)
                           : obligation.title;
                         return (
                           <tr key={`unpaid-${obligation.id}`} className="hover:bg-slate-50 bg-amber-50/30">

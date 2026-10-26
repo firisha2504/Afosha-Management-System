@@ -4,6 +4,7 @@ import { AlertCircle, CheckCircle2, Gift, XCircle } from 'lucide-react';
 import { api } from '../lib/api';
 import { PageHeader, LoadingSpinner, Modal, inputClass, btnSecondary } from '../components/ui';
 import { useAuth } from '../contexts/AuthContext';
+import { formatMeetingLabel } from '../lib/meetingUtils';
 
 interface Penalty {
   id: string;
@@ -201,7 +202,7 @@ export default function PenaltiesPage() {
               )}
               <td className="px-5 py-3">
                 {penalty.weekNumber && penalty.year ? (
-                  <span className="text-sm text-slate-700">Week {penalty.weekNumber}, {penalty.year}</span>
+                  <span className="text-sm text-slate-700">{formatMeetingLabel(penalty.weekNumber, penalty.year)}</span>
                 ) : (
                   <span className="text-xs text-slate-400">N/A</span>
                 )}
@@ -468,8 +469,8 @@ export default function PenaltiesPage() {
             
             <div className="bg-slate-50 rounded-lg p-4 space-y-2">
               <p className="text-sm">
-                <span className="text-slate-500">Week:</span>{' '}
-                <span className="font-semibold">Week {waivePenalty.weekNumber}, {waivePenalty.year}</span>
+                <span className="text-slate-500">Meeting:</span>{' '}
+                <span className="font-semibold">{formatMeetingLabel(waivePenalty.weekNumber, waivePenalty.year)}</span>
               </p>
               <p className="text-sm">
                 <span className="text-slate-500">Amount:</span>{' '}

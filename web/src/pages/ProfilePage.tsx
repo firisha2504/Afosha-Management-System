@@ -401,7 +401,7 @@ export default function ProfilePage() {
                     )}
 
                     <button className={btnPrimary} onClick={handleUploadPicture}
-                      disabled={picSaving || !fileRef.current?.files?.length}>
+                      disabled={picSaving || !preview}>
                       {picSaving ? 'Uploading...' : 'Upload Photo'}
                     </button>
                   </div>

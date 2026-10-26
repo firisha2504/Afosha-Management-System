@@ -159,7 +159,7 @@ router.get('/contributions/weekly', authenticate, authorize('ADMIN', 'AUDITOR'),
         const startOfYear = new Date(targetYear, 0, 1);
         const dayOfYear = Math.ceil((now.getTime() - startOfYear.getTime()) / (1000 * 60 * 60 * 24));
         targetWeek = Math.ceil(dayOfYear / 7);
-        console.log(`[Weekly Contributions] No obligations found, defaulting to current calendar week: Week ${targetWeek}, ${targetYear}`);
+        console.log(`[Weekly Contributions] No obligations found, defaulting to current meeting: Meeting #${targetWeek} (${targetYear})`);
       }
     }
   }

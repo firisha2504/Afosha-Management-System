@@ -3,6 +3,8 @@ import { CheckCircle2, XCircle, Clock, AlertTriangle, RefreshCw, TrendingUp, Che
 import { api } from '../lib/api';
 import { PageHeader, LoadingSpinner, Badge, Modal, btnPrimary } from '../components/ui';
 import { useAuth } from '../contexts/AuthContext';
+import { useTranslation } from 'react-i18next';
+import { formatMeetingLabel } from '../lib/meetingUtils';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -63,6 +65,7 @@ function StatusBadge({ status }: { status: string }) {
 
 export default function ContributionsPage() {
   const { user } = useAuth();
+  const { i18n } = useTranslation();
   const isAdmin = user?.role === 'ADMIN';
 
   const [allWeeksData, setAllWeeksData] = useState<AllWeeksData>({});
@@ -332,7 +335,7 @@ export default function ContributionsPage() {
                       )}
                       <div>
                         <h3 className="text-lg font-bold text-slate-800">
-                          Week {weekData.week}, {weekData.year}
+                          {formatMeetingLabel(weekData.week, weekData.year, weekData.dueDate, i18n.language)}
                         </h3>
                         <p className="text-xs text-slate-500">
                           Due: {new Date(weekData.dueDate).toLocaleDateString()} • {s.total} members
@@ -539,7 +542,7 @@ export default function ContributionsPage() {
                     <div key={idx} className="px-4 py-3 flex items-center justify-between">
                       <div>
                         <p className="text-sm font-medium text-slate-800">
-                          Week {week.weekNumber}, {week.year}
+                          {formatMeetingLabel(week.weekNumber, week.year, week.dueDate, i18n.language)}
                         </p>
                         <p className="text-xs text-slate-500">
                           Due: {new Date(week.dueDate).toLocaleDateString()}
