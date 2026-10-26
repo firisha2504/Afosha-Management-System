@@ -14,10 +14,16 @@ interface ContentTab {
 
 const TAB_SLUGS = ['about-afosha', 'mission-vision', 'heera-danbii', 'contact'] as const;
 
+const tabLabels: Record<string, { en: string; om: string }> = {
+  'about-afosha': { en: 'About Afosha', om: 'Waa\'ee Afosha' },
+  'mission-vision': { en: 'Mission & Vision', om: 'Ergaa fi Mul\'ata' },
+  'heera-danbii': { en: 'Rules & Regulations', om: 'Heera fi Danbii' },
+  contact: { en: 'Contact', om: 'Quunnamtii' },
+};
+
 export default function AboutPage() {
   const { t, i18n } = useTranslation();
   const [tabs, setTabs] = useState<ContentTab[]>([]);
-  const [activeTab, setActiveTab] = useState<string>('about-afosha');
   const [loading, setLoading] = useState(true);
   const isOm = i18n.language === 'om';
 
@@ -26,18 +32,12 @@ export default function AboutPage() {
       .then((res) => {
         const data = (res.data.data as ContentTab[]) || [];
         setTabs(data);
-        if (data.length) setActiveTab(data[0].slug);
       })
       .finally(() => setLoading(false));
   }, []);
 
-  const current = tabs.find((tab) => tab.slug === activeTab);
-
-  const tabLabels: Record<string, { en: string; om: string }> = {
-    'about-afosha': { en: 'About Afosha', om: 'Waa\'ee Afosha' },
-    'mission-vision': { en: 'Mission & Vision', om: 'Ergaa fi Mul\'ata' },
-    'heera-danbii': { en: 'Rules & Regulations', om: 'Heera fi Danbii' },
-    contact: { en: 'Contact', om: 'Quunnamtii' },
+  const scrollTo = (slug: string) => {
+    document.getElementById(slug)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
   return (
@@ -45,11 +45,11 @@ export default function AboutPage() {
 
       {/* Hero banner */}
       <div className="py-16 text-center" style={{
-        background: 'linear-gradient(135deg, #14532d 0%, #166534 60%, #15803d 100%)',
+        background: 'linear-gradient(135deg, #060e33 0%, #091540 60%, #0d1e5e 100%)',
       }}>
         <div className="max-w-2xl mx-auto px-4">
           <h1 className="text-4xl font-bold text-white mb-3">{t('public.about')}</h1>
-          <p className="text-lg italic" style={{ color: '#bbf7d0' }}>
+          <p className="text-lg italic" style={{ color: '#bfdbfe' }}>
             "{t('public.motto')}"
           </p>
           <div className="w-20 h-1 rounded-full mx-auto mt-4"
@@ -57,69 +57,88 @@ export default function AboutPage() {
         </div>
       </div>
 
-      <div className="max-w-5xl mx-auto px-4 py-12">
-        {loading ? <LoadingSpinner /> : (
-          <>
-            {/* Horizontal tab buttons */}
-            <div className="flex flex-wrap gap-2 mb-8">
-              {TAB_SLUGS.map((slug) => {
-                const label = tabLabels[slug];
-                const isActive = activeTab === slug;
-                return (
-                  <button
-                    key={slug}
-                    onClick={() => setActiveTab(slug)}
-                    className="px-5 py-2.5 rounded-xl text-sm font-medium transition-all"
-                    style={{
-                      background: isActive
-                        ? 'linear-gradient(135deg, #166534, #15803d)'
-                        : 'white',
-                      color: isActive ? 'white' : '#374151',
-                      border: isActive ? 'none' : '1px solid #e5e7eb',
-                      boxShadow: isActive ? '0 2px 8px rgba(22,101,52,0.3)' : '0 1px 2px rgba(0,0,0,0.05)',
-                    }}>
-                    {isOm ? label.om : label.en}
-                  </button>
-                );
-              })}
-            </div>
+      {/* Sticky section nav */}
+      <div className="sticky top-[64px] z-20 border-b"
+        style={{ background: 'rgba(9,21,64,0.95)', backdropFilter: 'blur(8px)', borderColor: 'rgba(255,255,255,0.08)' }}>
+        <div className="max-w-5xl mx-auto px-4 flex gap-1 overflow-x-auto py-2">
+          {TAB_SLUGS.map((slug) => (
+            <button
+              key={slug}
+              onClick={() => scrollTo(slug)}
+              className="px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all hover:bg-white/10"
+              style={{ color: '#bfdbfe' }}>
+              {isOm ? tabLabels[slug].om : tabLabels[slug].en}
+            </button>
+          ))}
+        </div>
+      </div>
 
-            {/* Content */}
-            {current && (
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
-                {/* Tab header */}
-                <div className="flex items-center gap-3 mb-6 pb-5 border-b border-gray-100">
-                  <div className="w-10 h-10 rounded-xl flex items-center justify-center font-bold text-white"
-                    style={{ background: 'linear-gradient(135deg, #166534, #15803d)' }}>
-                    {(isOm && current.titleOm ? current.titleOm : current.title)[0]}
+      {/* All sections stacked */}
+      <div className="max-w-5xl mx-auto px-4 py-12 space-y-8">
+        {loading ? <LoadingSpinner /> : (
+          tabs.length ? (
+            tabs.map((tab) => (
+              <div
+                key={tab.slug}
+                id={tab.slug}
+                className="rounded-2xl border p-8 scroll-mt-32"
+                style={{ background: 'rgba(255,255,255,0.04)', borderColor: 'rgba(255,255,255,0.08)' }}>
+
+                {/* Section header */}
+                <div className="flex items-center gap-3 mb-6 pb-5"
+                  style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center font-bold text-white shrink-0"
+                    style={{ background: 'linear-gradient(135deg, #1e3a8a, #1d4ed8)' }}>
+                    {(isOm && tab.titleOm ? tab.titleOm : tab.title)[0]}
                   </div>
-                  <h2 className="text-xl font-bold" style={{ color: '#14532d' }}>
-                    {isOm && current.titleOm ? current.titleOm : current.title}
+                  <h2 className="text-xl font-bold" style={{ color: '#e2e8f0' }}>
+                    {isOm && tab.titleOm ? tab.titleOm : tab.title}
                   </h2>
                 </div>
 
                 {/* Content body */}
-                <div className="whitespace-pre-line text-gray-700 leading-relaxed text-sm">
-                  {isOm && current.contentOm ? current.contentOm : current.content}
+                <div className="whitespace-pre-line leading-relaxed text-sm" style={{ color: '#bfdbfe' }}>
+                  {isOm && tab.contentOm ? tab.contentOm : tab.content}
                 </div>
 
                 {/* Gold accent for Heera fi Danbii */}
-                {activeTab === 'heera-danbii' && (
+                {tab.slug === 'heera-danbii' && (
                   <div className="mt-8 p-5 rounded-xl" style={{
                     background: 'linear-gradient(135deg, rgba(217,119,6,0.08), rgba(245,158,11,0.12))',
                     border: '1px solid rgba(217,119,6,0.2)',
                   }}>
-                    <p className="text-sm font-semibold mb-1" style={{ color: '#d97706' }}>
+                    <p className="text-sm font-semibold mb-1" style={{ color: '#f59e0b' }}>
                       {isOm ? 'Moto Keenya' : 'Our Motto'}
                     </p>
-                    <p className="text-lg font-bold italic" style={{ color: '#14532d' }}>
+                    <p className="text-lg font-bold italic" style={{ color: '#fbbf24' }}>
                       {isOm ? '"Tokkummaan Ciminaa fi Milkaayina"' : '"Unity is Strength and Success"'}
                     </p>
                   </div>
                 )}
               </div>
-            )}
-          </>
+            ))
+          ) : (
+            /* Fallback — API returned nothing, render placeholder sections */
+            TAB_SLUGS.map((slug) => (
+              <div
+                key={slug}
+                id={slug}
+                className="rounded-2xl border p-8 scroll-mt-32"
+                style={{ background: 'rgba(255,255,255,0.04)', borderColor: 'rgba(255,255,255,0.08)' }}>
+                <div className="flex items-center gap-3 mb-6 pb-5"
+                  style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center font-bold text-white shrink-0"
+                    style={{ background: 'linear-gradient(135deg, #1e3a8a, #1d4ed8)' }}>
+                    {tabLabels[slug].en[0]}
+                  </div>
+                  <h2 className="text-xl font-bold" style={{ color: '#e2e8f0' }}>
+                    {isOm ? tabLabels[slug].om : tabLabels[slug].en}
+                  </h2>
+                </div>
+                <p className="text-sm" style={{ color: '#93c5fd' }}>—</p>
+              </div>
+            ))
+          )
         )}
       </div>
     </PublicLayout>

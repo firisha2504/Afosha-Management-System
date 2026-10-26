@@ -34,7 +34,7 @@ export default function LoginPage() {
 
       {/* ── Left panel ── */}
       <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden"
-        style={{ background: 'linear-gradient(135deg, #14532d 0%, #166534 40%, #15803d 100%)' }}>
+        style={{ background: 'linear-gradient(135deg, #060e33 0%, #091540 40%, #0d1e5e 100%)' }}>
         {/* Grid */}
         <div className="absolute inset-0 opacity-10" style={{
           backgroundImage: 'linear-gradient(rgba(255,255,255,0.1) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.1) 1px,transparent 1px)',
@@ -42,21 +42,21 @@ export default function LoginPage() {
         }} />
         {/* Glow */}
         <div className="absolute top-1/4 right-1/4 w-64 h-64 rounded-full opacity-15 blur-3xl pointer-events-none"
-          style={{ background: 'radial-gradient(circle, #22c55e, transparent)' }} />
+          style={{ background: 'radial-gradient(circle, #3b82f6, transparent)' }} />
         <div className="absolute bottom-1/4 left-1/4 w-48 h-48 rounded-full opacity-10 blur-3xl pointer-events-none"
           style={{ background: 'radial-gradient(circle, #d97706, transparent)' }} />
 
         <div className="relative z-10 flex flex-col justify-between p-12 w-full">
-          {/* Logo only — no back link here */}
+          {/* Logo */}
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl flex items-center justify-center font-bold text-lg"
-              style={{ background: 'linear-gradient(135deg, #d97706, #f59e0b)', color: '#14532d' }}>
+              style={{ background: 'linear-gradient(135deg, #d97706, #f59e0b)', color: '#1e1b4b' }}>
               A
             </div>
             <span className="text-white font-semibold text-lg">Afosha MS</span>
           </div>
 
-          {/* Center content — all translated */}
+          {/* Center content */}
           <div>
             <h2 className="text-4xl font-bold text-white leading-tight mb-4">
               {isOm ? 'Tokkummaan' : 'Together'}<br />
@@ -68,14 +68,14 @@ export default function LoginPage() {
                 {isOm ? 'Ciminaa fi Milkaayina' : 'Strength and Success'}
               </span>
             </h2>
-            <p className="text-base leading-relaxed max-w-sm" style={{ color: '#bbf7d0' }}>
+            <p className="text-base leading-relaxed max-w-sm" style={{ color: '#bfdbfe' }}>
               {isOm
                 ? 'Miseensota bulchuuf, kaffaltii hordoofuuf fi hawaasa cimsuuf sirna guutuu.'
                 : 'A complete system for managing members, contributions, savings, and community.'}
             </p>
           </div>
 
-          {/* Stats row — translated */}
+          {/* Stats row */}
           <div className="flex gap-8">
             {[
               { label: isOm ? 'Miseensota' : 'Members', value: isOm ? 'Hojii Irra' : 'Active' },
@@ -84,7 +84,7 @@ export default function LoginPage() {
             ].map(({ label, value }) => (
               <div key={label} className="text-center">
                 <p className="text-white font-semibold text-sm">{value}</p>
-                <p className="text-xs" style={{ color: '#86efac' }}>{label}</p>
+                <p className="text-xs" style={{ color: '#93c5fd' }}>{label}</p>
               </div>
             ))}
           </div>
@@ -92,38 +92,38 @@ export default function LoginPage() {
       </div>
 
       {/* ── Right panel ── */}
-      <div className="flex-1 flex items-center justify-center p-8 bg-slate-50">
+      <div className="flex-1 flex items-center justify-center p-8" style={{ background: '#091540' }}>
         <div className="w-full max-w-sm">
 
           {/* Mobile logo */}
           <div className="lg:hidden flex items-center gap-3 mb-8 justify-center">
             <div className="w-10 h-10 rounded-xl flex items-center justify-center font-bold"
-              style={{ background: 'linear-gradient(135deg, #d97706, #f59e0b)', color: '#14532d' }}>
+              style={{ background: 'linear-gradient(135deg, #d97706, #f59e0b)', color: '#1e1b4b' }}>
               A
             </div>
-            <span className="text-slate-900 font-semibold text-lg">Afosha MS</span>
+            <span className="text-white font-semibold text-lg">Afosha MS</span>
           </div>
 
-          {/* Single back button — styled as a pill */}
+          {/* Back button */}
           <Link to="/"
             className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium mb-6 transition-all border"
-            style={{ color: '#166534', borderColor: '#bbf7d0', background: '#f0fdf4' }}>
+            style={{ color: '#93c5fd', borderColor: 'rgba(147,197,253,0.3)', background: 'rgba(147,197,253,0.08)' }}>
             <ArrowLeft size={13} />
             {isOm ? 'Fuula Duraatti Deebi\'i' : 'Back to Home'}
           </Link>
 
           <div className="mb-8">
-            <h1 className="text-2xl font-bold text-slate-900">
+            <h1 className="text-2xl font-bold text-white">
               {t('auth.loginTitle', isOm ? 'Baga Nagaan Dhuftan' : 'Welcome back')}
             </h1>
-            <p className="text-slate-500 mt-1 text-sm">
+            <p className="mt-1 text-sm" style={{ color: '#cbd5e1' }}>
               {isOm ? 'Akkaawuntii keessan fayyadamaa seenaa' : 'Sign in to your account'}
             </p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1.5">
+              <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color: '#93c5fd' }}>
                 {t('auth.username')} / {t('auth.phone')}
               </label>
               <input
@@ -131,14 +131,18 @@ export default function LoginPage() {
                 value={identifier}
                 onChange={(e) => setIdentifier(e.target.value)}
                 placeholder={isOm ? 'admin ykn +251...' : 'admin or +251...'}
-                className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:border-green-500 transition-all shadow-sm"
-                style={{ '--tw-ring-color': 'rgba(22,101,52,0.2)' } as React.CSSProperties}
+                className="w-full px-4 py-3 rounded-xl text-sm text-white placeholder-slate-400 focus:outline-none focus:ring-2 transition-all"
+                style={{
+                  background: 'rgba(255,255,255,0.1)',
+                  border: '1px solid rgba(255,255,255,0.2)',
+                  '--tw-ring-color': 'rgba(96,165,250,0.5)',
+                } as React.CSSProperties}
                 required
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1.5">
+              <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color: '#93c5fd' }}>
                 {t('auth.password')}
               </label>
               <div className="relative">
@@ -147,22 +151,28 @@ export default function LoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full pl-4 pr-12 py-3 bg-white border border-slate-200 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:border-green-500 transition-all shadow-sm"
+                  className="w-full pl-4 pr-12 py-3 rounded-xl text-sm text-white placeholder-slate-400 focus:outline-none focus:ring-2 transition-all"
+                  style={{
+                    background: 'rgba(255,255,255,0.1)',
+                    border: '1px solid rgba(255,255,255,0.2)',
+                    '--tw-ring-color': 'rgba(96,165,250,0.5)',
+                  } as React.CSSProperties}
                   required
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 transition-colors"
+                  style={{ color: '#93c5fd' }}
                 >
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
               <div className="mt-2 text-right">
-                <Link 
-                  to="/forgot-password" 
+                <Link
+                  to="/forgot-password"
                   className="text-xs font-medium hover:underline"
-                  style={{ color: '#166534' }}
+                  style={{ color: '#93c5fd' }}
                 >
                   {isOm ? 'Jecha iccitii dagatte?' : 'Forgot password?'}
                 </Link>
@@ -170,7 +180,7 @@ export default function LoginPage() {
             </div>
 
             {error && (
-              <div className="flex items-center gap-2 bg-red-50 text-red-700 px-4 py-3 rounded-xl text-sm border border-red-100">
+              <div className="flex items-center gap-2 bg-red-500/10 text-red-400 px-4 py-3 rounded-xl text-sm border border-red-500/20">
                 <span>⚠</span> {error}
               </div>
             )}
@@ -179,7 +189,7 @@ export default function LoginPage() {
               type="submit"
               disabled={loading}
               className="w-full py-3 rounded-xl text-sm font-semibold text-white shadow-md hover:shadow-lg disabled:opacity-50 transition-all duration-150"
-              style={{ background: loading ? '#94a3b8' : 'linear-gradient(135deg, #166534, #15803d)' }}
+              style={{ background: loading ? '#334155' : 'linear-gradient(135deg, #1e3a8a, #1d4ed8)' }}
             >
               {loading ? (
                 <span className="flex items-center justify-center gap-2">
@@ -190,7 +200,7 @@ export default function LoginPage() {
             </button>
           </form>
 
-          <p className="text-center text-xs text-slate-400 mt-8">
+          <p className="text-center text-xs mt-8" style={{ color: '#cbd5e1' }}>
             Afosha Management System © {new Date().getFullYear()}
           </p>
         </div>

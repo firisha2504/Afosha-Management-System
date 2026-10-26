@@ -85,7 +85,7 @@ export default function Layout({ children }: LayoutProps) {
             </div>
             <div>
               <h1 className="text-white font-semibold text-sm leading-tight">{t('app.name')}</h1>
-              <p className="text-slate-400 text-xs">{t('app.subtitle')}</p>
+              <p className="text-slate-300 text-xs">{t('app.subtitle')}</p>
             </div>
           </div>
         </div>
@@ -101,7 +101,7 @@ export default function Layout({ children }: LayoutProps) {
                 `group flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 ${
                   isActive
                     ? 'bg-green-600/20 text-green-400 shadow-sm'
-                    : 'text-slate-400 hover:bg-white/6 hover:text-slate-200'
+                    : 'text-slate-300 hover:bg-white/6 hover:text-white'
                 }`
               }
             >

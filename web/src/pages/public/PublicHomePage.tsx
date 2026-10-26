@@ -30,7 +30,7 @@ export default function PublicHomePage() {
 
       {/* ── Hero ── */}
       <section className="relative overflow-hidden" style={{
-        background: 'linear-gradient(135deg, #14532d 0%, #166534 40%, #15803d 70%, #14532d 100%)',
+        background: 'linear-gradient(135deg, #060e33 0%, #091540 40%, #0d1e5e 70%, #091540 100%)',
         minHeight: '88vh',
         display: 'flex', alignItems: 'center',
       }}>
@@ -64,7 +64,7 @@ export default function PublicHomePage() {
             </span>
           </h1>
 
-          <p className="text-xl max-w-2xl mx-auto mb-10 leading-relaxed" style={{ color: '#bbf7d0' }}>
+          <p className="text-xl max-w-2xl mx-auto mb-10 leading-relaxed" style={{ color: '#bfdbfe' }}>
             {isOm
               ? 'Miseensota bulchuuf, kaffaltii hordoofuuf, fi hawaasa cimsuuf sirna guutuu.'
               : 'A complete system for managing members, tracking contributions, and strengthening our community.'}
@@ -73,7 +73,7 @@ export default function PublicHomePage() {
           <div className="flex flex-wrap justify-center gap-4">
             <Link to="/login"
               className="inline-flex items-center gap-2 px-7 py-3.5 rounded-xl font-semibold text-base shadow-lg hover:shadow-xl transition-all hover:-translate-y-0.5"
-              style={{ background: 'linear-gradient(135deg, #d97706, #f59e0b)', color: '#14532d' }}>
+              style={{ background: 'linear-gradient(135deg, #d97706, #f59e0b)', color: '#1e1b4b' }}>
               {isOm ? 'Gara Portaalitti Seeni' : 'Access Portal'} <ArrowRight size={18} />
             </Link>
             <Link to="/about"
@@ -88,12 +88,12 @@ export default function PublicHomePage() {
             <div className="flex justify-center gap-12 mt-16">
               <div className="text-center">
                 <p className="text-4xl font-bold" style={{ color: '#fbbf24' }}>{data.statistics.totalMembers}</p>
-                <p className="text-sm mt-1" style={{ color: '#86efac' }}>{t('dashboard.totalMembers')}</p>
+                <p className="text-sm mt-1" style={{ color: '#93c5fd' }}>{t('dashboard.totalMembers')}</p>
               </div>
               <div className="w-px" style={{ background: 'rgba(255,255,255,0.15)' }} />
               <div className="text-center">
                 <p className="text-4xl font-bold" style={{ color: '#fbbf24' }}>{data.statistics.activeMembers}</p>
-                <p className="text-sm mt-1" style={{ color: '#86efac' }}>{t('dashboard.activeMembers')}</p>
+                <p className="text-sm mt-1" style={{ color: '#93c5fd' }}>{t('dashboard.activeMembers')}</p>
               </div>
             </div>
           )}
@@ -103,7 +103,7 @@ export default function PublicHomePage() {
       {/* ── Features ── */}
       <section className="max-w-6xl mx-auto px-4 py-20">
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold mb-3" style={{ color: '#14532d' }}>
+          <h2 className="text-3xl font-bold mb-3" style={{ color: '#e2e8f0' }}>
             {isOm ? 'Maal Kennina?' : 'What We Offer'}
           </h2>
           <div className="w-16 h-1 rounded-full mx-auto" style={{ background: 'linear-gradient(90deg, #d97706, #f59e0b)' }} />
@@ -129,25 +129,26 @@ export default function PublicHomePage() {
               color: '#166534',
             },
           ].map(({ icon: Icon, title, desc, color }) => (
-            <div key={title} className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 hover:shadow-md transition-all hover:-translate-y-1 group">
+            <div key={title} className="rounded-2xl p-8 shadow-sm border hover:shadow-md transition-all hover:-translate-y-1 group"
+              style={{ background: 'rgba(255,255,255,0.04)', borderColor: 'rgba(255,255,255,0.08)' }}>
               <div className="w-14 h-14 rounded-xl flex items-center justify-center mb-5"
-                style={{ background: color === '#d97706' ? 'rgba(217,119,6,0.1)' : 'rgba(22,101,52,0.1)' }}>
-                <Icon size={26} style={{ color }} />
+                style={{ background: color === '#d97706' ? 'rgba(217,119,6,0.15)' : 'rgba(13,30,94,0.6)', border: '1px solid rgba(255,255,255,0.1)' }}>
+                <Icon size={26} style={{ color: color === '#d97706' ? '#f59e0b' : '#93c5fd' }} />
               </div>
-              <h3 className="font-bold text-lg mb-2" style={{ color: '#14532d' }}>{title}</h3>
-              <p className="text-sm text-gray-500 leading-relaxed">{desc}</p>
+              <h3 className="font-bold text-lg mb-2" style={{ color: '#e2e8f0' }}>{title}</h3>
+              <p className="text-sm leading-relaxed" style={{ color: '#bfdbfe' }}>{desc}</p>
             </div>
           ))}
         </div>
       </section>
 
       {/* ── Upcoming Meetings ── */}
-      <section style={{ background: 'linear-gradient(135deg, #f0fdf4, #dcfce7)' }} className="py-16">
+      <section style={{ background: 'rgba(9, 21, 64, 0.6)', borderTop: '1px solid rgba(255,255,255,0.06)', borderBottom: '1px solid rgba(255,255,255,0.06)' }} className="py-16">
         <div className="max-w-6xl mx-auto px-4">
           <div className="flex items-center justify-between mb-8">
             <div>
-              <h2 className="text-2xl font-bold flex items-center gap-2" style={{ color: '#14532d' }}>
-                <Calendar size={24} style={{ color: '#16a34a' }} />
+              <h2 className="text-2xl font-bold flex items-center gap-2" style={{ color: '#e2e8f0' }}>
+                <Calendar size={24} style={{ color: '#93c5fd' }} />
                 {t('public.upcomingMeetings')}
               </h2>
               <div className="w-12 h-1 rounded-full mt-2" style={{ background: '#d97706' }} />
@@ -158,22 +159,23 @@ export default function PublicHomePage() {
             data?.upcomingMeetings?.length ? (
               <div className="grid md:grid-cols-3 gap-4">
                 {data.upcomingMeetings.map((m) => (
-                  <div key={m.id} className="bg-white rounded-2xl p-6 shadow-sm border border-green-100 hover:shadow-md transition-all">
+                  <div key={m.id} className="rounded-2xl p-6 shadow-sm border hover:shadow-md transition-all"
+                    style={{ background: 'rgba(255,255,255,0.05)', borderColor: 'rgba(255,255,255,0.1)' }}>
                     <div className="flex items-start gap-3">
                       <div className="w-12 h-12 rounded-xl flex flex-col items-center justify-center shrink-0"
-                        style={{ background: 'rgba(22,101,52,0.08)' }}>
-                        <span className="text-xs font-bold" style={{ color: '#16a34a' }}>
+                        style={{ background: 'rgba(13,30,94,0.8)', border: '1px solid rgba(255,255,255,0.1)' }}>
+                        <span className="text-xs font-bold" style={{ color: '#93c5fd' }}>
                           {new Date(m.meetingDate).toLocaleDateString('en-US', { month: 'short' })}
                         </span>
-                        <span className="text-lg font-bold leading-none" style={{ color: '#14532d' }}>
+                        <span className="text-lg font-bold leading-none" style={{ color: '#e2e8f0' }}>
                           {new Date(m.meetingDate).getDate()}
                         </span>
                       </div>
                       <div className="min-w-0">
-                        <h3 className="font-semibold text-sm" style={{ color: '#14532d' }}>{m.title}</h3>
-                        {m.meetingTime && <p className="text-xs text-gray-500 mt-0.5">{m.meetingTime}</p>}
+                        <h3 className="font-semibold text-sm" style={{ color: '#e2e8f0' }}>{m.title}</h3>
+                        {m.meetingTime && <p className="text-xs mt-0.5" style={{ color: '#bfdbfe' }}>{m.meetingTime}</p>}
                         {m.location && (
-                          <p className="text-xs mt-1 flex items-center gap-1 text-gray-400">
+                          <p className="text-xs mt-1 flex items-center gap-1" style={{ color: '#93c5fd' }}>
                             📍 {m.location}
                           </p>
                         )}
@@ -184,8 +186,8 @@ export default function PublicHomePage() {
               </div>
             ) : (
               <div className="text-center py-10">
-                <Calendar size={40} className="mx-auto mb-3 text-gray-300" />
-                <p className="text-gray-400">{t('common.noData')}</p>
+                <Calendar size={40} className="mx-auto mb-3" style={{ color: '#93c5fd' }} />
+                <p style={{ color: '#bfdbfe' }}>{t('common.noData')}</p>
               </div>
             )
           )}
@@ -196,20 +198,20 @@ export default function PublicHomePage() {
       <section className="py-16">
         <div className="max-w-6xl mx-auto px-4">
           <div className="relative overflow-hidden rounded-3xl p-12 text-center"
-            style={{ background: 'linear-gradient(135deg, #14532d, #166534)' }}>
+            style={{ background: 'linear-gradient(135deg, #060e33, #0d1e5e)' }}>
             <div className="absolute top-0 right-0 w-64 h-64 rounded-full opacity-10 blur-3xl pointer-events-none"
               style={{ background: 'radial-gradient(circle, #fbbf24, transparent)', transform: 'translate(30%,-30%)' }} />
             <h2 className="text-3xl font-bold text-white mb-3">
               {isOm ? 'Miseensa Taataa?' : 'Already a Member?'}
             </h2>
-            <p className="mb-8" style={{ color: '#bbf7d0' }}>
+            <p className="mb-8" style={{ color: '#bfdbfe' }}>
               {isOm
                 ? 'Gara portaalitti seenaa kaffaltii, qusannoo fi beeksisa kee ilaaluu.'
                 : 'Sign in to view your contributions, savings and notifications.'}
             </p>
             <Link to="/login"
               className="inline-flex items-center gap-2 px-8 py-3.5 rounded-xl font-semibold text-base shadow-lg hover:shadow-xl transition-all hover:-translate-y-0.5"
-              style={{ background: 'linear-gradient(135deg, #d97706, #f59e0b)', color: '#14532d' }}>
+              style={{ background: 'linear-gradient(135deg, #d97706, #f59e0b)', color: '#1e1b4b' }}>
               <Heart size={16} fill="currentColor" />
               {isOm ? 'Amma Seeni' : 'Sign In Now'}
             </Link>

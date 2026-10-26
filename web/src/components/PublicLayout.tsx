@@ -21,22 +21,22 @@ export default function PublicLayout({ children }: PublicLayoutProps) {
   };
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: '#f8faf8' }}>
+    <div className="min-h-screen flex flex-col" style={{ background: '#091540' }}>
 
       {/* ── Main navbar ── */}
       <header className="sticky top-0 z-50 shadow-md"
-        style={{ background: 'linear-gradient(135deg, #166534 0%, #15803d 100%)' }}>
+        style={{ background: 'linear-gradient(135deg, #0d1e5e 0%, #091540 100%)' }}>
         <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
 
           {/* Logo */}
           <Link to="/" className="flex items-center gap-3 group">
             <div className="w-10 h-10 rounded-xl flex items-center justify-center font-bold text-lg shadow-md"
-              style={{ background: 'linear-gradient(135deg, #d97706, #f59e0b)', color: '#14532d' }}>
+              style={{ background: 'linear-gradient(135deg, #d97706, #f59e0b)', color: '#1e1b4b' }}>
               A
             </div>
             <div>
               <p className="text-white font-bold text-base leading-tight">Afosha</p>
-              <p className="text-xs leading-tight" style={{ color: '#86efac' }}>
+              <p className="text-xs leading-tight" style={{ color: '#93c5fd' }}>
                 {isOm ? 'Sirna Bulchiinsa' : 'Management System'}
               </p>
             </div>
@@ -52,7 +52,7 @@ export default function PublicLayout({ children }: PublicLayoutProps) {
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                   location.pathname === to
                     ? 'text-white bg-white/15'
-                    : 'text-green-100 hover:text-white hover:bg-white/10'
+                    : 'text-blue-100 hover:text-white hover:bg-white/10'
                 }`}>
                 {label}
               </Link>
@@ -66,7 +66,7 @@ export default function PublicLayout({ children }: PublicLayoutProps) {
               <button
                 onClick={() => navigate('/dashboard')}
                 className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold shadow-sm transition-all hover:scale-105"
-                style={{ background: 'linear-gradient(135deg, #d97706, #f59e0b)', color: '#14532d' }}
+                style={{ background: 'linear-gradient(135deg, #d97706, #f59e0b)', color: '#1e1b4b' }}
               >
                 <ArrowLeft size={16} />
                 {isOm ? 'Gara Deshboorditti' : 'Back to Dashboard'}
@@ -74,7 +74,7 @@ export default function PublicLayout({ children }: PublicLayoutProps) {
             )}
             
             <button onClick={toggleLanguage}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm text-green-100 hover:bg-white/10 transition-all">
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm text-blue-100 hover:bg-white/10 transition-all">
               <Globe size={15} />
               {isOm ? 'EN' : 'OM'}
             </button>
@@ -82,7 +82,7 @@ export default function PublicLayout({ children }: PublicLayoutProps) {
             {!user && (
               <Link to="/login"
                 className="px-4 py-2 rounded-lg text-sm font-semibold shadow-sm transition-all"
-                style={{ background: 'linear-gradient(135deg, #d97706, #f59e0b)', color: '#14532d' }}>
+                style={{ background: 'linear-gradient(135deg, #d97706, #f59e0b)', color: '#1e1b4b' }}>
                 {t('auth.login')}
               </Link>
             )}
@@ -94,7 +94,7 @@ export default function PublicLayout({ children }: PublicLayoutProps) {
       <main className="flex-1">{children}</main>
 
       {/* ── Footer ── */}
-      <footer style={{ background: 'linear-gradient(160deg, #14532d 0%, #166534 50%, #14532d 100%)' }}
+      <footer style={{ background: 'linear-gradient(160deg, #060e33 0%, #0d1e5e 50%, #060e33 100%)' }}
         className="text-white mt-16">
 
         {/* Main footer grid */}
@@ -105,15 +105,15 @@ export default function PublicLayout({ children }: PublicLayoutProps) {
             <div className="md:col-span-1">
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-11 h-11 rounded-xl flex items-center justify-center font-bold text-xl shadow"
-                  style={{ background: 'linear-gradient(135deg, #d97706, #f59e0b)', color: '#14532d' }}>
+                  style={{ background: 'linear-gradient(135deg, #d97706, #f59e0b)', color: '#1e1b4b' }}>
                   A
                 </div>
                 <div>
                   <p className="font-bold text-white text-lg">Afosha</p>
-                  <p className="text-xs" style={{ color: '#86efac' }}>AMS</p>
+                  <p className="text-xs" style={{ color: '#93c5fd' }}>AMS</p>
                 </div>
               </div>
-              <p className="text-sm leading-relaxed mb-5" style={{ color: '#bbf7d0' }}>
+              <p className="text-sm leading-relaxed mb-5" style={{ color: '#bfdbfe' }}>
                 {isOm
                   ? 'Gamtaa Dargaggoota Melka Jabdu — hawaasa cimsuu fi deeggaruu.'
                   : 'Gamtaa Dargaggoota Melka Jabdu — strengthening and supporting our community.'}
@@ -153,9 +153,9 @@ export default function PublicLayout({ children }: PublicLayoutProps) {
                   <li key={to}>
                     <Link to={to}
                       className="text-sm flex items-center gap-2 transition-all hover:translate-x-1"
-                      style={{ color: '#bbf7d0' }}
+                      style={{ color: '#bfdbfe' }}
                       onMouseEnter={e => (e.currentTarget.style.color = '#fbbf24')}
-                      onMouseLeave={e => (e.currentTarget.style.color = '#bbf7d0')}>
+                      onMouseLeave={e => (e.currentTarget.style.color = '#bfdbfe')}>
                       <span style={{ color: '#d97706' }}>›</span> {label}
                     </Link>
                   </li>
@@ -174,7 +174,7 @@ export default function PublicLayout({ children }: PublicLayoutProps) {
                   <p className="text-xs font-semibold mb-1" style={{ color: '#fbbf24' }}>
                     {isOm ? 'Bu\'uura Seeraa' : 'Legal Foundation'}
                   </p>
-                  <p className="text-xs" style={{ color: '#bbf7d0' }}>
+                  <p className="text-xs" style={{ color: '#bfdbfe' }}>
                     {isOm ? 'Heera RDFI Aritikilii 31' : 'FDRE Constitution Article 31'}
                   </p>
                 </div>
@@ -182,7 +182,7 @@ export default function PublicLayout({ children }: PublicLayoutProps) {
                   <p className="text-xs font-semibold mb-1" style={{ color: '#fbbf24' }}>
                     {isOm ? 'Moto' : 'Motto'}
                   </p>
-                  <p className="text-xs italic" style={{ color: '#bbf7d0' }}>
+                  <p className="text-xs italic" style={{ color: '#bfdbfe' }}>
                     "Tokkummaan Ciminaa fi Milkaayina"
                   </p>
                 </div>
@@ -190,7 +190,7 @@ export default function PublicLayout({ children }: PublicLayoutProps) {
                   <p className="text-xs font-semibold mb-1" style={{ color: '#fbbf24' }}>
                     {isOm ? 'Maqaa Guutuu' : 'Full Name'}
                   </p>
-                  <p className="text-xs" style={{ color: '#bbf7d0' }}>
+                  <p className="text-xs" style={{ color: '#bfdbfe' }}>
                     Gamtaa Dargaggoota Melka Jabdu
                   </p>
                 </div>
@@ -214,7 +214,7 @@ export default function PublicLayout({ children }: PublicLayoutProps) {
                       style={{ background: 'rgba(217,119,6,0.25)' }}>
                       <Icon size={13} style={{ color: '#fbbf24' }} />
                     </div>
-                    <span className="text-sm" style={{ color: '#bbf7d0' }}>{text}</span>
+                    <span className="text-sm" style={{ color: '#bfdbfe' }}>{text}</span>
                   </li>
                 ))}
               </ul>
@@ -226,7 +226,7 @@ export default function PublicLayout({ children }: PublicLayoutProps) {
                 </p>
                 <Link to="/login"
                   className="block text-center py-2 px-4 rounded-lg text-xs font-semibold transition-all"
-                  style={{ background: 'linear-gradient(135deg, #d97706, #f59e0b)', color: '#14532d' }}>
+                  style={{ background: 'linear-gradient(135deg, #d97706, #f59e0b)', color: '#1e1b4b' }}>
                   {isOm ? 'Gara Portaalichaatti Seeni' : 'Access Member Portal'}
                 </Link>
               </div>
@@ -237,10 +237,10 @@ export default function PublicLayout({ children }: PublicLayoutProps) {
         {/* Bottom bar */}
         <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', background: 'rgba(0,0,0,0.2)' }}>
           <div className="max-w-6xl mx-auto px-4 py-5 flex flex-col md:flex-row items-center justify-between gap-3">
-            <p className="text-xs flex items-center gap-1.5" style={{ color: '#86efac' }}>
+            <p className="text-xs flex items-center gap-1.5" style={{ color: '#93c5fd' }}>
               © {new Date().getFullYear()} Afosha Management System. {isOm ? 'Mirgi Keenya Eegame.' : 'All rights reserved.'}
             </p>
-            <p className="text-xs flex items-center gap-1.5" style={{ color: '#86efac' }}>
+            <p className="text-xs flex items-center gap-1.5" style={{ color: '#93c5fd' }}>
               {isOm ? 'Jaalalaaan Hojjetame' : 'Made with'} <Heart size={12} style={{ color: '#d97706' }} fill="#d97706" /> {isOm ? 'Itoophiyaaf' : 'for Ethiopia'}
             </p>
           </div>
