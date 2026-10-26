@@ -154,7 +154,7 @@ export default function PublicLayout({ children }: PublicLayoutProps) {
       <main className="flex-1">{children}</main>
 
       {/* ── Footer ── */}
-      <footer style={{ background: 'linear-gradient(160deg, #060e33 0%, #0d1e5e 50%, #060e33 100%)' }}
+      <footer style={{ background: '#000919' }}
         className="text-white mt-16">
 
         {/* Main footer grid */}
