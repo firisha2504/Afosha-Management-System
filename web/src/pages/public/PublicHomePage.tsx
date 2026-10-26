@@ -108,7 +108,7 @@ export default function PublicHomePage() {
           </h2>
           <div className="w-16 h-1 rounded-full mx-auto" style={{ background: 'linear-gradient(90deg, #d97706, #f59e0b)' }} />
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
           {[
             {
               icon: Users,
@@ -128,16 +128,32 @@ export default function PublicHomePage() {
               desc: isOm ? 'Gabaasota PDF fi Excel baasuuf, daashboordii odeeffannoo.' : 'Export PDF/Excel reports and view live analytics dashboards.',
               color: '#166534',
             },
-          ].map(({ icon: Icon, title, desc, color }) => (
-            <div key={title} className="rounded-2xl p-6 sm:p-8 shadow-sm border hover:shadow-md transition-all hover:-translate-y-1 group"
+            {
+              icon: Heart,
+              title: isOm ? 'Waa\'ee Keenya' : 'About Us',
+              desc: isOm ? 'Seenaa, kaayyoo fi heera keenya hubadhu.' : 'Learn about our history, mission and values.',
+              color: '#d97706',
+              link: '/about',
+            },
+          ].map(({ icon: Icon, title, desc, color, link }) => (
+            <Link 
+              key={title} 
+              to={link || '#'}
+              onClick={(e) => !link && e.preventDefault()}
+              className={`rounded-2xl p-6 sm:p-8 shadow-sm border transition-all group ${
+                link ? 'hover:shadow-lg hover:-translate-y-2 cursor-pointer' : 'hover:shadow-md hover:-translate-y-1'
+              }`}
               style={{ background: 'rgba(255,255,255,0.04)', borderColor: 'rgba(255,255,255,0.08)' }}>
               <div className="w-14 h-14 rounded-xl flex items-center justify-center mb-5"
                 style={{ background: color === '#d97706' ? 'rgba(217,119,6,0.15)' : 'rgba(13,30,94,0.6)', border: '1px solid rgba(255,255,255,0.1)' }}>
                 <Icon size={26} style={{ color: color === '#d97706' ? '#f59e0b' : '#93c5fd' }} />
               </div>
-              <h3 className="font-bold text-lg mb-2" style={{ color: '#e2e8f0' }}>{title}</h3>
+              <h3 className="font-bold text-lg mb-2 flex items-center gap-2" style={{ color: '#e2e8f0' }}>
+                {title}
+                {link && <ArrowRight size={16} className="opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: '#f59e0b' }} />}
+              </h3>
               <p className="text-sm leading-relaxed" style={{ color: '#bfdbfe' }}>{desc}</p>
-            </div>
+            </Link>
           ))}
         </div>
       </section>

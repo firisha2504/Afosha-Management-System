@@ -1,7 +1,8 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Globe, Mail, Phone, MapPin, Heart, Share2, MessageCircle, Users, ArrowLeft } from 'lucide-react';
+import { Globe, Mail, Phone, MapPin, Heart, Share2, MessageCircle, Users, ArrowLeft, Menu, X } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { useState } from 'react';
 
 interface PublicLayoutProps {
   children: React.ReactNode;
@@ -13,6 +14,7 @@ export default function PublicLayout({ children }: PublicLayoutProps) {
   const navigate = useNavigate();
   const { user } = useAuth();
   const isOm = i18n.language === 'om';
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const toggleLanguage = () => {
     const next = i18n.language === 'om' ? 'en' : 'om';
@@ -23,13 +25,21 @@ export default function PublicLayout({ children }: PublicLayoutProps) {
   return (
     <div className="min-h-screen flex flex-col" style={{ background: '#091540' }}>
 
+      {/* Mobile menu backdrop */}
+      {mobileMenuOpen && (
+        <div 
+          className="fixed inset-0 bg-black/60 z-40 md:hidden" 
+          onClick={() => setMobileMenuOpen(false)}
+        />
+      )}
+
       {/* ── Main navbar ── */}
       <header className="sticky top-0 z-50 shadow-md"
         style={{ background: 'linear-gradient(135deg, #0d1e5e 0%, #091540 100%)' }}>
         <div className="max-w-6xl mx-auto px-3 sm:px-4 py-3 sm:py-4 flex items-center justify-between">
 
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2 sm:gap-3 group">
+          <Link to="/" className="flex items-center gap-2 sm:gap-3 group" onClick={() => setMobileMenuOpen(false)}>
             <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl flex items-center justify-center font-bold text-base sm:text-lg shadow-md"
               style={{ background: 'linear-gradient(135deg, #d97706, #f59e0b)', color: '#1e1b4b' }}>
               A
@@ -42,7 +52,7 @@ export default function PublicLayout({ children }: PublicLayoutProps) {
             </div>
           </Link>
 
-          {/* Nav links */}
+          {/* Desktop Nav links */}
           <nav className="hidden md:flex items-center gap-1">
             {[
               { to: '/', label: isOm ? 'Fuula Jalqabaa' : 'Home' },
@@ -61,6 +71,14 @@ export default function PublicLayout({ children }: PublicLayoutProps) {
 
           {/* Actions */}
           <div className="flex items-center gap-1.5 sm:gap-2">
+            {/* Hamburger menu button - mobile only */}
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="md:hidden p-2 rounded-lg text-white hover:bg-white/10 transition-all"
+            >
+              {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+            </button>
+
             {/* Back to Dashboard button - only show if logged in */}
             {user && (
               <button
@@ -75,19 +93,60 @@ export default function PublicLayout({ children }: PublicLayoutProps) {
             )}
             
             <button onClick={toggleLanguage}
-              className="flex items-center gap-1.5 px-2.5 sm:px-3 py-2 rounded-lg text-xs sm:text-sm text-blue-100 hover:bg-white/10 transition-all">
+              className="hidden sm:flex items-center gap-1.5 px-2.5 sm:px-3 py-2 rounded-lg text-xs sm:text-sm text-blue-100 hover:bg-white/10 transition-all">
               <Globe size={14} sm:size={15} />
               <span className="hidden sm:inline">{isOm ? 'EN' : 'OM'}</span>
             </button>
             
             {!user && (
               <Link to="/login"
-                className="px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold shadow-sm transition-all"
+                className="hidden sm:inline-flex px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold shadow-sm transition-all"
                 style={{ background: 'linear-gradient(135deg, #d97706, #f59e0b)', color: '#1e1b4b' }}>
                 {t('auth.login')}
               </Link>
             )}
           </div>
+        </div>
+
+        {/* Mobile dropdown menu */}
+        <div 
+          className={`${
+            mobileMenuOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+          } md:hidden overflow-hidden transition-all duration-300 ease-in-out`}
+          style={{ background: 'rgba(6, 14, 51, 0.95)' }}
+        >
+          <nav className="px-4 py-3 space-y-1 border-t border-white/10">
+            {[
+              { to: '/', label: isOm ? 'Fuula Jalqabaa' : 'Home' },
+              { to: '/about', label: isOm ? 'Waa\'ee Keenya' : 'About' },
+              { to: '/login', label: t('auth.login') },
+            ].map(({ to, label }) => (
+              <Link
+                key={to}
+                to={to}
+                onClick={() => setMobileMenuOpen(false)}
+                className={`block px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                  location.pathname === to
+                    ? 'text-white bg-white/15'
+                    : 'text-blue-100 hover:text-white hover:bg-white/10'
+                }`}
+              >
+                {label}
+              </Link>
+            ))}
+            
+            {/* Language toggle in mobile menu */}
+            <button
+              onClick={() => {
+                toggleLanguage();
+                setMobileMenuOpen(false);
+              }}
+              className="w-full flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium text-blue-100 hover:text-white hover:bg-white/10 transition-all"
+            >
+              <Globe size={16} />
+              {isOm ? 'Change to English' : 'Gara Afaan Oromootti'}
+            </button>
+          </nav>
         </div>
       </header>
 
