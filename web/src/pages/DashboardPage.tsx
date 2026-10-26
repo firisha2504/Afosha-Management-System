@@ -54,18 +54,20 @@ export default function DashboardPage() {
   if (user?.role === 'ADMIN' && adminData) {
     return (
       <div>
-        <div className="flex items-center justify-between mb-1">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 sm:mb-1">
           <PageHeader title={t('dashboard.title')} />
           <Link 
             to="/"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-green-700 hover:text-white bg-green-50 hover:bg-green-600 border border-green-200 rounded-lg transition-all duration-200 mb-8"
+            className="inline-flex items-center justify-center gap-1.5 px-3 py-2 text-xs sm:text-sm font-medium text-green-700 hover:text-white bg-green-50 hover:bg-green-600 border border-green-200 rounded-lg transition-all duration-200 sm:mb-8 whitespace-nowrap"
           >
-            <Home size={16} /> Public Website
+            <Home size={15} className="sm:w-4 sm:h-4" /> 
+            <span className="hidden xs:inline">Public Website</span>
+            <span className="xs:hidden">Website</span>
           </Link>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <StatCard title={t('dashboard.totalMembers')} value={adminData.totalMembers} icon={<Users size={24} />} />
-          <StatCard title={t('dashboard.activeMembers')} value={adminData.activeMembers} icon={<UserCheck size={24} />} color="bg-green-500" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
+          <StatCard title={t('dashboard.totalMembers')} value={adminData.totalMembers} icon={<Users className="w-full h-full" />} />
+          <StatCard title={t('dashboard.activeMembers')} value={adminData.activeMembers} icon={<UserCheck className="w-full h-full" />} color="bg-green-500" />
           <StatCard 
             title="Total Financial Summary" 
             value={`${(
@@ -73,19 +75,19 @@ export default function DashboardPage() {
               Number(adminData.totalSpecialContributions || 0) + 
               Number(adminData.paidPenalties || 0)
             ).toLocaleString()} ETB`} 
-            icon={<Wallet size={24} />} 
+            icon={<Wallet className="w-full h-full" />} 
             color="bg-blue-600" 
           />
-          <StatCard title={t('dashboard.weeklyContributions')} value={`${Number(adminData.weeklyContributions).toLocaleString()} ETB`} icon={<CreditCard size={24} />} />
-          <StatCard title="Unpaid Penalties" value={`${Number(adminData.unpaidPenalties || 0).toLocaleString()} ETB`} icon={<AlertTriangle size={24} />} color="bg-red-500" />
-          <StatCard title="Paid Penalties" value={`${Number(adminData.paidPenalties || 0).toLocaleString()} ETB`} icon={<AlertTriangle size={24} />} color="bg-green-500" />
-          <StatCard title={t('dashboard.outstandingBalance')} value={`${Number(adminData.totalOutstandingBalance).toLocaleString()} ETB`} icon={<Wallet size={24} />} color="bg-orange-500" />
-          <StatCard title={t('dashboard.specialContributions')} value={`${Number(adminData.totalSpecialContributions || 0).toLocaleString()} ETB`} icon={<HeartHandshake size={24} />} color="bg-teal-500" />
+          <StatCard title={t('dashboard.weeklyContributions')} value={`${Number(adminData.weeklyContributions).toLocaleString()} ETB`} icon={<CreditCard className="w-full h-full" />} />
+          <StatCard title="Unpaid Penalties" value={`${Number(adminData.unpaidPenalties || 0).toLocaleString()} ETB`} icon={<AlertTriangle className="w-full h-full" />} color="bg-red-500" />
+          <StatCard title="Paid Penalties" value={`${Number(adminData.paidPenalties || 0).toLocaleString()} ETB`} icon={<AlertTriangle className="w-full h-full" />} color="bg-green-500" />
+          <StatCard title={t('dashboard.outstandingBalance')} value={`${Number(adminData.totalOutstandingBalance).toLocaleString()} ETB`} icon={<Wallet className="w-full h-full" />} color="bg-orange-500" />
+          <StatCard title={t('dashboard.specialContributions')} value={`${Number(adminData.totalSpecialContributions || 0).toLocaleString()} ETB`} icon={<HeartHandshake className="w-full h-full" />} color="bg-teal-500" />
         </div>
         {chartData && (
-          <div className="bg-white rounded-xl border p-6">
-            <h2 className="text-lg font-semibold mb-4">Contribution & Penalty Trends</h2>
-            <ResponsiveContainer width="100%" height={300}>
+          <div className="bg-white rounded-lg sm:rounded-xl border p-4 sm:p-6">
+            <h2 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4">Contribution & Penalty Trends</h2>
+            <ResponsiveContainer width="100%" height={250} className="sm:h-[300px]">
               <BarChart data={chartData.trends}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="month" />
@@ -106,9 +108,9 @@ export default function DashboardPage() {
     return (
       <div>
         <PageHeader title={t('dashboard.title')} />
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <StatCard title="Weekly Collections" value={`${Number(auditorData.weeklyCollections).toLocaleString()} ETB`} icon={<CreditCard size={24} />} />
-          <StatCard title="Outstanding Payments" value={auditorData.outstandingPayments} icon={<AlertTriangle size={24} />} color="bg-red-500" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+          <StatCard title="Weekly Collections" value={`${Number(auditorData.weeklyCollections).toLocaleString()} ETB`} icon={<CreditCard className="w-full h-full" />} />
+          <StatCard title="Outstanding Payments" value={auditorData.outstandingPayments} icon={<AlertTriangle className="w-full h-full" />} color="bg-red-500" />
         </div>
       </div>
     );

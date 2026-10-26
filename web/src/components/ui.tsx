@@ -12,20 +12,22 @@ interface StatCardProps {
 
 export function StatCard({ title, value, icon, color = 'from-primary-500 to-primary-600', trend, trendUp }: StatCardProps) {
   return (
-    <div className="bg-white rounded-2xl border border-slate-100 p-6 shadow-sm hover:shadow-md transition-shadow duration-200">
-      <div className="flex items-start justify-between">
+    <div className="bg-white rounded-xl sm:rounded-2xl border border-slate-100 p-4 sm:p-6 shadow-sm hover:shadow-md transition-shadow duration-200">
+      <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
-          <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">{title}</p>
-          <p className="text-3xl font-bold text-slate-900 leading-none">{value}</p>
+          <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5 sm:mb-2">{title}</p>
+          <p className="text-xl sm:text-2xl md:text-3xl font-bold text-slate-900 leading-none break-words">{value}</p>
           {trend && (
-            <p className={`text-xs mt-2 font-medium ${trendUp ? 'text-emerald-600' : 'text-red-500'}`}>
+            <p className={`text-xs mt-1.5 sm:mt-2 font-medium ${trendUp ? 'text-emerald-600' : 'text-red-500'}`}>
               {trendUp ? '↑' : '↓'} {trend}
             </p>
           )}
         </div>
         {icon && (
-          <div className={`bg-gradient-to-br ${color} p-3 rounded-xl text-white shadow-sm shrink-0`}>
-            {icon}
+          <div className={`bg-gradient-to-br ${color} p-2.5 sm:p-3 rounded-lg sm:rounded-xl text-white shadow-sm shrink-0`}>
+            <div className="w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center">
+              {icon}
+            </div>
           </div>
         )}
       </div>
@@ -42,12 +44,12 @@ interface PageHeaderProps {
 
 export function PageHeader({ title, subtitle, action }: PageHeaderProps) {
   return (
-    <div className="flex items-start justify-between mb-8">
-      <div>
-        <h1 className="text-2xl font-bold text-slate-900 tracking-tight">{title}</h1>
+    <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 sm:gap-4 mb-6 sm:mb-8">
+      <div className="min-w-0">
+        <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">{title}</h1>
         {subtitle && <p className="text-slate-500 mt-1 text-sm">{subtitle}</p>}
       </div>
-      {action && <div className="ml-4 shrink-0">{action}</div>}
+      {action && <div className="shrink-0">{action}</div>}
     </div>
   );
 }
@@ -99,24 +101,24 @@ interface ModalProps {
 export function Modal({ open, onClose, title, children, wide }: ModalProps) {
   if (!open) return null;
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4"
       style={{ background: 'rgba(15,23,42,0.6)', backdropFilter: 'blur(4px)' }}
       onClick={onClose}>
       <div
-        className={`bg-white rounded-2xl shadow-2xl w-full ${wide ? 'max-w-2xl' : 'max-w-lg'} max-h-[90vh] flex flex-col`}
+        className={`bg-white rounded-xl sm:rounded-2xl shadow-2xl w-full ${wide ? 'max-w-2xl' : 'max-w-lg'} max-h-[90vh] flex flex-col`}
         onClick={(e) => e.stopPropagation()}
         style={{ animation: 'modalIn 0.18s ease-out' }}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
-          <h2 className="text-base font-semibold text-slate-900">{title}</h2>
+        <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-slate-100">
+          <h2 className="text-sm sm:text-base font-semibold text-slate-900">{title}</h2>
           <button onClick={onClose}
-            className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-all text-lg font-light">
+            className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-all text-base sm:text-lg font-light">
             ✕
           </button>
         </div>
         {/* Body */}
-        <div className="px-6 py-5 overflow-y-auto flex-1">{children}</div>
+        <div className="px-4 sm:px-6 py-4 sm:py-5 overflow-y-auto flex-1">{children}</div>
       </div>
       <style>{`
         @keyframes modalIn {
@@ -147,13 +149,13 @@ export function Table({ headers, children, empty }: {
   empty?: boolean;
 }) {
   return (
-    <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+    <div className="bg-white rounded-xl sm:rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
             <tr className="border-b border-slate-100">
               {headers.map((h) => (
-                <th key={h} className="px-6 py-3.5 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                <th key={h} className="px-3 sm:px-6 py-3 sm:py-3.5 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider whitespace-nowrap">
                   {h}
                 </th>
               ))}
@@ -161,7 +163,7 @@ export function Table({ headers, children, empty }: {
           </thead>
           <tbody className="divide-y divide-slate-50">
             {empty
-              ? <tr><td colSpan={headers.length} className="px-6 py-16 text-center text-slate-400 text-sm">No data found</td></tr>
+              ? <tr><td colSpan={headers.length} className="px-3 sm:px-6 py-12 sm:py-16 text-center text-slate-400 text-sm">No data found</td></tr>
               : children
             }
           </tbody>
@@ -174,7 +176,7 @@ export function Table({ headers, children, empty }: {
 // ── Section Card ──────────────────────────────────────────────────────────────
 export function Card({ children, className = '' }: { children: ReactNode; className?: string }) {
   return (
-    <div className={`bg-white rounded-2xl border border-slate-100 shadow-sm ${className}`}>
+    <div className={`bg-white rounded-xl sm:rounded-2xl border border-slate-100 shadow-sm ${className}`}>
       {children}
     </div>
   );

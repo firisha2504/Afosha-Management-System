@@ -74,7 +74,7 @@ export default function Layout({ children }: LayoutProps) {
       {/* Mobile overlay backdrop */}
       {sidebarOpen && (
         <div 
-          className="fixed inset-0 bg-black/50 z-40 lg:hidden" 
+          className="fixed inset-0 bg-black/60 z-40 lg:hidden" 
           onClick={() => setSidebarOpen(false)}
         />
       )}
@@ -82,7 +82,7 @@ export default function Layout({ children }: LayoutProps) {
       {/* Sidebar */}
       <aside className={`${
         sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-      } lg:translate-x-0 fixed lg:static inset-y-0 left-0 z-50 w-64 flex flex-col shrink-0 relative transition-transform duration-300`}
+      } lg:translate-x-0 fixed lg:relative inset-y-0 left-0 z-50 w-64 flex flex-col shrink-0 transition-transform duration-300 ease-in-out`}
         style={{ background: 'linear-gradient(165deg, #0f2d1a 0%, #14532d 60%, #0f2d1a 100%)' }}>
 
         {/* Decorative accent */}
