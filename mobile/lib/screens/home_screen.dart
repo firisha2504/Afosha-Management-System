@@ -447,7 +447,7 @@ class _FinanceCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 10),
-            Text(value, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: color)),
+            Text(value, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Color(0xFF0F172A))),
             const SizedBox(height: 2),
             Text(title, style: const TextStyle(fontSize: 11, color: Colors.grey), maxLines: 1, overflow: TextOverflow.ellipsis),
           ],
