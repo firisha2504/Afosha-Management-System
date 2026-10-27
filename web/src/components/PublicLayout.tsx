@@ -94,7 +94,8 @@ export default function PublicLayout({ children }: PublicLayoutProps) {
             
             <button onClick={toggleLanguage}
               className="hidden sm:flex items-center gap-1.5 px-2.5 sm:px-3 py-2 rounded-lg text-xs sm:text-sm text-blue-100 hover:bg-white/10 transition-all">
-              <Globe size={14} sm:size={15} />
+              <Globe size={14} className="sm:hidden" />
+              <Globe size={15} className="hidden sm:inline" />
               <span className="hidden sm:inline">{isOm ? 'EN' : 'OM'}</span>
             </button>
             

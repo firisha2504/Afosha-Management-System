@@ -46,25 +46,25 @@ export default function BackupPage() {
         action={<button className={btnPrimary} onClick={createBackup} disabled={creating}><Database size={16} className="inline mr-1" />{creating ? t('common.loading') : 'Create Backup'}</button>}
       />
       {loading ? <LoadingSpinner /> : (
-        <div className="bg-white rounded-xl border overflow-hidden">
-          <table className="w-full">
+        <div className="bg-white rounded-xl border overflow-x-auto">
+          <table className="w-full min-w-full">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Filename</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Size</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Filename</th>
+                <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
+                <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Size</th>
+                <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+                <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y">
               {backups.map((b) => (
                 <tr key={b.id}>
-                  <td className="px-6 py-4 text-sm font-mono">{b.filename}</td>
-                  <td className="px-6 py-4 text-sm">{b.type}</td>
-                  <td className="px-6 py-4 text-sm">{formatSize(b.fileSize)}</td>
-                  <td className="px-6 py-4 text-sm">{new Date(b.createdAt).toLocaleString()}</td>
-                  <td className="px-6 py-4">
+                  <td className="px-4 sm:px-6 py-4 text-sm font-mono">{b.filename}</td>
+                  <td className="px-4 sm:px-6 py-4 text-sm">{b.type}</td>
+                  <td className="px-4 sm:px-6 py-4 text-sm">{formatSize(b.fileSize)}</td>
+                  <td className="px-4 sm:px-6 py-4 text-sm">{new Date(b.createdAt).toLocaleString()}</td>
+                  <td className="px-4 sm:px-6 py-4">
                     <button className={btnSecondary} onClick={() => restore(b.id)}><RotateCcw size={14} className="inline mr-1" />Restore</button>
                   </td>
                 </tr>

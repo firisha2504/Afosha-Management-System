@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { UserPlus, Plus, Pencil, Trash2, KeyRound, ShieldCheck, Users, UserCog, CheckCircle2, XCircle, Eye, EyeOff } from 'lucide-react';
 import { api } from '../lib/api';
-import { PageHeader, Badge, LoadingSpinner, Modal, inputClass, btnPrimary, btnSecondary } from '../components/ui';
+import { PageHeader, Badge, LoadingSpinner, Modal, inputClass, btnPrimary, btnSecondary, Select, DateInput } from '../components/ui';
 import { useAuth } from '../contexts/AuthContext';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -251,15 +251,17 @@ export default function MembersPage() {
           </div>
 
           {/* Filters */}
-          <div className="mb-5 flex flex-wrap gap-3">
+          <div className="mb-5 flex flex-col sm:flex-row flex-wrap gap-2 sm:gap-3">
             <input type="text" placeholder="Search by name, ID, or phone..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && fetchMembers()}
-              className={`${inputClass} max-w-sm`} />
-            <select className={inputClass} value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
-              {STATUS_FILTERS.map((s) => <option key={s} value={s}>{s || 'All Statuses'}</option>)}
-            </select>
+              className={`${inputClass} flex-1 min-w-0 sm:max-w-sm`} />
+            <Select 
+              value={statusFilter} 
+              onChange={setStatusFilter}
+              options={STATUS_FILTERS.map(s => ({ value: s, label: s || 'All Statuses' }))}
+            />
             <button className={btnSecondary} onClick={fetchMembers}>Search</button>
           </div>
 
@@ -481,13 +483,17 @@ export default function MembersPage() {
           </p>
           <div className="font-medium text-sm text-slate-700 pt-1">Personal Information</div>
           <input className={inputClass} placeholder="Full Name *" value={memberForm.fullName} onChange={(e) => setMemberForm(f => ({ ...f, fullName: e.target.value }))} />
-          <div className="grid grid-cols-2 gap-2">
-            <select className={inputClass} value={memberForm.gender} onChange={(e) => setMemberForm(f => ({ ...f, gender: e.target.value }))}>
-              <option value="MALE">Male</option>
-              <option value="FEMALE">Female</option>
-              <option value="OTHER">Other</option>
-            </select>
-            <input className={inputClass} type="date" placeholder="Date of Birth *" value={memberForm.dateOfBirth} onChange={(e) => setMemberForm(f => ({ ...f, dateOfBirth: e.target.value }))} />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <Select 
+              value={memberForm.gender} 
+              onChange={e => setMemberForm(f => ({ ...f, gender: e }))}
+              options={[
+                { value: 'MALE', label: 'Male' },
+                { value: 'FEMALE', label: 'Female' },
+                { value: 'OTHER', label: 'Other' }
+              ]}
+            />
+            <DateInput value={memberForm.dateOfBirth} onChange={val => setMemberForm(f => ({ ...f, dateOfBirth: val }))} label="Date of Birth *" />
           </div>
           <input className={inputClass} placeholder="Phone * (e.g. +251911234567)" value={memberForm.phone} onChange={(e) => setMemberForm(f => ({ ...f, phone: e.target.value }))} />
           <input className={inputClass} placeholder="Email (optional)" value={memberForm.email} onChange={(e) => setMemberForm(f => ({ ...f, email: e.target.value }))} />

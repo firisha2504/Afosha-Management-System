@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Plus, Pencil, Trash2, Eye, XCircle, CheckCircle } from 'lucide-react';
 import { api } from '../lib/api';
-import { PageHeader, Badge, LoadingSpinner, Modal, inputClass, btnPrimary, btnSecondary } from '../components/ui';
+import { PageHeader, Badge, LoadingSpinner, Modal, inputClass, btnPrimary, btnSecondary, Select, DateInput } from '../components/ui';
 import { useAuth } from '../contexts/AuthContext';
 
 interface Member { id: string; fullName: string; memberId: string; status: string; }
@@ -287,7 +287,7 @@ export default function SpecialContributionsPage() {
               </div>
               <div>
                 <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Due Date *</label>
-                <input className={inputClass} type="date" value={form.dueDate || ''} onChange={(e) => setForm({ ...form, dueDate: e.target.value })} />
+                <DateInput value={form.dueDate || ''} onChange={val => setForm({ ...form, dueDate: val })} />
               </div>
               <div>
                 <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Description</label>
@@ -298,26 +298,34 @@ export default function SpecialContributionsPage() {
             <>
               <div>
                 <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Beneficiary Member *</label>
-                <select className={inputClass} value={form.beneficiaryMemberId || ''} onChange={(e) => setForm({ ...form, beneficiaryMemberId: e.target.value })}>
-                  <option value="">-- Select member --</option>
-                  {members.map((m) => {
-                    const statusLabel = m.status === 'GRADUATED' ? ' (Graduated)' : m.status === 'DECEASED' ? ' (Deceased)' : m.status === 'INACTIVE' ? ' (Inactive)' : '';
-                    return <option key={m.id} value={m.id}>{m.fullName} ({m.memberId}){statusLabel}</option>;
-                  })}
-                </select>
+                <Select 
+                  value={form.beneficiaryMemberId || ''}
+                  onChange={e => setForm({ ...form, beneficiaryMemberId: e })}
+                  options={[
+                    { value: '', label: '-- Select member --' },
+                    ...members.map(m => {
+                      const statusLabel = m.status === 'GRADUATED' ? ' (Graduated)' : m.status === 'DECEASED' ? ' (Deceased)' : m.status === 'INACTIVE' ? ' (Inactive)' : '';
+                      return { value: m.id, label: `${m.fullName} (${m.memberId})${statusLabel}` };
+                    })
+                  ]}
+                />
               </div>
               <div>
                 <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">
                   {createModal === 'graduation' ? 'Their Relationship (Optional)' : 'Deceased Relationship *'}
                 </label>
-                <select className={inputClass} value={form.familyRelationship || ''} onChange={(e) => setForm({ ...form, familyRelationship: e.target.value })}>
-                  <option value="">-- Select relationship --</option>
-                  {FAMILY.map((f) => <option key={f} value={f}>{f}</option>)}
-                </select>
+                <Select 
+                  value={form.familyRelationship || ''}
+                  onChange={e => setForm({ ...form, familyRelationship: e })}
+                  options={[
+                    { value: '', label: '-- Select relationship --' },
+                    ...FAMILY.map(f => ({ value: f, label: f }))
+                  ]}
+                />
               </div>
               <div>
                 <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Due Date (Optional)</label>
-                <input className={inputClass} type="date" value={form.dueDate || ''} onChange={(e) => setForm({ ...form, dueDate: e.target.value })} />
+                <DateInput value={form.dueDate || ''} onChange={val => setForm({ ...form, dueDate: val })} />
               </div>
             </>
           )}
@@ -347,7 +355,7 @@ export default function SpecialContributionsPage() {
             </div>
             <div>
               <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Due Date</label>
-              <input className={inputClass} type="date" value={editForm.dueDate || ''} onChange={(e) => setEditForm({ ...editForm, dueDate: e.target.value })} />
+              <DateInput value={editForm.dueDate || ''} onChange={val => setEditForm({ ...editForm, dueDate: val })} />
             </div>
             <div>
               <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Description</label>

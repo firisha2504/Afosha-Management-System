@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { CreditCard, FileText, Activity, HeartHandshake, Search, CalendarCheck } from 'lucide-react';
 import { api } from '../lib/api';
-import { PageHeader, LoadingSpinner, Badge, inputClass } from '../components/ui';
+import { PageHeader, LoadingSpinner, Badge, inputClass, Select } from '../components/ui';
 import { formatMeetingShort } from '../lib/meetingUtils';
 
 interface Payment {
@@ -195,17 +195,18 @@ export default function HistoryPage() {
       )}
 
       {/* Tabs */}
-      <div className="flex gap-2 mb-6 bg-slate-100 p-1.5 rounded-xl w-fit">
+      <div className="flex gap-2 mb-6 bg-slate-100 p-1.5 rounded-xl overflow-x-auto">
         {tabs.map(tab => (
           <button
             key={tab.id}
             onClick={() => { setActiveTab(tab.id); setPage(1); if (tab.id === 'ATTENDANCE') setMeetingFilter('ALL'); }}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+            className={`flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all whitespace-nowrap flex-shrink-0 ${
               activeTab === tab.id ? 'bg-white shadow-sm text-slate-900' : 'text-slate-500 hover:text-slate-700'
             }`}
           >
             {tab.icon}
-            {tab.label}
+            <span className="hidden xs:inline">{tab.label}</span>
+            <span className="xs:hidden">{tab.label.split(' ')[0]}</span>
             <span className="bg-slate-200 text-slate-600 px-2 py-0.5 rounded-full text-xs">{tab.count}</span>
           </button>
         ))}
@@ -229,7 +230,7 @@ export default function HistoryPage() {
       {activeTab === 'PAYMENTS' && (
         <>
           {/* Payment type sub-tabs */}
-          <div className="flex gap-2 mb-4 bg-slate-100 p-1.5 rounded-xl w-fit">
+          <div className="flex gap-2 mb-4 bg-slate-100 p-1.5 rounded-xl overflow-x-auto">
             {[
               { id: 'ALL' as const, label: 'All Payments', count: historyData?.payments.length || 0 },
               { id: 'WEEKLY' as const, label: 'Weekly', count: historyData?.payments.filter(p => p.obligation).length || 0 },
@@ -239,7 +240,7 @@ export default function HistoryPage() {
               <button
                 key={filter.id}
                 onClick={() => setPaymentTypeFilter(filter.id)}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all whitespace-nowrap flex-shrink-0 ${
                   paymentTypeFilter === filter.id ? 'bg-white shadow-sm text-slate-900' : 'text-slate-500 hover:text-slate-700'
                 }`}
               >
@@ -249,22 +250,22 @@ export default function HistoryPage() {
             ))}
           </div>
 
-          <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
-            <table className="w-full">
+          <div className="bg-white rounded-xl shadow-sm border overflow-x-auto">
+            <table className="w-full min-w-full">
               <thead className="bg-slate-50">
                 <tr>
-                  <th className="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Payment ID</th>
-                  <th className="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Member</th>
-                  <th className="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Type</th>
-                  <th className="px-5 py-3 text-right text-xs font-semibold text-slate-500 uppercase">Amount</th>
-                  <th className="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Method</th>
-                  <th className="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Date</th>
-                  <th className="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Status</th>
+                  <th className="px-4 sm:px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Payment ID</th>
+                  <th className="px-4 sm:px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Member</th>
+                  <th className="px-4 sm:px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Type</th>
+                  <th className="px-4 sm:px-5 py-3 text-right text-xs font-semibold text-slate-500 uppercase">Amount</th>
+                  <th className="px-4 sm:px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Method</th>
+                  <th className="px-4 sm:px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Date</th>
+                  <th className="px-4 sm:px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Status</th>
                 </tr>
               </thead>
               <tbody className="divide-y">
                 {filteredPayments.length === 0 ? (
-                  <tr><td colSpan={7} className="px-5 py-10 text-center text-sm text-slate-400">No payments found.</td></tr>
+                  <tr><td colSpan={7} className="px-4 sm:px-5 py-10 text-center text-sm text-slate-400">No payments found.</td></tr>
                 ) : filteredPayments.map(payment => {
                   // Use the same enhanced penalty detection as the filter
                   const isPenaltyPayment = !payment.obligation && !payment.specialContributionObligation && (
@@ -277,21 +278,21 @@ export default function HistoryPage() {
                   const typeDetail = paymentType === 'WEEKLY' && payment.obligation ? formatMeetingShort(payment.obligation.weekNumber) : paymentType === 'SPECIAL' && payment.specialContributionObligation ? payment.specialContributionObligation.specialContribution?.title : paymentType === 'PENALTY' ? '' : '';
                   return (
                     <tr key={payment.id} className="hover:bg-slate-50">
-                      <td className="px-5 py-3 text-xs font-mono text-slate-400">{payment.paymentId}</td>
-                      <td className="px-5 py-3">
+                      <td className="px-4 sm:px-5 py-3 text-xs font-mono text-slate-400">{payment.paymentId}</td>
+                      <td className="px-4 sm:px-5 py-3">
                         <p className="text-sm font-medium text-slate-800">{payment.member.fullName}</p>
                         <p className="text-xs text-slate-400">#{payment.member.memberId}</p>
                       </td>
-                      <td className="px-5 py-3">
+                      <td className="px-4 sm:px-5 py-3">
                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${typeColor}`}>
                           {typeLabel}
                         </span>
                         {typeDetail && <p className="text-xs text-slate-400 mt-1">{typeDetail}</p>}
                       </td>
-                      <td className="px-5 py-3 text-right text-sm font-bold text-slate-800">{Number(payment.amount).toLocaleString()} ETB</td>
-                      <td className="px-5 py-3 text-xs text-slate-500">{payment.paymentMethod.replace(/_/g, ' ')}</td>
-                      <td className="px-5 py-3 text-sm text-slate-500">{new Date(payment.paymentDate).toLocaleDateString()}</td>
-                      <td className="px-5 py-3"><Badge status={payment.status} /></td>
+                      <td className="px-4 sm:px-5 py-3 text-right text-sm font-bold text-slate-800">{Number(payment.amount).toLocaleString()} ETB</td>
+                      <td className="px-4 sm:px-5 py-3 text-xs text-slate-500">{payment.paymentMethod.replace(/_/g, ' ')}</td>
+                      <td className="px-4 sm:px-5 py-3 text-sm text-slate-500">{new Date(payment.paymentDate).toLocaleDateString()}</td>
+                      <td className="px-4 sm:px-5 py-3"><Badge status={payment.status} /></td>
                     </tr>
                   );
                 })}
@@ -302,30 +303,30 @@ export default function HistoryPage() {
       )}
 
       {activeTab === 'TRANSACTIONS' && (
-        <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
-          <table className="w-full">
+        <div className="bg-white rounded-xl shadow-sm border overflow-x-auto">
+          <table className="w-full min-w-full">
             <thead className="bg-slate-50">
               <tr>
-                <th className="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Type</th>
-                <th className="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Member</th>
-                <th className="px-5 py-3 text-right text-xs font-semibold text-slate-500 uppercase">Amount</th>
-                <th className="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Description</th>
-                <th className="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Date</th>
+                <th className="px-4 sm:px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Type</th>
+                <th className="px-4 sm:px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Member</th>
+                <th className="px-4 sm:px-5 py-3 text-right text-xs font-semibold text-slate-500 uppercase">Amount</th>
+                <th className="px-4 sm:px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Description</th>
+                <th className="px-4 sm:px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Date</th>
               </tr>
             </thead>
             <tbody className="divide-y">
               {filteredLedger.length === 0 ? (
-                <tr><td colSpan={5} className="px-5 py-10 text-center text-sm text-slate-400">No transactions found.</td></tr>
+                <tr><td colSpan={5} className="px-4 sm:px-5 py-10 text-center text-sm text-slate-400">No transactions found.</td></tr>
               ) : filteredLedger.map(entry => (
                 <tr key={entry.id} className="hover:bg-slate-50">
-                  <td className="px-5 py-3 text-xs font-medium text-slate-600">{entry.type}</td>
-                  <td className="px-5 py-3">
+                  <td className="px-4 sm:px-5 py-3 text-xs font-medium text-slate-600">{entry.type}</td>
+                  <td className="px-4 sm:px-5 py-3">
                     <p className="text-sm font-medium text-slate-800">{entry.member.fullName}</p>
                     <p className="text-xs text-slate-400">#{entry.member.memberId}</p>
                   </td>
-                  <td className="px-5 py-3 text-right text-sm font-bold text-slate-800">{Number(entry.amount).toLocaleString()} ETB</td>
-                  <td className="px-5 py-3 text-xs text-slate-500">{entry.description}</td>
-                  <td className="px-5 py-3 text-sm text-slate-500">{new Date(entry.createdAt).toLocaleDateString()}</td>
+                  <td className="px-4 sm:px-5 py-3 text-right text-sm font-bold text-slate-800">{Number(entry.amount).toLocaleString()} ETB</td>
+                  <td className="px-4 sm:px-5 py-3 text-xs text-slate-500">{entry.description}</td>
+                  <td className="px-4 sm:px-5 py-3 text-sm text-slate-500">{new Date(entry.createdAt).toLocaleDateString()}</td>
                 </tr>
               ))}
             </tbody>
@@ -334,27 +335,27 @@ export default function HistoryPage() {
       )}
 
       {activeTab === 'ACTIVITY' && (
-        <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
-          <table className="w-full">
+        <div className="bg-white rounded-xl shadow-sm border overflow-x-auto">
+          <table className="w-full min-w-full">
             <thead className="bg-slate-50">
               <tr>
-                <th className="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Action</th>
-                <th className="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase">User</th>
-                <th className="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Entity</th>
-                <th className="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase">IP Address</th>
-                <th className="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Date</th>
+                <th className="px-4 sm:px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Action</th>
+                <th className="px-4 sm:px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase">User</th>
+                <th className="px-4 sm:px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Entity</th>
+                <th className="px-4 sm:px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase">IP Address</th>
+                <th className="px-4 sm:px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Date</th>
               </tr>
             </thead>
             <tbody className="divide-y">
               {filteredAudit.length === 0 ? (
-                <tr><td colSpan={5} className="px-5 py-10 text-center text-sm text-slate-400">No activity found.</td></tr>
+                <tr><td colSpan={5} className="px-4 sm:px-5 py-10 text-center text-sm text-slate-400">No activity found.</td></tr>
               ) : filteredAudit.map(entry => (
                 <tr key={entry.id} className="hover:bg-slate-50">
-                  <td className="px-5 py-3 text-xs font-medium text-slate-600">{entry.action}</td>
-                  <td className="px-5 py-3 text-sm text-slate-800">{entry.user.username}</td>
-                  <td className="px-5 py-3 text-xs text-slate-500">{entry.entityType}</td>
-                  <td className="px-5 py-3 text-xs text-slate-400">{entry.ipAddress}</td>
-                  <td className="px-5 py-3 text-sm text-slate-500">{new Date(entry.createdAt).toLocaleString()}</td>
+                  <td className="px-4 sm:px-5 py-3 text-xs font-medium text-slate-600">{entry.action}</td>
+                  <td className="px-4 sm:px-5 py-3 text-sm text-slate-800">{entry.user.username}</td>
+                  <td className="px-4 sm:px-5 py-3 text-xs text-slate-500">{entry.entityType}</td>
+                  <td className="px-4 sm:px-5 py-3 text-xs text-slate-400">{entry.ipAddress}</td>
+                  <td className="px-4 sm:px-5 py-3 text-sm text-slate-500">{new Date(entry.createdAt).toLocaleString()}</td>
                 </tr>
               ))}
             </tbody>
@@ -363,36 +364,36 @@ export default function HistoryPage() {
       )}
 
       {activeTab === 'CAMPAIGNS' && (
-        <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
-          <table className="w-full">
+        <div className="bg-white rounded-xl shadow-sm border overflow-x-auto">
+          <table className="w-full min-w-full">
             <thead className="bg-slate-50">
               <tr>
-                <th className="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Campaign ID</th>
-                <th className="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Title</th>
-                <th className="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Type</th>
-                <th className="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Beneficiary</th>
-                <th className="px-5 py-3 text-right text-xs font-semibold text-slate-500 uppercase">Amount</th>
-                <th className="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Obligations</th>
-                <th className="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Created By</th>
-                <th className="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Date</th>
+                <th className="px-4 sm:px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Campaign ID</th>
+                <th className="px-4 sm:px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Title</th>
+                <th className="px-4 sm:px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Type</th>
+                <th className="px-4 sm:px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Beneficiary</th>
+                <th className="px-4 sm:px-5 py-3 text-right text-xs font-semibold text-slate-500 uppercase">Amount</th>
+                <th className="px-4 sm:px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Obligations</th>
+                <th className="px-4 sm:px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Created By</th>
+                <th className="px-4 sm:px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Date</th>
               </tr>
             </thead>
             <tbody className="divide-y">
               {filteredCampaigns.length === 0 ? (
-                <tr><td colSpan={8} className="px-5 py-10 text-center text-sm text-slate-400">No campaigns found.</td></tr>
+                <tr><td colSpan={8} className="px-4 sm:px-5 py-10 text-center text-sm text-slate-400">No campaigns found.</td></tr>
               ) : filteredCampaigns.map(campaign => (
                 <tr key={campaign.id} className="hover:bg-slate-50">
-                  <td className="px-5 py-3 text-xs font-mono text-slate-400">{campaign.campaignId}</td>
-                  <td className="px-5 py-3 text-sm font-medium text-slate-800">{campaign.title}</td>
-                  <td className="px-5 py-3 text-xs text-slate-500">{campaign.type}</td>
-                  <td className="px-5 py-3">
+                  <td className="px-4 sm:px-5 py-3 text-xs font-mono text-slate-400">{campaign.campaignId}</td>
+                  <td className="px-4 sm:px-5 py-3 text-sm font-medium text-slate-800">{campaign.title}</td>
+                  <td className="px-4 sm:px-5 py-3 text-xs text-slate-500">{campaign.type}</td>
+                  <td className="px-4 sm:px-5 py-3">
                     <p className="text-sm font-medium text-slate-800">{campaign.beneficiaryMember.fullName}</p>
                     <p className="text-xs text-slate-400">#{campaign.beneficiaryMember.memberId}</p>
                   </td>
-                  <td className="px-5 py-3 text-right text-sm font-bold text-slate-800">{Number(campaign.amount).toLocaleString()} ETB</td>
-                  <td className="px-5 py-3 text-xs text-slate-500">{campaign._count.obligations}</td>
-                  <td className="px-5 py-3 text-xs text-slate-500">{campaign.createdBy.username}</td>
-                  <td className="px-5 py-3 text-sm text-slate-500">{new Date(campaign.createdAt).toLocaleDateString()}</td>
+                  <td className="px-4 sm:px-5 py-3 text-right text-sm font-bold text-slate-800">{Number(campaign.amount).toLocaleString()} ETB</td>
+                  <td className="px-4 sm:px-5 py-3 text-xs text-slate-500">{campaign._count.obligations}</td>
+                  <td className="px-4 sm:px-5 py-3 text-xs text-slate-500">{campaign.createdBy.username}</td>
+                  <td className="px-4 sm:px-5 py-3 text-sm text-slate-500">{new Date(campaign.createdAt).toLocaleDateString()}</td>
                 </tr>
               ))}
             </tbody>
@@ -403,51 +404,50 @@ export default function HistoryPage() {
       {activeTab === 'ATTENDANCE' && (
         <>
           {/* Meeting filter dropdown */}
-          <div className="mb-4 flex items-center gap-3">
-            <label className="text-sm font-medium text-slate-700">Filter by Meeting:</label>
-            <select
-              className={inputClass}
+          <div className="mb-4 flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3">
+            <label className="text-sm font-medium text-slate-700 whitespace-nowrap">Filter by Meeting:</label>
+            <Select
               value={meetingFilter}
-              onChange={(e) => setMeetingFilter(e.target.value)}
-              style={{ maxWidth: '300px' }}
-            >
-              <option value="ALL">All Meetings ({historyData?.attendanceRecords.length || 0})</option>
-              {uniqueMeetings.map(meeting => (
-                <option key={meeting} value={meeting}>
-                  {meeting} ({historyData?.attendanceRecords.filter(a => a.meeting.title === meeting).length || 0})
-                </option>
-              ))}
-            </select>
+              onChange={(value) => setMeetingFilter(value)}
+              options={[
+                { value: 'ALL', label: `All Meetings (${historyData?.attendanceRecords.length || 0})` },
+                ...uniqueMeetings.map(meeting => ({
+                  value: meeting,
+                  label: `${meeting} (${historyData?.attendanceRecords.filter(a => a.meeting.title === meeting).length || 0})`
+                }))
+              ]}
+              placeholder="Select meeting..."
+            />
           </div>
 
-          <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
-            <table className="w-full">
+          <div className="bg-white rounded-xl shadow-sm border overflow-x-auto">
+            <table className="w-full min-w-full">
               <thead className="bg-slate-50">
                 <tr>
-                  <th className="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Member</th>
-                  <th className="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Meeting</th>
-                  <th className="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Meeting Date</th>
-                  <th className="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Status</th>
-                  <th className="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Remarks</th>
-                  <th className="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Recorded By</th>
-                  <th className="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Date</th>
+                  <th className="px-4 sm:px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Member</th>
+                  <th className="px-4 sm:px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Meeting</th>
+                  <th className="px-4 sm:px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Meeting Date</th>
+                  <th className="px-4 sm:px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Status</th>
+                  <th className="px-4 sm:px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Remarks</th>
+                  <th className="px-4 sm:px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Recorded By</th>
+                  <th className="px-4 sm:px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Date</th>
                 </tr>
               </thead>
               <tbody className="divide-y">
                 {filteredAttendance.length === 0 ? (
-                  <tr><td colSpan={7} className="px-5 py-10 text-center text-sm text-slate-400">No attendance records found.</td></tr>
+                  <tr><td colSpan={7} className="px-4 sm:px-5 py-10 text-center text-sm text-slate-400">No attendance records found.</td></tr>
                 ) : filteredAttendance.map(record => (
                   <tr key={record.id} className="hover:bg-slate-50">
-                    <td className="px-5 py-3">
+                    <td className="px-4 sm:px-5 py-3">
                       <p className="text-sm font-medium text-slate-800">{record.member.fullName}</p>
                       <p className="text-xs text-slate-400">#{record.member.memberId}</p>
                     </td>
-                    <td className="px-5 py-3 text-sm text-slate-800">{record.meeting.title}</td>
-                    <td className="px-5 py-3 text-sm text-slate-500">{new Date(record.meeting.meetingDate).toLocaleDateString()}</td>
-                    <td className="px-5 py-3"><Badge status={record.status} /></td>
-                    <td className="px-5 py-3 text-xs text-slate-500">{record.remarks || '-'}</td>
-                    <td className="px-5 py-3 text-xs text-slate-500">{record.recordedBy.username}</td>
-                    <td className="px-5 py-3 text-sm text-slate-500">{new Date(record.createdAt).toLocaleDateString()}</td>
+                    <td className="px-4 sm:px-5 py-3 text-sm text-slate-800">{record.meeting.title}</td>
+                    <td className="px-4 sm:px-5 py-3 text-sm text-slate-500">{new Date(record.meeting.meetingDate).toLocaleDateString()}</td>
+                    <td className="px-4 sm:px-5 py-3"><Badge status={record.status} /></td>
+                    <td className="px-4 sm:px-5 py-3 text-xs text-slate-500">{record.remarks || '-'}</td>
+                    <td className="px-4 sm:px-5 py-3 text-xs text-slate-500">{record.recordedBy.username}</td>
+                    <td className="px-4 sm:px-5 py-3 text-sm text-slate-500">{new Date(record.createdAt).toLocaleDateString()}</td>
                   </tr>
                 ))}
               </tbody>

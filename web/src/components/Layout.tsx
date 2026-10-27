@@ -190,13 +190,15 @@ export default function Layout({ children }: LayoutProps) {
             </span>
             <button onClick={toggleLanguage}
               className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 rounded-full text-xs font-medium text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 transition-all shadow-sm">
-              <Globe size={13} sm:size={14} />
+              <Globe size={13} className="sm:hidden" />
+              <Globe size={14} className="hidden sm:inline" />
               <span className="hidden sm:inline">{i18n.language === 'om' ? 'English' : 'Afaan Oromoo'}</span>
               <span className="sm:hidden">{i18n.language === 'om' ? 'EN' : 'OM'}</span>
             </button>
             <button onClick={logout}
               className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 rounded-full text-xs font-medium text-red-600 bg-white border border-red-100 hover:bg-red-50 transition-all shadow-sm">
-              <LogOut size={13} sm:size={14} />
+              <LogOut size={13} className="sm:hidden" />
+              <LogOut size={14} className="hidden sm:inline" />
               <span className="hidden sm:inline">Logout</span>
             </button>
             <button onClick={() => navigate('/profile')} title="My Profile"

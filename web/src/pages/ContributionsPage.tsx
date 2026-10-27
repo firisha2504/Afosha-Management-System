@@ -1,7 +1,7 @@
 import { useEffect, useState, Fragment, useMemo } from 'react';
 import { CheckCircle2, XCircle, Clock, AlertTriangle, RefreshCw, TrendingUp, ChevronDown, ChevronUp, Zap, ChevronRight } from 'lucide-react';
 import { api } from '../lib/api';
-import { PageHeader, LoadingSpinner, Badge, Modal, btnPrimary } from '../components/ui';
+import { PageHeader, LoadingSpinner, Badge, Modal, btnPrimary, Select } from '../components/ui';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
 import { formatMeetingLabel } from '../lib/meetingUtils';
@@ -178,20 +178,21 @@ export default function ContributionsPage() {
           <div className="flex gap-2 items-center">
             {/* Generate button - always show for admin */}
             {isAdmin && (
-              <div className="flex items-center gap-2">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
                 {showWeeksSelector && (
-                  <select
-                    className="border rounded-xl px-3 py-2 text-sm text-slate-700 bg-white shadow-sm"
-                    value={weeksToGenerate}
-                    onChange={(e) => setWeeksToGenerate(Number(e.target.value))}
-                  >
-                    <option value={1}>This Week Only</option>
-                    <option value={2}>Next 2 Weeks</option>
-                    <option value={3}>Next 3 Weeks</option>
-                    <option value={4}>Next 4 Weeks (1 Month)</option>
-                    <option value={6}>Next 6 Weeks</option>
-                    <option value={8}>Next 8 Weeks (2 Months)</option>
-                  </select>
+                  <Select
+                    value={String(weeksToGenerate)}
+                    onChange={(e) => setWeeksToGenerate(Number(e))}
+                    options={[
+                      { value: '1', label: 'This Week Only' },
+                      { value: '2', label: 'Next 2 Weeks' },
+                      { value: '3', label: 'Next 3 Weeks' },
+                      { value: '4', label: 'Next 4 Weeks (1 Month)' },
+                      { value: '6', label: 'Next 6 Weeks' },
+                      { value: '8', label: 'Next 8 Weeks (2 Months)' }
+                    ]}
+                    placeholder="Select weeks..."
+                  />
                 )}
                 <button
                   onClick={() => {
@@ -202,7 +203,7 @@ export default function ContributionsPage() {
                     }
                   }}
                   disabled={generating}
-                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700 shadow-sm disabled:opacity-50 transition-colors"
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700 shadow-sm disabled:opacity-50 transition-colors whitespace-nowrap"
                 >
                   {generating ? <RefreshCw size={14} className="animate-spin" /> : <Zap size={14} />}
                   {showWeeksSelector ? 'Generate Now' : 'Generate Weeks'}
@@ -253,9 +254,9 @@ export default function ContributionsPage() {
           {/* Overall Collection progress bar */}
           {overallSummary.totalExpected > 0 && (
             <div className="bg-white rounded-xl border p-4 mb-6">
-              <div className="flex justify-between text-xs text-slate-600 mb-2">
-                <span className="font-medium">Overall Collection Progress</span>
-                <span className="font-semibold text-emerald-600">
+              <div className="flex flex-col sm:flex-row sm:justify-between gap-2 mb-2">
+                <span className="text-xs font-medium text-slate-600">Overall Collection Progress</span>
+                <span className="text-xs font-semibold text-emerald-600 break-words">
                   {overallSummary.totalCollected.toLocaleString()} / {overallSummary.totalExpected.toLocaleString()} ETB
                   &nbsp;({Math.round((overallSummary.totalCollected / overallSummary.totalExpected) * 100)}%)
                 </span>
@@ -371,101 +372,102 @@ export default function ContributionsPage() {
 
                   {/* Week Members Table (Show/Hide based on collapse state) */}
                   {!isCollapsed && (
-                    <table className="w-full">
-                      <thead className="bg-slate-50 border-b">
-                        <tr>
-                          <th className="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Member</th>
-                          <th className="px-5 py-3 text-right text-xs font-semibold text-slate-500 uppercase">Contribution</th>
-                          <th className="px-5 py-3 text-right text-xs font-semibold text-slate-500 uppercase">Penalty</th>
-                          <th className="px-5 py-3 text-right text-xs font-semibold text-slate-500 uppercase">Total Due</th>
-                          <th className="px-5 py-3 text-right text-xs font-semibold text-slate-500 uppercase">Paid</th>
-                          <th className="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Status</th>
-                          <th className="px-5 py-3 text-right text-xs font-semibold text-slate-500 uppercase">Outstanding</th>
-                          <th className="px-5 py-3"></th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y">
-                        {sorted.length === 0 ? (
-                          <tr><td colSpan={8} className="px-5 py-10 text-center text-sm text-slate-400">No members found.</td></tr>
-                        ) : sorted.map((m) => (
-                          <Fragment key={m.memberId}>
-                            <tr
-                              className={`hover:bg-slate-50 transition-colors ${
-                                m.status === 'OVERDUE' ? 'bg-red-50/40' :
-                                m.status === 'PENDING' ? 'bg-amber-50/30' : ''
-                              }`}
-                            >
-                              {/* Member */}
-                              <td className="px-5 py-3">
-                                <div className="flex items-center gap-2">
-                                  <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0"
-                                    style={{ background: m.status === 'PAID' ? '#16a34a' : m.status === 'OVERDUE' ? '#dc2626' : '#94a3b8' }}>
-                                    {m.fullName[0]}
+                    <div className="overflow-x-auto border rounded-xl">
+                      <table className="w-full min-w-full">
+                        <thead className="bg-slate-50 border-b">
+                          <tr>
+                            <th className="px-3 sm:px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Member</th>
+                            <th className="px-3 sm:px-5 py-3 text-right text-xs font-semibold text-slate-500 uppercase">Contribution</th>
+                            <th className="px-3 sm:px-5 py-3 text-right text-xs font-semibold text-slate-500 uppercase">Penalty</th>
+                            <th className="px-3 sm:px-5 py-3 text-right text-xs font-semibold text-slate-500 uppercase">Total Due</th>
+                            <th className="px-3 sm:px-5 py-3 text-right text-xs font-semibold text-slate-500 uppercase">Paid</th>
+                            <th className="px-3 sm:px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Status</th>
+                            <th className="px-3 sm:px-5 py-3 text-right text-xs font-semibold text-slate-500 uppercase">Outstanding</th>
+                            <th className="px-3 sm:px-5 py-3"></th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y">
+                          {sorted.length === 0 ? (
+                            <tr><td colSpan={8} className="px-3 sm:px-5 py-10 text-center text-sm text-slate-400">No members found.</td></tr>
+                          ) : sorted.map((m) => (
+                            <Fragment key={m.memberId}>
+                              <tr
+                                className={`hover:bg-slate-50 transition-colors ${
+                                  m.status === 'OVERDUE' ? 'bg-red-50/40' :
+                                  m.status === 'PENDING' ? 'bg-amber-50/30' : ''
+                                }`}
+                              >
+                                {/* Member */}
+                                <td className="px-3 sm:px-5 py-3">
+                                  <div className="flex items-center gap-2">
+                                    <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0"
+                                      style={{ background: m.status === 'PAID' ? '#16a34a' : m.status === 'OVERDUE' ? '#dc2626' : '#94a3b8' }}>
+                                      {m.fullName[0]}
+                                    </div>
+                                    <div>
+                                      <p className="text-sm font-medium text-slate-800">{m.fullName}</p>
+                                      <p className="text-xs text-slate-400">#{m.memberNumber}</p>
+                                    </div>
                                   </div>
-                                  <div>
-                                    <p className="text-sm font-medium text-slate-800">{m.fullName}</p>
-                                    <p className="text-xs text-slate-400">#{m.memberNumber}</p>
-                                  </div>
-                                </div>
-                              </td>
+                                </td>
 
-                              {/* Contribution */}
-                              <td className="px-5 py-3 text-right text-sm text-slate-600">
-                                {m.contributionAmount != null ? `${m.contributionAmount.toLocaleString()} ETB` : '—'}
-                              </td>
+                                {/* Contribution */}
+                                <td className="px-3 sm:px-5 py-3 text-right text-sm text-slate-600">
+                                  {m.contributionAmount != null ? `${m.contributionAmount.toLocaleString()} ETB` : '—'}
+                                </td>
 
-                              {/* Penalty */}
-                              <td className="px-5 py-3 text-right text-sm">
-                                {/* Only show penalty if status is PENDING, PARTIAL, or OVERDUE (unpaid) */}
-                                {(m.status === 'PENDING' || m.status === 'PARTIAL' || m.status === 'OVERDUE') && m.penaltyAmount > 0 ? (
-                                  <span className="font-semibold text-red-600">{m.penaltyAmount.toLocaleString()} ETB</span>
-                                ) : (
-                                  <span className="text-slate-300">—</span>
-                                )}
-                              </td>
+                                {/* Penalty */}
+                                <td className="px-3 sm:px-5 py-3 text-right text-sm">
+                                  {/* Only show penalty if status is PENDING, PARTIAL, or OVERDUE (unpaid) */}
+                                  {(m.status === 'PENDING' || m.status === 'PARTIAL' || m.status === 'OVERDUE') && m.penaltyAmount > 0 ? (
+                                    <span className="font-semibold text-red-600">{m.penaltyAmount.toLocaleString()} ETB</span>
+                                  ) : (
+                                    <span className="text-slate-300">—</span>
+                                  )}
+                                </td>
 
-                              {/* Total Due */}
-                              <td className="px-5 py-3 text-right text-sm font-semibold text-slate-700">
-                                {m.totalDue != null ? `${m.totalDue.toLocaleString()} ETB` : '—'}
-                              </td>
+                                {/* Total Due */}
+                                <td className="px-3 sm:px-5 py-3 text-right text-sm font-semibold text-slate-700">
+                                  {m.totalDue != null ? `${m.totalDue.toLocaleString()} ETB` : '—'}
+                                </td>
 
-                              {/* Amount Paid */}
-                              <td className="px-5 py-3 text-right text-sm font-medium text-emerald-600">
-                                {m.amountPaid > 0 ? `${m.amountPaid.toLocaleString()} ETB` : '—'}
-                              </td>
+                                {/* Amount Paid */}
+                                <td className="px-3 sm:px-5 py-3 text-right text-sm font-medium text-emerald-600">
+                                  {m.amountPaid > 0 ? `${m.amountPaid.toLocaleString()} ETB` : '—'}
+                                </td>
 
-                              {/* Status */}
-                              <td className="px-5 py-3">
-                                <StatusBadge status={m.status} />
-                              </td>
+                                {/* Status */}
+                                <td className="px-3 sm:px-5 py-3">
+                                  <StatusBadge status={m.status} />
+                                </td>
 
-                              {/* Outstanding balance (cumulative) */}
-                              <td className="px-5 py-3 text-right">
-                                {m.outstandingBalance > 0 ? (
-                                  <span className="text-sm font-bold text-red-600">{m.outstandingBalance.toLocaleString()} ETB</span>
-                                ) : (
-                                  <span className="text-xs text-emerald-500 flex items-center justify-end gap-1">
-                                    <CheckCircle2 size={12} /> Clear
-                                  </span>
-                                )}
-                              </td>
+                                {/* Outstanding balance (cumulative) */}
+                                <td className="px-3 sm:px-5 py-3 text-right">
+                                  {m.outstandingBalance > 0 ? (
+                                    <span className="text-sm font-bold text-red-600">{m.outstandingBalance.toLocaleString()} ETB</span>
+                                  ) : (
+                                    <span className="text-xs text-emerald-500 flex items-center justify-end gap-1">
+                                      <CheckCircle2 size={12} /> Clear
+                                    </span>
+                                  )}
+                                </td>
 
-                              {/* Expand payments */}
-                              <td className="px-5 py-3">
-                                {m.payments.length > 0 && (
-                                  <button
-                                    onClick={() => setExpanded(expanded === `${weekKey}-${m.memberId}` ? null : `${weekKey}-${m.memberId}`)}
-                                    className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400"
-                                  >
-                                    {expanded === `${weekKey}-${m.memberId}` ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-                                  </button>
-                                )}
-                              </td>
-                            </tr>
+                                {/* Expand payments */}
+                                <td className="px-3 sm:px-5 py-3">
+                                  {m.payments.length > 0 && (
+                                    <button
+                                      onClick={() => setExpanded(expanded === `${weekKey}-${m.memberId}` ? null : `${weekKey}-${m.memberId}`)}
+                                      className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400"
+                                    >
+                                      {expanded === `${weekKey}-${m.memberId}` ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                                    </button>
+                                  )}
+                                </td>
+                              </tr>
 
-                            {/* Expanded: payments breakdown */}
-                            {expanded === `${weekKey}-${m.memberId}` && m.payments.length > 0 && (
-                              <tr key={`${weekKey}-${m.memberId}-exp`} className="bg-slate-50">
+                              {/* Expanded: payments breakdown */}
+                              {expanded === `${weekKey}-${m.memberId}` && m.payments.length > 0 && (
+                                <tr key={`${weekKey}-${m.memberId}-exp`} className="bg-slate-50">
                                 <td colSpan={8} className="px-5 py-3">
                                   <div className="ml-10">
                                     <p className="text-xs font-semibold text-slate-500 uppercase mb-2 flex items-center gap-1">
@@ -490,6 +492,7 @@ export default function ContributionsPage() {
                         ))}
                       </tbody>
                     </table>
+                    </div>
                   )}
                 </div>
               );

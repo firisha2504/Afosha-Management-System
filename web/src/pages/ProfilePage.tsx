@@ -174,7 +174,7 @@ export default function ProfilePage() {
     <div>
       <PageHeader title={t('nav.profile')} subtitle="Manage your account settings" />
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 sm:gap-6">
         {/* Left — avatar card */}
         <div className="lg:col-span-1">
           <Card className="p-6 flex flex-col items-center text-center">

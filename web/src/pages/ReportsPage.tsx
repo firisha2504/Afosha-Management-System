@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Download, FileText, TrendingUp, Users, Calendar, AlertCircle } from 'lucide-react';
 import { api } from '../lib/api';
-import { PageHeader, LoadingSpinner, inputClass, btnPrimary } from '../components/ui';
+import { PageHeader, LoadingSpinner, btnPrimary, Select, DateInput } from '../components/ui';
 
 const REPORT_TYPES = [
   { id: 'unpaid', label: 'Unpaid Contributions' },
@@ -624,13 +624,15 @@ export default function ReportsPage() {
       <PageHeader title={t('nav.reports')} />
 
       {/* Controls */}
-      <div className="bg-white rounded-xl border p-6 mb-6">
-        <div className="grid md:grid-cols-4 gap-4 mb-4">
-          <select className={inputClass} value={type} onChange={(e) => { setType(e.target.value); setData(null); setGenerated(false); }}>
-            {REPORT_TYPES.map((r) => <option key={r.id} value={r.id}>{r.label}</option>)}
-          </select>
-          <input className={inputClass} type="date" value={from} onChange={(e) => setFrom(e.target.value)} />
-          <input className={inputClass} type="date" value={to} onChange={(e) => setTo(e.target.value)} />
+      <div className="bg-white rounded-xl border p-4 sm:p-6 mb-6 overflow-hidden">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mb-4">
+          <Select 
+            value={type} 
+            onChange={e => { setType(e); setData(null); setGenerated(false); }}
+            options={REPORT_TYPES.map(r => ({ value: r.id, label: r.label }))}
+          />
+          <DateInput value={from} onChange={setFrom} label="From Date" />
+          <DateInput value={to} onChange={setTo} label="To Date" />
           <button className={btnPrimary} onClick={generate} disabled={loading}>
             {loading ? 'Generating…' : t('common.generate', 'Generate')}
           </button>

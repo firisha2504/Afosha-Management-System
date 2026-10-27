@@ -63,8 +63,8 @@ export default function NotificationsPage() {
     <div>
       <PageHeader title={t('nav.notifications')} />
       {user?.role === 'ADMIN' && (
-        <div className="grid md:grid-cols-2 gap-6 mb-8">
-          <div className="bg-white rounded-xl border p-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          <div className="bg-white rounded-xl border p-4 sm:p-6">
             <h3 className="font-semibold mb-4">Send Announcement</h3>
             <div className="space-y-3">
               <input className={inputClass} placeholder="Title" value={announcement.title} onChange={(e) => setAnnouncement({ ...announcement, title: e.target.value })} />
@@ -72,7 +72,7 @@ export default function NotificationsPage() {
               <button className={btnPrimary} onClick={sendAnnouncement}>Send to All Users</button>
             </div>
           </div>
-          <div className="bg-white rounded-xl border p-6">
+          <div className="bg-white rounded-xl border p-4 sm:p-6">
             <h3 className="font-semibold mb-4">Bulk SMS</h3>
             <div className="space-y-3">
               <textarea className={inputClass} placeholder="SMS message" rows={3} value={sms.message} onChange={(e) => setSms({ ...sms, message: e.target.value })} />

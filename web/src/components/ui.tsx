@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { useState, useRef, useEffect } from 'react';
 
 // ── Stat Card ────────────────────────────────────────────────────────────────
 interface StatCardProps {
@@ -120,27 +121,6 @@ export function Modal({ open, onClose, title, children, wide }: ModalProps) {
         {/* Body */}
         <div className="px-4 sm:px-6 py-4 sm:py-5 overflow-y-auto flex-1">{children}</div>
       </div>
-      <style>{`
-        @keyframes modalIn {
-          from { opacity: 0; transform: scale(0.96) translateY(8px); }
-          to   { opacity: 1; transform: scale(1) translateY(0); }
-        }
-        
-        /* Fix date/time picker overflow on mobile */
-        input[type="date"]::-webkit-calendar-picker-indicator,
-        input[type="time"]::-webkit-calendar-picker-indicator {
-          cursor: pointer;
-        }
-        
-        @media (max-width: 640px) {
-          input[type="date"],
-          input[type="time"],
-          input[type="datetime-local"] {
-            position: relative;
-            z-index: 1;
-          }
-        }
-      `}</style>
     </div>
   );
 }
@@ -292,6 +272,71 @@ export function TimeInput({
   );
 }
 
+// ── Mobile-Safe Select Component ────────────────────────────────────────────────
+interface SelectProps {
+  value: string;
+  onChange: (val: string) => void;
+  options: Array<{ value: string; label: string }>;
+  label?: string;
+  placeholder?: string;
+  className?: string;
+}
+
+export function Select({ value, onChange, options, label, placeholder, className = '' }: SelectProps) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    if (open) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [open]);
+
+  const selectedLabel = options.find(o => o.value === value)?.label || placeholder || 'Select...';
+
+  return (
+    <div ref={ref} className="relative">
+      {label && <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">{label}</label>}
+      <button
+        type="button"
+        onClick={() => setOpen(!open)}
+        className={`${inputClass} w-full text-left flex items-center justify-between ${className}`}
+        style={{ minHeight: '44px' }}
+      >
+        <span className={value ? 'text-slate-900' : 'text-slate-400'}>{selectedLabel}</span>
+        <span className="text-slate-400">▼</span>
+      </button>
+      
+      {open && (
+        <div className="absolute top-full left-0 right-0 mt-1 z-50 bg-white border border-slate-200 rounded-lg shadow-lg max-h-64 overflow-y-auto">
+          {options.map(option => (
+            <button
+              key={option.value}
+              type="button"
+              onClick={() => {
+                onChange(option.value);
+                setOpen(false);
+              }}
+              className={`w-full text-left px-4 py-2.5 hover:bg-slate-100 flex items-center ${
+                value === option.value ? 'bg-slate-50 text-primary-600 font-semibold' : 'text-slate-700'
+              }`}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export const btnPrimary = [
   'inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white',
   'bg-gradient-to-r from-green-700 to-green-600 shadow-sm',
@@ -315,16 +360,4 @@ export const inputClass = [
   'w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900',
   'placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:border-primary-500',
   'transition-all duration-150',
-].join(' ');
-
-export const btnSecondary = [
-  'inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-700',
-  'bg-white border border-slate-200 shadow-sm',
-  'hover:bg-slate-50 hover:border-slate-300',
-  'disabled:opacity-50 transition-all duration-150',
-].join(' ');
-
-export const btnDanger = [
-  'inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white',
-  'bg-red-600 hover:bg-red-700 shadow-sm disabled:opacity-50 transition-all duration-150',
 ].join(' ');

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Plus, Eye, AlertTriangle, CheckCircle2, Users, Pencil, Trash2, CheckCheck } from 'lucide-react';
 import { api } from '../lib/api';
-import { PageHeader, LoadingSpinner, Modal, inputClass, btnPrimary, btnSecondary } from '../components/ui';
+import { PageHeader, LoadingSpinner, Modal, inputClass, btnPrimary, btnSecondary, Select } from '../components/ui';
 import { useAuth } from '../contexts/AuthContext';
 
 interface Fine {
@@ -370,18 +370,23 @@ export default function FinesPage() {
         <div className="space-y-3">
           <div>
             <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Member *</label>
-            <select className={inputClass} value={form.memberId} onChange={(e) => setForm({ ...form, memberId: e.target.value })}>
-              <option value="">-- Select member --</option>
-              {members.map((m) => <option key={m.id} value={m.id}>{m.fullName} ({m.memberId})</option>)}
-            </select>
+            <Select 
+              value={form.memberId} 
+              onChange={e => setForm({ ...form, memberId: e })}
+              options={[{ value: '', label: '-- Select member --' }, ...members.map(m => ({ value: m.id, label: `${m.fullName} (${m.memberId})` }))]}
+            />
           </div>
           <div>
             <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Fine Type</label>
-            <select className={inputClass} value={form.fineType} onChange={(e) => setForm({ ...form, fineType: e.target.value })}>
-              <option value="DISCIPLINARY">Disciplinary</option>
-              <option value="ATTENDANCE">Attendance</option>
-              <option value="OTHER">Other</option>
-            </select>
+            <Select 
+              value={form.fineType} 
+              onChange={e => setForm({ ...form, fineType: e })}
+              options={[
+                { value: 'DISCIPLINARY', label: 'Disciplinary' },
+                { value: 'ATTENDANCE', label: 'Attendance' },
+                { value: 'OTHER', label: 'Other' }
+              ]}
+            />
           </div>
           <div>
             <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Amount (ETB) *</label>
@@ -412,11 +417,15 @@ export default function FinesPage() {
             </div>
             <div>
               <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Fine Type</label>
-              <select className={inputClass} value={editForm.fineType} onChange={(e) => setEditForm({ ...editForm, fineType: e.target.value })}>
-                <option value="DISCIPLINARY">Disciplinary</option>
-                <option value="ATTENDANCE">Attendance</option>
-                <option value="OTHER">Other</option>
-              </select>
+              <Select 
+                value={editForm.fineType} 
+                onChange={e => setEditForm({ ...editForm, fineType: e })}
+                options={[
+                  { value: 'DISCIPLINARY', label: 'Disciplinary' },
+                  { value: 'ATTENDANCE', label: 'Attendance' },
+                  { value: 'OTHER', label: 'Other' }
+                ]}
+              />
             </div>
             <div>
               <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Amount (ETB)</label>

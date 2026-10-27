@@ -23,25 +23,25 @@ export default function AuditLogsPage() {
     <div>
       <PageHeader title={t('nav.auditLogs')} />
       {loading ? <LoadingSpinner /> : (
-        <div className="bg-white rounded-xl border overflow-hidden">
-          <table className="w-full">
+        <div className="bg-white rounded-xl border overflow-x-auto">
+          <table className="w-full min-w-full">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">User</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Action</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Module</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">IP</th>
+                <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">User</th>
+                <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Action</th>
+                <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Module</th>
+                <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+                <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">IP</th>
               </tr>
             </thead>
             <tbody className="divide-y">
               {logs.map((log) => (
                 <tr key={log.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 text-sm">{log.user?.username || 'System'} ({log.user?.role || '—'})</td>
-                  <td className="px-6 py-4 text-sm font-mono text-xs">{log.action}</td>
-                  <td className="px-6 py-4 text-sm">{log.module}</td>
-                  <td className="px-6 py-4 text-sm">{new Date(log.createdAt).toLocaleString()}</td>
-                  <td className="px-6 py-4 text-sm text-gray-400">{log.ipAddress || '—'}</td>
+                  <td className="px-4 sm:px-6 py-4 text-sm">{log.user?.username || 'System'} ({log.user?.role || '—'})</td>
+                  <td className="px-4 sm:px-6 py-4 text-sm font-mono text-xs">{log.action}</td>
+                  <td className="px-4 sm:px-6 py-4 text-sm">{log.module}</td>
+                  <td className="px-4 sm:px-6 py-4 text-sm">{new Date(log.createdAt).toLocaleString()}</td>
+                  <td className="px-4 sm:px-6 py-4 text-sm text-gray-400">{log.ipAddress || '—'}</td>
                 </tr>
               ))}
             </tbody>

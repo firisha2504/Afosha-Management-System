@@ -228,7 +228,7 @@ router.get('/contributions/weekly', authenticate, authorize('ADMIN', 'AUDITOR'),
     const effectivePayments = obl?.payments || [];
 
     // If there are direct payments this week (not linked to obligation), factor them in
-    if (directPayments.length > 0 && effectiveStatus === 'PENDING' || effectiveStatus === 'NO_OBLIGATION') {
+    if (directPayments.length > 0 && (effectiveStatus === 'PENDING' || effectiveStatus === 'NO_OBLIGATION')) {
       const totalDirectPaid = directPayments.reduce((s, p) => s + Number(p.amount), 0);
       const totalDue = obl ? Number(obl.totalDue) : null;
       if (totalDirectPaid > 0) {

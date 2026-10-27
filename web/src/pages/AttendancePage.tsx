@@ -2,7 +2,7 @@ import { useEffect, useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Plus, Pencil, Trash2, Users, ClipboardList, ChevronDown, ChevronRight } from 'lucide-react';
 import { api } from '../lib/api';
-import { PageHeader, Badge, LoadingSpinner, Modal, inputClass, btnPrimary, btnSecondary, DateInput, TimeInput } from '../components/ui';
+import { PageHeader, Badge, LoadingSpinner, Modal, inputClass, btnPrimary, btnSecondary, DateInput, TimeInput, Select } from '../components/ui';
 import { useAuth } from '../contexts/AuthContext';
 
 interface Meeting { id: string; title: string; meetingDate: string; location?: string; agenda?: string; meetingTime?: string; }
@@ -411,12 +411,14 @@ export default function AttendancePage() {
         <div className="space-y-4">
           <div>
             <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Select Meeting *</label>
-            <select className={inputClass} value={selectedMeeting} onChange={(e) => setSelectedMeeting(e.target.value)}>
-              <option value="">-- Select a meeting --</option>
-              {meetings.map((m) => (
-                <option key={m.id} value={m.id}>{m.title} — {new Date(m.meetingDate).toLocaleDateString()}</option>
-              ))}
-            </select>
+            <Select 
+              value={selectedMeeting} 
+              onChange={setSelectedMeeting}
+              options={[
+                { value: '', label: '-- Select a meeting --' },
+                ...meetings.map(m => ({ value: m.id, label: `${m.title} — ${new Date(m.meetingDate).toLocaleDateString()}` }))
+              ]}
+            />
           </div>
 
           {selectedMeeting && (
@@ -450,18 +452,17 @@ export default function AttendancePage() {
                       <span className="text-sm font-medium text-slate-800">{m.fullName}</span>
                       <span className="text-xs text-slate-400 ml-2">#{m.memberId}</span>
                     </div>
-                    <select
-                      className="w-32 border rounded-lg px-2 py-1 text-xs font-medium"
-                      value={attendanceMap[m.id] || 'PRESENT'}
-                      style={{
-                        color: (attendanceMap[m.id] || 'PRESENT') === 'PRESENT' ? '#16a34a' : (attendanceMap[m.id]) === 'ABSENT' ? '#dc2626' : '#d97706',
-                      }}
-                      onChange={(e) => setAttendanceMap({ ...attendanceMap, [m.id]: e.target.value })}
-                    >
-                      <option value="PRESENT">Present</option>
-                      <option value="ABSENT">Absent</option>
-                      <option value="EXCUSED">Excused</option>
-                    </select>
+                    <div className="w-32 sm:w-40">
+                      <Select
+                        value={attendanceMap[m.id] || 'PRESENT'}
+                        onChange={(e) => setAttendanceMap({ ...attendanceMap, [m.id]: e })}
+                        options={[
+                          { value: 'PRESENT', label: 'Present' },
+                          { value: 'ABSENT', label: 'Absent' },
+                          { value: 'EXCUSED', label: 'Excused' }
+                        ]}
+                      />
+                    </div>
                   </div>
                 ))}
               </div>
@@ -493,11 +494,15 @@ export default function AttendancePage() {
             </p>
             <div>
               <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Status</label>
-              <select className={inputClass} value={editStatus} onChange={(e) => setEditStatus(e.target.value)}>
-                <option value="PRESENT">Present</option>
-                <option value="ABSENT">Absent</option>
-                <option value="EXCUSED">Excused</option>
-              </select>
+              <Select 
+                value={editStatus}
+                onChange={setEditStatus}
+                options={[
+                  { value: 'PRESENT', label: 'Present' },
+                  { value: 'ABSENT', label: 'Absent' },
+                  { value: 'EXCUSED', label: 'Excused' }
+                ]}
+              />
             </div>
             <div>
               <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Remarks</label>

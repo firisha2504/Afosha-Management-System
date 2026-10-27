@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { AlertCircle, CheckCircle2, Gift, XCircle } from 'lucide-react';
 import { api } from '../lib/api';
-import { PageHeader, LoadingSpinner, Modal, inputClass, btnSecondary } from '../components/ui';
+import { PageHeader, LoadingSpinner, Modal, inputClass, btnSecondary, Select } from '../components/ui';
 import { useAuth } from '../contexts/AuthContext';
 import { formatMeetingLabel } from '../lib/meetingUtils';
 
@@ -393,18 +393,11 @@ export default function PenaltiesPage() {
             <label className="block text-sm font-medium text-slate-700 mb-2">
               View Penalties for Specific Member:
             </label>
-            <select
-              className={inputClass}
-              value={selectedMemberId}
-              onChange={(e) => setSelectedMemberId(e.target.value)}
-            >
-              <option value="">-- Select Member --</option>
-              {members.map(m => (
-                <option key={m.id} value={m.id}>
-                  {m.fullName} (#{m.memberId})
-                </option>
-              ))}
-            </select>
+            <Select 
+              value={selectedMemberId} 
+              onChange={setSelectedMemberId}
+              options={[{ value: '', label: '-- Select Member --' }, ...members.map(m => ({ value: m.id, label: `${m.fullName} (#{m.memberId})` }))]}
+            />
           </div>
 
           {/* Member Penalties View */}
@@ -421,31 +414,31 @@ export default function PenaltiesPage() {
 
           {/* All Penalties View */}
           <div className="bg-white rounded-xl border shadow-sm">
-            <div className="px-5 py-4 border-b flex items-center justify-between">
+            <div className="px-4 sm:px-5 py-4 border-b flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0">
               <h3 className="text-lg font-semibold text-slate-800">All Penalties</h3>
               
               {/* Filters */}
-              <div className="flex gap-3">
-                <select
-                  className={`${inputClass} w-40`}
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
-                >
-                  <option value="">All Status</option>
-                  <option value="OUTSTANDING">Outstanding</option>
-                  <option value="SETTLED">Settled</option>
-                  <option value="WAIVED">Waived</option>
-                </select>
+              <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full sm:w-auto">
+                <Select 
+                  value={statusFilter} 
+                  onChange={setStatusFilter}
+                  options={[
+                    { value: '', label: 'All Status' },
+                    { value: 'OUTSTANDING', label: 'Outstanding' },
+                    { value: 'SETTLED', label: 'Settled' },
+                    { value: 'WAIVED', label: 'Waived' }
+                  ]}
+                />
                 
-                <select
-                  className={`${inputClass} w-40`}
-                  value={isMonthlyFilter}
-                  onChange={(e) => setIsMonthlyFilter(e.target.value)}
-                >
-                  <option value="">All Types</option>
-                  <option value="false">Weekly</option>
-                  <option value="true">Monthly</option>
-                </select>
+                <Select 
+                  value={isMonthlyFilter} 
+                  onChange={setIsMonthlyFilter}
+                  options={[
+                    { value: '', label: 'All Types' },
+                    { value: 'false', label: 'Weekly' },
+                    { value: 'true', label: 'Monthly' }
+                  ]}
+                />
               </div>
             </div>
             {renderPenaltyTable(filtered, true)}

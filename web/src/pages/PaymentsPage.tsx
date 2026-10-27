@@ -1,8 +1,8 @@
-import { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Plus, Receipt, Pencil, Trash2, Users, CheckCircle2, AlertCircle, RotateCcw, ChevronDown, ChevronRight } from 'lucide-react';
 import { api } from '../lib/api';
-import { PageHeader, Badge, LoadingSpinner, Modal, inputClass, btnPrimary, btnSecondary } from '../components/ui';
+import { PageHeader, Badge, LoadingSpinner, Modal, inputClass, btnPrimary, btnSecondary, Select, DateInput } from '../components/ui';
 import { useAuth } from '../contexts/AuthContext';
 import { formatMeetingLabel, formatMeetingShort } from '../lib/meetingUtils';
 
@@ -675,7 +675,7 @@ export default function PaymentsPage() {
                           }
                           
                           return (
-                            <>
+                            <React.Fragment key={weekKey}>
                               {/* Week Header (Collapsible) */}
                               <tr key={`header-${weekKey}`} className="bg-slate-100 hover:bg-slate-200 cursor-pointer" onClick={() => toggleWeek(weekKey)}>
                                 <td colSpan={8} className="px-5 py-3">
@@ -762,7 +762,7 @@ export default function PaymentsPage() {
                                   </tr>
                                 );
                               })}
-                            </>
+                            </React.Fragment>
                           );
                         })}
                       
@@ -953,13 +953,15 @@ export default function PaymentsPage() {
             </div>
             <div>
               <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Payment Method</label>
-              <select className={inputClass} value={editForm.paymentMethod} onChange={e => setEditForm({ ...editForm, paymentMethod: e.target.value })}>
-                {METHODS.map(m => <option key={m} value={m}>{m.replace(/_/g, ' ')}</option>)}
-              </select>
+              <Select 
+                value={editForm.paymentMethod} 
+                onChange={e => setEditForm({ ...editForm, paymentMethod: e })}
+                options={METHODS.map(m => ({ value: m, label: m.replace(/_/g, ' ') }))}
+              />
             </div>
             <div>
               <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Payment Date</label>
-              <input className={inputClass} type="date" value={editForm.paymentDate} onChange={e => setEditForm({ ...editForm, paymentDate: e.target.value })} />
+              <DateInput value={editForm.paymentDate} onChange={val => setEditForm({ ...editForm, paymentDate: val })} />
             </div>
             <div>
               <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Transaction Reference</label>
@@ -1011,10 +1013,11 @@ export default function PaymentsPage() {
             <>
               <div>
                 <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Member *</label>
-                <select className={inputClass} value={form.memberId} onChange={e => { setForm({ ...form, memberId: e.target.value, obligationId: '' }); fetchMemberObligations(e.target.value); }}>
-                  <option value="">-- Select member --</option>
-                  {members.map(m => <option key={m.id} value={m.id}>{m.fullName} ({m.memberId})</option>)}
-                </select>
+                <Select 
+                  value={form.memberId} 
+                  onChange={e => { setForm({ ...form, memberId: e, obligationId: '' }); fetchMemberObligations(e); }}
+                  options={[{ value: '', label: '-- Select member --' }, ...members.map(m => ({ value: m.id, label: `${m.fullName} (${m.memberId})` }))]}
+                />
               </div>
               {form.memberId && (
                 <div>
@@ -1022,17 +1025,20 @@ export default function PaymentsPage() {
                   {loadingObligations ? (
                     <div className="text-xs text-slate-400">Loading obligations...</div>
                   ) : (
-                    <select className={inputClass} value={form.obligationId} onChange={e => {
-                      const selected = obligations.find(o => o.id === e.target.value);
-                      setForm({ ...form, obligationId: e.target.value, amount: selected ? String(selected.amount - selected.amountPaid) : form.amount });
-                    }}>
-                      <option value="">-- Select obligation (optional) --</option>
-                      {obligations.map(o => (
-                        <option key={o.id} value={o.id}>
-                          {o.type === 'WEEKLY' ? 'Weekly' : 'Special'} - {o.title} - Due: {o.dueDate ? new Date(o.dueDate).toLocaleDateString() : 'N/A'} - Remaining: {Number(o.amount - o.amountPaid).toLocaleString()} ETB
-                        </option>
-                      ))}
-                    </select>
+                    <Select 
+                      value={form.obligationId} 
+                      onChange={e => {
+                        const selected = obligations.find(o => o.id === e);
+                        setForm({ ...form, obligationId: e, amount: selected ? String(selected.amount - selected.amountPaid) : form.amount });
+                      }}
+                      options={[
+                        { value: '', label: '-- Select obligation (optional) --' },
+                        ...obligations.map(o => ({
+                          value: o.id,
+                          label: `${o.type === 'WEEKLY' ? 'Weekly' : 'Special'} - ${o.title} - Due: ${o.dueDate ? new Date(o.dueDate).toLocaleDateString() : 'N/A'} - Remaining: ${Number(o.amount - o.amountPaid).toLocaleString()} ETB`
+                        }))
+                      ]}
+                    />
                   )}
                 </div>
               )}
@@ -1043,9 +1049,11 @@ export default function PaymentsPage() {
               </div>
               <div>
                 <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Payment Method</label>
-                <select className={inputClass} value={form.paymentMethod} onChange={e => setForm({ ...form, paymentMethod: e.target.value })}>
-                  {METHODS.map(m => <option key={m} value={m}>{m.replace(/_/g, ' ')}</option>)}
-                </select>
+                <Select 
+                  value={form.paymentMethod} 
+                  onChange={e => setForm({ ...form, paymentMethod: e })}
+                  options={METHODS.map(m => ({ value: m, label: m.replace(/_/g, ' ') }))}
+                />
               </div>
               <div>
                 <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Transaction Reference</label>
@@ -1087,43 +1095,48 @@ export default function PaymentsPage() {
           ) : (
             <>
               <p className="text-xs text-slate-500">Record payment for multiple members. Override amount per member if needed.</p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-4 bg-slate-50 rounded-xl border">
+              <div className="space-y-3 p-4 bg-slate-50 rounded-xl border">
                 <div>
                   <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Default Amount (ETB) *</label>
                   <input className={inputClass} type="number" min="1" step="0.01" placeholder="e.g. 50" value={bulkAmount} onChange={e => setBulkAmount(e.target.value)} />
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Payment Method</label>
-                  <select className={inputClass} value={bulkMethod} onChange={e => setBulkMethod(e.target.value)}>
-                    {METHODS.map(m => <option key={m} value={m}>{m.replace(/_/g, ' ')}</option>)}
-                  </select>
+                  <Select 
+                    value={bulkMethod} 
+                    onChange={e => setBulkMethod(e)}
+                    options={METHODS.map(m => ({ value: m, label: m.replace(/_/g, ' ') }))}
+                  />
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Date</label>
-                  <input className={inputClass} type="date" value={bulkDate} onChange={e => setBulkDate(e.target.value)} />
+                  <DateInput value={bulkDate} onChange={setBulkDate} />
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Obligation (Optional)</label>
                   {bulkLoadingObligations ? (
                     <div className="text-xs text-slate-400">Loading obligations...</div>
                   ) : (
-                    <select className={inputClass} value={bulkObligationId} onChange={e => {
-                      const selected = bulkObligations.find(o => o.id === e.target.value);
-                      setBulkObligationId(e.target.value);
-                      if (selected) {
-                        setBulkAmount(String(selected.amount - selected.amountPaid));
-                      }
-                    }}>
-                      <option value="">-- Select obligation (optional) --</option>
-                      {bulkObligations.map(o => (
-                        <option key={o.id} value={o.id}>
-                          {o.type === 'WEEKLY' ? 'Weekly' : 'Special'} - {o.title} - Remaining: {Number(o.amount - o.amountPaid).toLocaleString()} ETB
-                        </option>
-                      ))}
-                    </select>
+                    <Select 
+                      value={bulkObligationId} 
+                      onChange={e => {
+                        const selected = bulkObligations.find(o => o.id === e);
+                        setBulkObligationId(e);
+                        if (selected) {
+                          setBulkAmount(String(selected.amount - selected.amountPaid));
+                        }
+                      }}
+                      options={[
+                        { value: '', label: '-- Select obligation (optional) --' },
+                        ...bulkObligations.map(o => ({
+                          value: o.id,
+                          label: `${o.type === 'WEEKLY' ? 'Weekly' : 'Special'} - ${o.title} - Remaining: ${Number(o.amount - o.amountPaid).toLocaleString()} ETB`
+                        }))
+                      ]}
+                    />
                   )}
                 </div>
-                <div className="col-span-2">
+                <div>
                   <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Notes</label>
                   <input className={inputClass} placeholder="Optional" value={bulkNotes} onChange={e => setBulkNotes(e.target.value)} />
                 </div>
