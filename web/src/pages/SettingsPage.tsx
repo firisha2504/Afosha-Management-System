@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { api } from '../lib/api';
-import { PageHeader, LoadingSpinner, inputClass, btnPrimary } from '../components/ui';
-import { Upload, Image as ImageIcon } from 'lucide-react';
+import { PageHeader, LoadingSpinner, inputClass, btnPrimary, Modal } from '../components/ui';
+import { Upload, Image as ImageIcon, CheckCircle, XCircle } from 'lucide-react';
 
 interface Setting { key: string; value: string; label?: string; labelOm?: string; }
 
@@ -15,6 +15,9 @@ export default function SettingsPage() {
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [currentLogo, setCurrentLogo] = useState<string | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalType, setModalType] = useState<'success' | 'error'>('success');
+  const [modalMessage, setModalMessage] = useState('');
 
   useEffect(() => {
     api.get('/settings').then(({ data }) => {
@@ -68,9 +71,16 @@ export default function SettingsPage() {
       setCurrentLogo(`${import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000'}${data.data.logoPath}`);
       setLogoFile(null);
       setLogoPreview(null);
-      alert('Logo uploaded successfully!');
+      
+      // Show success modal
+      setModalType('success');
+      setModalMessage('Logo uploaded successfully! The new logo will appear in the mobile app immediately.');
+      setModalOpen(true);
     } catch (error) {
-      alert('Failed to upload logo');
+      // Show error modal
+      setModalType('error');
+      setModalMessage('Failed to upload logo. Please try again.');
+      setModalOpen(true);
     } finally {
       setUploadingLogo(false);
     }
@@ -79,8 +89,9 @@ export default function SettingsPage() {
   if (loading) return <LoadingSpinner />;
 
   return (
-    <div className="space-y-6">
-      <PageHeader title={t('nav.settings')} action={<button className={btnPrimary} onClick={save} disabled={saving}>{saving ? t('common.loading') : t('common.save')}</button>} />
+    <>
+      <div className="space-y-6">
+        <PageHeader title={t('nav.settings')} action={<button className={btnPrimary} onClick={save} disabled={saving}>{saving ? t('common.loading') : t('common.save')}</button>} />
       
       {/* Mobile App Logo Section */}
       <div className="bg-white rounded-xl border p-6">
@@ -155,6 +166,25 @@ export default function SettingsPage() {
           </div>
         ))}
       </div>
-    </div>
+      </div>
+
+      {/* Success/Error Modal */}
+      <Modal open={modalOpen} onClose={() => setModalOpen(false)} title={modalType === 'success' ? 'Success' : 'Error'}>
+        <div className="text-center py-4">
+          {modalType === 'success' ? (
+            <CheckCircle className="w-16 h-16 text-green-600 mx-auto mb-4" />
+          ) : (
+            <XCircle className="w-16 h-16 text-red-600 mx-auto mb-4" />
+          )}
+          <p className="text-slate-700 text-sm leading-relaxed">{modalMessage}</p>
+          <button
+            onClick={() => setModalOpen(false)}
+            className={`mt-6 ${btnPrimary}`}
+          >
+            OK
+          </button>
+        </div>
+      </Modal>
+    </>
   );
 }
