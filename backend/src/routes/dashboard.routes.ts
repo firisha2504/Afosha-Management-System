@@ -11,16 +11,31 @@ const router = Router();
 router.get('/admin', authenticate, authorize('ADMIN'), async (req: AuthRequest, res: Response) => {
   const lang = req.lang || 'om';
 
-  // Get all obligations to calculate weekly contributions properly
-  const allObligations = await prisma.weeklyObligation.findMany({
-    select: { amountPaid: true, contributionAmount: true },
+  // Calculate weekly contributions from actual verified payments
+  const weeklyPayments = await prisma.payment.findMany({
+    where: { 
+      status: 'VERIFIED',
+      obligationId: { not: null } // Only weekly obligation payments
+    },
+    include: {
+      obligation: {
+        select: { contributionAmount: true, penaltyAmount: true }
+      }
+    },
   });
 
-  // Calculate weekly contributions (contributions only, not penalties)
-  const weeklyContributionsTotal = allObligations.reduce((sum, obl) => {
-    const contributionPaid = Math.min(Number(obl.amountPaid), Number(obl.contributionAmount));
-    return sum + contributionPaid;
-  }, 0);
+  // Separate contributions from penalties in payments
+  let weeklyContributionsTotal = 0;
+  
+  for (const payment of weeklyPayments) {
+    const amount = Number(payment.amount);
+    if (payment.obligation) {
+      // Only count the contribution part (not penalty part)
+      const contributionAmount = Number(payment.obligation.contributionAmount);
+      const contributionPart = Math.min(amount, contributionAmount);
+      weeklyContributionsTotal += contributionPart;
+    }
+  }
 
   const [
     totalMembers,
