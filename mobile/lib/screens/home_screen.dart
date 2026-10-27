@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/locale_provider.dart';
 import '../providers/auth_provider.dart';
+import '../providers/theme_provider.dart';
 import '../services/api_service.dart';
 import '../config/api_config.dart';
 import 'profile_screen.dart';
@@ -87,8 +88,8 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-// ── Dashboard Tab ──────────────────────────────────────────────────────────────
-class _DashboardTab extends StatelessWidget {
+// -- Dashboard Tab ──────────────────────────────────────────────────────────────
+class _DashboardTab extends StatefulWidget {
   final Map<String, dynamic>? dashboard;
   final bool isOm;
   final bool loading;
@@ -102,27 +103,73 @@ class _DashboardTab extends StatelessWidget {
   });
 
   @override
+  State<_DashboardTab> createState() => _DashboardTabState();
+}
+
+class _DashboardTabState extends State<_DashboardTab> {
+  List<dynamic> _notifications = [];
+  bool _notificationsLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadNotifications();
+  }
+
+  Future<void> _loadNotifications() async {
+    setState(() => _notificationsLoading = true);
+    try {
+      final response = await ApiService.get('/settings/notifications');
+      if (mounted) {
+        setState(() => _notifications = response['data'] ?? []);
+      }
+    } catch (_) {}
+    if (mounted) setState(() => _notificationsLoading = false);
+  }
+
+  @override
   Widget build(BuildContext context) {
     final user = context.watch<AuthProvider>().user;
     final locale = context.watch<LocaleProvider>();
+    final isOm = locale.locale.languageCode == 'om';
     final primary = const Color(0xFF166534);
     final gold = const Color(0xFFD97706);
 
     return Scaffold(
       body: RefreshIndicator(
-        onRefresh: onRefresh,
+        onRefresh: () async {
+          await widget.onRefresh();
+          await _loadNotifications();
+        },
         color: primary,
         child: CustomScrollView(
           slivers: [
-            // ── App Bar ──
+            // -- App Bar ──
             SliverAppBar(
               expandedHeight: 160,
               pinned: true,
               backgroundColor: primary,
               actions: [
+                // Theme toggle
+                Consumer<ThemeProvider>(
+                  builder: (context, themeProvider, _) {
+                    return IconButton(
+                      icon: Icon(
+                        themeProvider.isDarkMode 
+                          ? Icons.light_mode 
+                          : Icons.dark_mode,
+                        color: Colors.white,
+                      ),
+                      onPressed: () => themeProvider.toggleTheme(),
+                      tooltip: themeProvider.isDarkMode ? 'Light Mode' : 'Dark Mode',
+                    );
+                  },
+                ),
+                // Language toggle
                 IconButton(
                   icon: const Icon(Icons.language, color: Colors.white),
                   onPressed: () => locale.toggleLocale(),
+                  tooltip: 'Toggle Language',
                 ),
                 const SizedBox(width: 4),
               ],
@@ -151,11 +198,11 @@ class _DashboardTab extends StatelessWidget {
                               // Avatar
                               Builder(
                                 builder: (context) {
-                                  final pic = dashboard?['profilePicture'] as String?;
+                                  final pic = widget.dashboard?['profilePicture'] as String?;
                                   final picUrl = pic != null && pic.isNotEmpty
                                       ? '${ApiConfig.baseUrl.replaceAll('/api', '')}$pic'
                                       : null;
-                                  final initial = (dashboard?['fullName'] as String? ??
+                                  final initial = (widget.dashboard?['fullName'] as String? ??
                                           user?.phone ?? 'U')
                                       .substring(0, 1)
                                       .toUpperCase();
@@ -210,13 +257,13 @@ class _DashboardTab extends StatelessWidget {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      isOm ? 'Nagaan Dhufta!' : 'Welcome back!',
+                                      widget.isOm ? 'Nagaan Dhufta!' : 'Welcome back!',
                                       style: TextStyle(
                                           color: Colors.white.withOpacity(0.8),
                                           fontSize: 12),
                                     ),
                                     Text(
-                                      dashboard?['fullName'] ??
+                                      widget.dashboard?['fullName'] ??
                                           user?.phone ??
                                           '',
                                       style: const TextStyle(
@@ -239,7 +286,7 @@ class _DashboardTab extends StatelessWidget {
               ),
             ),
 
-            if (loading)
+            if (widget.loading)
               const SliverFillRemaining(
                 child: Center(child: CircularProgressIndicator()),
               )
@@ -249,17 +296,27 @@ class _DashboardTab extends StatelessWidget {
                 sliver: SliverList(
                   delegate: SliverChildListDelegate([
 
-                    // ── Quick Stats Row ──
-                    _QuickStatsRow(dashboard: dashboard, isOm: isOm, primary: primary, gold: gold),
+                    // -- NEW: Unread Notifications Banner ──
+                    if (_notifications.isNotEmpty) ...[
+                      _NotificationBanner(
+                        notifications: _notifications,
+                        isOm: widget.isOm,
+                        primary: primary,
+                      ),
+                      const SizedBox(height: 16),
+                    ],
+
+                    // -- Quick Stats Row ──
+                    _QuickStatsRow(dashboard: widget.dashboard, isOm: widget.isOm, primary: primary, gold: gold),
                     const SizedBox(height: 20),
 
-                    // ── Financial Overview Cards ──
-                    _SectionTitle(title: isOm ? 'Haala Maallaqaa' : 'Financial Overview'),
+                    // -- Financial Overview Cards ──
+                    _SectionTitle(title: widget.isOm ? 'Haala Maallaqaa' : 'Financial Overview'),
                     const SizedBox(height: 10),
                     Row(children: [
                       Expanded(child: _FinanceCard(
-                        title: isOm ? 'Kaffaltii Waliigalaa' : 'Total Contributions',
-                        value: '${_fmt(dashboard?['totalContributions'])} ETB',
+                        title: widget.isOm ? 'Kaffaltii Waliigalaa' : 'Total Contributions',
+                        value: '${_fmt(widget.dashboard?['totalContributions'])} ETB',
                         icon: Icons.payments_outlined,
                         color: primary,
                         onTap: () {
@@ -275,15 +332,15 @@ class _DashboardTab extends StatelessWidget {
                     ]),
                     Row(children: [
                       Expanded(child: _FinanceCard(
-                        title: isOm ? 'Hanga Hafe' : 'Outstanding Balance',
-                        value: '${_fmt(dashboard?['outstandingBalance'])} ETB',
+                        title: widget.isOm ? 'Hanga Hafe' : 'Outstanding Balance',
+                        value: '${_fmt(widget.dashboard?['outstandingBalance'])} ETB',
                         icon: Icons.account_balance_wallet_outlined,
                         color: const Color(0xFFEA580C),
                       )),
                       const SizedBox(width: 10),
                       Expanded(child: _FinanceCard(
-                        title: isOm ? 'Adabbii' : 'Total Penalties',
-                        value: '${_fmt(dashboard?['totalPenalties'])} ETB',
+                        title: widget.isOm ? 'Adabbii' : 'Total Penalties',
+                        value: '${_fmt(widget.dashboard?['totalPenalties'])} ETB',
                         icon: Icons.warning_amber_outlined,
                         color: const Color(0xFFDC2626),
                       )),
@@ -291,40 +348,40 @@ class _DashboardTab extends StatelessWidget {
                     const SizedBox(height: 10),
                     const SizedBox(height: 20),
 
-                    // ── Attendance ──
-                    _SectionTitle(title: isOm ? 'Haala Argamaa' : 'Attendance'),
+                    // -- Attendance ──
+                    _SectionTitle(title: widget.isOm ? 'Haala Argamaa' : 'Attendance'),
                     const SizedBox(height: 10),
                     _AttendanceCard(
-                      percentage: (dashboard?['attendancePercentage'] as num?)?.toInt() ?? 0,
-                      isOm: isOm,
+                      percentage: (widget.dashboard?['attendancePercentage'] as num?)?.toInt() ?? 0,
+                      isOm: widget.isOm,
                       primary: primary,
                     ),
                     const SizedBox(height: 20),
 
-                    // ── Quick Actions ──
-                    _SectionTitle(title: isOm ? 'Gochaa Hatattamaa' : 'Quick Actions'),
+                    // -- Quick Actions ──
+                    _SectionTitle(title: widget.isOm ? 'Gochaa Hatattamaa' : 'Quick Actions'),
                     const SizedBox(height: 10),
-                    _QuickActions(isOm: isOm, primary: primary, gold: gold),
+                    _QuickActions(isOm: widget.isOm, primary: primary, gold: gold),
                     const SizedBox(height: 20),
 
-                    // ── Upcoming Meetings ──
-                    if (dashboard?['upcomingMeetings'] != null &&
-                        (dashboard!['upcomingMeetings'] as List).isNotEmpty) ...[
-                      _SectionTitle(title: isOm ? 'Walga\'ii Dhufaa Jiran' : 'Upcoming Meetings'),
+                    // -- Upcoming Meetings ──
+                    if (widget.dashboard?['upcomingMeetings'] != null &&
+                        (widget.dashboard!['upcomingMeetings'] as List).isNotEmpty) ...[
+                      _SectionTitle(title: widget.isOm ? 'Walga\'ii Dhufaa Jiran' : 'Upcoming Meetings'),
                       const SizedBox(height: 10),
-                      ...(dashboard!['upcomingMeetings'] as List).map((m) =>
-                          _MeetingCard(meeting: m, isOm: isOm, primary: primary)),
+                      ...(widget.dashboard!['upcomingMeetings'] as List).map((m) =>
+                          _MeetingCard(meeting: m, isOm: widget.isOm, primary: primary)),
                       const SizedBox(height: 20),
                     ],
 
-                    // ── Recent Notifications ──
-                    if (dashboard?['recentNotifications'] != null &&
-                        (dashboard!['recentNotifications'] as List).isNotEmpty) ...[
-                      _SectionTitle(title: isOm ? 'Beeksisa Dhiyoo' : 'Recent Notifications'),
+                    // -- Recent Notifications from Dashboard ──
+                    if (widget.dashboard?['recentNotifications'] != null &&
+                        (widget.dashboard!['recentNotifications'] as List).isNotEmpty) ...[
+                      _SectionTitle(title: widget.isOm ? 'Beeksisa Dhiyoo Biroo' : 'More Notifications'),
                       const SizedBox(height: 10),
-                      ...(dashboard!['recentNotifications'] as List)
+                      ...(widget.dashboard!['recentNotifications'] as List)
                           .take(3)
-                          .map((n) => _NotifCard(notif: n, isOm: isOm)),
+                          .map((n) => _NotifCard(notif: n, isOm: widget.isOm)),
                     ],
 
                     const SizedBox(height: 24),
@@ -344,7 +401,145 @@ class _DashboardTab extends StatelessWidget {
   }
 }
 
-// ── Quick Stats Row ──────────────────────────────────────────────────────────
+// -- Notification Banner ───────────────────────────────────────────────────────
+class _NotificationBanner extends StatelessWidget {
+  final List<dynamic> notifications;
+  final bool isOm;
+  final Color primary;
+
+  const _NotificationBanner({
+    required this.notifications,
+    required this.isOm,
+    required this.primary,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    // Get unread notifications
+    final unread = notifications.where((n) => n['isRead'] != true).toList();
+    
+    if (unread.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    // Show the most recent unread notification
+    final latest = unread.first;
+
+    return GestureDetector(
+      onTap: () {
+        // Navigate to notifications page
+        final state = context.findAncestorStateOfType<_HomeScreenState>();
+        if (state != null) {
+          state.setState(() {
+            state.currentIndex = 2; // Notifications tab
+          });
+        }
+      },
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              Colors.blue.shade50,
+              Colors.blue.shade100.withOpacity(0.5),
+            ],
+          ),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: Colors.blue.shade200),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.blue.withOpacity(0.1),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: Colors.blue.shade600,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Icon(
+                Icons.notifications_active,
+                color: Colors.white,
+                size: 20,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          isOm
+                              ? (latest['titleOm'] ?? latest['title'] ?? '')
+                              : (latest['title'] ?? ''),
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                            color: Colors.black87,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      if (unread.length > 1)
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.blue.shade600,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Text(
+                            '+${unread.length - 1}',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    isOm
+                        ? (latest['messageOm'] ?? latest['message'] ?? '')
+                        : (latest['message'] ?? ''),
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: Colors.grey.shade700,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            Icon(
+              Icons.arrow_forward_ios,
+              size: 14,
+              color: Colors.blue.shade400,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// Quick Stats Row
 class _QuickStatsRow extends StatelessWidget {
   final Map<String, dynamic>? dashboard;
   final bool isOm;
@@ -403,7 +598,7 @@ class _QuickStat extends StatelessWidget {
   }
 }
 
-// ── Finance Card ──────────────────────────────────────────────────────────────
+// -- Finance Card ──────────────────────────────────────────────────────────────
 class _FinanceCard extends StatelessWidget {
   final String title;
   final String value;
@@ -457,7 +652,7 @@ class _FinanceCard extends StatelessWidget {
   }
 }
 
-// ── Attendance Card ───────────────────────────────────────────────────────────
+// -- Attendance Card ───────────────────────────────────────────────────────────
 class _AttendanceCard extends StatelessWidget {
   final int percentage;
   final bool isOm;
@@ -522,7 +717,7 @@ class _AttendanceCard extends StatelessWidget {
   }
 }
 
-// ── Quick Actions ─────────────────────────────────────────────────────────────
+// -- Quick Actions ─────────────────────────────────────────────────────────────
 class _QuickActions extends StatelessWidget {
   final bool isOm;
   final Color primary;
@@ -601,7 +796,7 @@ class _ActionTile extends StatelessWidget {
   }
 }
 
-// ── Meeting Card ──────────────────────────────────────────────────────────────
+// -- Meeting Card ──────────────────────────────────────────────────────────────
 class _MeetingCard extends StatelessWidget {
   final Map<String, dynamic> meeting;
   final bool isOm;
@@ -670,7 +865,7 @@ class _MeetingCard extends StatelessWidget {
       ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'][m - 1];
 }
 
-// ── Notification Card ─────────────────────────────────────────────────────────
+// -- Notification Card ─────────────────────────────────────────────────────────
 class _NotifCard extends StatelessWidget {
   final Map<String, dynamic> notif;
   final bool isOm;
@@ -718,7 +913,7 @@ class _NotifCard extends StatelessWidget {
   }
 }
 
-// ── Section Title ─────────────────────────────────────────────────────────────
+// -- Section Title ─────────────────────────────────────────────────────────────
 class _SectionTitle extends StatelessWidget {
   final String title;
   const _SectionTitle({required this.title});

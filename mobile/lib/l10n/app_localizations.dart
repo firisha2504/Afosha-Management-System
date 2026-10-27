@@ -139,6 +139,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Logout'**
   String get logout;
+
+  /// No description provided for @unread.
+  ///
+  /// In en, this message translates to:
+  /// **'unread'**
+  String get unread;
+
+  /// No description provided for @noNotifications.
+  ///
+  /// In en, this message translates to:
+  /// **'No Notifications'**
+  String get noNotifications;
+
+  /// No description provided for @allCaughtUp.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re all caught up!'**
+  String get allCaughtUp;
+
+  /// No description provided for @newAlertsWillAppear.
+  ///
+  /// In en, this message translates to:
+  /// **'New alerts will appear here.'**
+  String get newAlertsWillAppear;
 }
 
 class _AppLocalizationsDelegate

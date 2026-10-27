@@ -46,7 +46,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isOm = context.watch<LocaleProvider>().locale.languageCode == 'om';
+    final locale = context.watch<LocaleProvider>();
+    final isOm = locale.locale.languageCode == 'om';
     
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
@@ -55,7 +56,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         color: _accent,
         child: CustomScrollView(
           slivers: [
-            // ── Header ──
+            // -- Header ──
             SliverAppBar(
               expandedHeight: 140,
               pinned: true,
@@ -170,7 +171,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   }
 }
 
-// ── Sub-widgets ───────────────────────────────────────────────────────────────
+// -- Sub-widgets ───────────────────────────────────────────────────────────────
 
 class _NotificationCard extends StatelessWidget {
   final Map<String, dynamic> notification;

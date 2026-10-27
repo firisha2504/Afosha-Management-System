@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../providers/locale_provider.dart';
+import '../providers/theme_provider.dart';
 import '../services/logo_service.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -37,6 +38,33 @@ class _LoginScreenState extends State<LoginScreen> {
     final locale = context.watch<LocaleProvider>();
 
     return Scaffold(
+      appBar: AppBar(
+        elevation: 0,
+        backgroundColor: Colors.transparent,
+        actions: [
+          // Theme toggle
+          Consumer<ThemeProvider>(
+            builder: (context, themeProvider, _) {
+              return IconButton(
+                icon: Icon(
+                  themeProvider.isDarkMode 
+                    ? Icons.light_mode 
+                    : Icons.dark_mode,
+                ),
+                onPressed: () => themeProvider.toggleTheme(),
+                tooltip: themeProvider.isDarkMode ? 'Light Mode' : 'Dark Mode',
+              );
+            },
+          ),
+          // Language toggle
+          IconButton(
+            icon: const Icon(Icons.language),
+            onPressed: () => locale.toggleLocale(),
+            tooltip: 'Toggle Language',
+          ),
+          const SizedBox(width: 8),
+        ],
+      ),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),

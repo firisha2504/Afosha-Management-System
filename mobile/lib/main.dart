@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'providers/auth_provider.dart';
 import 'providers/locale_provider.dart';
+import 'providers/theme_provider.dart';
 import 'services/push_service.dart';
 import 'screens/login_screen.dart';
 import 'screens/home_screen.dart';
@@ -24,48 +25,43 @@ class AmsApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => LocaleProvider()),
+        ChangeNotifierProvider(create: (_) => ThemeProvider()),
       ],
       child: Consumer<LocaleProvider>(
         builder: (context, localeProvider, _) {
-          return MaterialApp(
-            title: 'Afosha MS',
-            debugShowCheckedModeBanner: false,
-            locale: localeProvider.locale,
-            localizationsDelegates: const [
-              FallbackMaterialLocalizationsDelegate(),
-              GlobalWidgetsLocalizations.delegate,
-              FallbackCupertinoLocalizationsDelegate(),
-            ],
-            supportedLocales: const [
-              Locale('om'),
-              Locale('en'),
-            ],
-            theme: ThemeData(
-              colorScheme: ColorScheme.fromSeed(
-                seedColor: const Color(0xFF2563EB),
-                brightness: Brightness.light,
-              ),
-              useMaterial3: true,
-              appBarTheme: const AppBarTheme(
-                centerTitle: true,
-                elevation: 0,
-              ),
-            ),
-            routes: {
-              '/forgot-password': (context) => const ForgotPasswordScreen(),
+          return Consumer<ThemeProvider>(
+            builder: (context, themeProvider, _) {
+              return MaterialApp(
+                title: 'Afosha MS',
+                debugShowCheckedModeBanner: false,
+                locale: localeProvider.locale,
+                theme: themeProvider.themeData,
+                localizationsDelegates: const [
+                  FallbackMaterialLocalizationsDelegate(),
+                  GlobalWidgetsLocalizations.delegate,
+                  FallbackCupertinoLocalizationsDelegate(),
+                ],
+                supportedLocales: const [
+                  Locale('om'),
+                  Locale('en'),
+                ],
+                routes: {
+                  '/forgot-password': (context) => const ForgotPasswordScreen(),
+                },
+                home: Consumer<AuthProvider>(
+                  builder: (context, auth, _) {
+                    if (auth.isLoading) {
+                      return const Scaffold(
+                        body: Center(child: CircularProgressIndicator()),
+                      );
+                    }
+                    return auth.isAuthenticated
+                        ? const HomeScreen()
+                        : const LoginScreen();
+                  },
+                ),
+              );
             },
-            home: Consumer<AuthProvider>(
-              builder: (context, auth, _) {
-                if (auth.isLoading) {
-                  return const Scaffold(
-                    body: Center(child: CircularProgressIndicator()),
-                  );
-                }
-                return auth.isAuthenticated
-                    ? const HomeScreen()
-                    : const LoginScreen();
-              },
-            ),
           );
         },
       ),

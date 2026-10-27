@@ -28,4 +28,16 @@ class AppLocalizationsOm extends AppLocalizations {
 
   @override
   String get logout => 'Ba\'i';
+
+  @override
+  String get unread => 'hin dubbifamne';
+
+  @override
+  String get noNotifications => 'Beeksisni Hin Jiru';
+
+  @override
+  String get allCaughtUp => 'Hundumaa dubbistaniirtu!';
+
+  @override
+  String get newAlertsWillAppear => 'Beeksisni haaraan asitti mul\'atu.';
 }

@@ -6,5 +6,9 @@
   "profile": "Profile",
   "contributions": "Contributions",
   "notifications": "Notifications",
-  "logout": "Logout"
+  "logout": "Logout",
+  "unread": "unread",
+  "noNotifications": "No Notifications",
+  "allCaughtUp": "You're all caught up!",
+  "newAlertsWillAppear": "New alerts will appear here."
 }

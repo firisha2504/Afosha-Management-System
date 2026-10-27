@@ -28,4 +28,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get logout => 'Logout';
+
+  @override
+  String get unread => 'unread';
+
+  @override
+  String get noNotifications => 'No Notifications';
+
+  @override
+  String get allCaughtUp => 'You\'re all caught up!';
+
+  @override
+  String get newAlertsWillAppear => 'New alerts will appear here.';
 }
