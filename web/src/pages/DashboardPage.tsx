@@ -76,7 +76,7 @@ export default function DashboardPage() {
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
           <StatCard title={t('dashboard.totalMembers')} value={adminData.totalMembers} icon={<Users className="w-full h-full" />} />
-          <StatCard title={t('dashboard.activeMembers')} value={adminData.activeMembers} icon={<UserCheck className="w-full h-full" />} color="bg-green-500" />
+          <StatCard title={t('dashboard.activeMembers')} value={adminData.activeMembers} icon={<UserCheck className="w-full h-full" />} color="from-green-500 to-green-600" />
           <StatCard 
             title="Total Financial Summary" 
             value={`${(
@@ -85,13 +85,13 @@ export default function DashboardPage() {
               Number(adminData.paidPenalties || 0)
             ).toLocaleString()} ETB`} 
             icon={<Wallet className="w-full h-full" />} 
-            color="bg-blue-600" 
+            color="from-blue-600 to-blue-700" 
           />
-          <StatCard title={t('dashboard.weeklyContributions')} value={`${Number(adminData.weeklyContributions).toLocaleString()} ETB`} icon={<CreditCard className="w-full h-full" />} />
-          <StatCard title="Unpaid Penalties" value={`${Number(adminData.unpaidPenalties || 0).toLocaleString()} ETB`} icon={<AlertTriangle className="w-full h-full" />} color="bg-red-500" />
-          <StatCard title="Paid Penalties" value={`${Number(adminData.paidPenalties || 0).toLocaleString()} ETB`} icon={<AlertTriangle className="w-full h-full" />} color="bg-green-500" />
-          <StatCard title={t('dashboard.outstandingBalance')} value={`${Number(adminData.totalOutstandingBalance).toLocaleString()} ETB`} icon={<Wallet className="w-full h-full" />} color="bg-orange-500" />
-          <StatCard title={t('dashboard.specialContributions')} value={`${Number(adminData.totalSpecialContributions || 0).toLocaleString()} ETB`} icon={<HeartHandshake className="w-full h-full" />} color="bg-teal-500" />
+          <StatCard title={t('dashboard.weeklyContributions')} value={`${Number(adminData.weeklyContributions).toLocaleString()} ETB`} icon={<CreditCard className="w-full h-full" />} color="from-indigo-500 to-indigo-600" />
+          <StatCard title="Unpaid Penalties" value={`${Number(adminData.unpaidPenalties || 0).toLocaleString()} ETB`} icon={<AlertTriangle className="w-full h-full" />} color="from-red-500 to-red-600" />
+          <StatCard title="Paid Penalties" value={`${Number(adminData.paidPenalties || 0).toLocaleString()} ETB`} icon={<AlertTriangle className="w-full h-full" />} color="from-emerald-500 to-emerald-600" />
+          <StatCard title={t('dashboard.outstandingBalance')} value={`${Number(adminData.totalOutstandingBalance).toLocaleString()} ETB`} icon={<Wallet className="w-full h-full" />} color="from-orange-500 to-orange-600" />
+          <StatCard title={t('dashboard.specialContributions')} value={`${Number(adminData.totalSpecialContributions || 0).toLocaleString()} ETB`} icon={<HeartHandshake className="w-full h-full" />} color="from-teal-500 to-teal-600" />
         </div>
         {chartData && (
           <div className="bg-gradient-to-br from-white to-slate-50 rounded-xl sm:rounded-2xl border border-slate-200 p-5 sm:p-8 shadow-sm">
@@ -195,8 +195,8 @@ export default function DashboardPage() {
       <div>
         <PageHeader title={t('dashboard.title')} />
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-          <StatCard title="Weekly Collections" value={`${Number(auditorData.weeklyCollections).toLocaleString()} ETB`} icon={<CreditCard className="w-full h-full" />} />
-          <StatCard title="Outstanding Payments" value={auditorData.outstandingPayments} icon={<AlertTriangle className="w-full h-full" />} color="bg-red-500" />
+          <StatCard title="Weekly Collections" value={`${Number(auditorData.weeklyCollections).toLocaleString()} ETB`} icon={<CreditCard className="w-full h-full" />} color="from-indigo-500 to-indigo-600" />
+          <StatCard title="Outstanding Payments" value={auditorData.outstandingPayments} icon={<AlertTriangle className="w-full h-full" />} color="from-red-500 to-red-600" />
         </div>
       </div>
     );
