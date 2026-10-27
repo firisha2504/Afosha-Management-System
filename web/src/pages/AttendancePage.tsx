@@ -2,7 +2,7 @@ import { useEffect, useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Plus, Pencil, Trash2, Users, ClipboardList, ChevronDown, ChevronRight } from 'lucide-react';
 import { api } from '../lib/api';
-import { PageHeader, Badge, LoadingSpinner, Modal, inputClass, btnPrimary, btnSecondary } from '../components/ui';
+import { PageHeader, Badge, LoadingSpinner, Modal, inputClass, btnPrimary, btnSecondary, DateInput, TimeInput } from '../components/ui';
 import { useAuth } from '../contexts/AuthContext';
 
 interface Meeting { id: string; title: string; meetingDate: string; location?: string; agenda?: string; meetingTime?: string; }
@@ -381,24 +381,17 @@ export default function AttendancePage() {
             <input className={inputClass} placeholder="Location" value={meetingForm.location} onChange={(e) => setMeetingForm({ ...meetingForm, location: e.target.value })} />
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Date *</label>
-              <input 
-                className={`${inputClass} relative`}
-                type="date" 
-                value={meetingForm.meetingDate} 
-                onChange={(e) => setMeetingForm({ ...meetingForm, meetingDate: e.target.value })} 
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Time</label>
-              <input 
-                className={`${inputClass} relative`}
-                type="time" 
-                value={meetingForm.meetingTime} 
-                onChange={(e) => setMeetingForm({ ...meetingForm, meetingTime: e.target.value })} 
-              />
-            </div>
+            <DateInput 
+              label="Date *" 
+              value={meetingForm.meetingDate} 
+              onChange={(val) => setMeetingForm({ ...meetingForm, meetingDate: val })} 
+              required 
+            />
+            <TimeInput 
+              label="Time" 
+              value={meetingForm.meetingTime} 
+              onChange={(val) => setMeetingForm({ ...meetingForm, meetingTime: val })} 
+            />
           </div>
           <div>
             <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Agenda</label>

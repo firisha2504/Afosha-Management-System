@@ -197,12 +197,100 @@ export function Card({ children, className = '' }: { children: ReactNode; classN
   );
 }
 
-// ── Shared classes ────────────────────────────────────────────────────────────
-export const inputClass = [
-  'w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900',
-  'placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:border-primary-500',
-  'transition-all duration-150',
-].join(' ');
+// ── Date Input Helper ────────────────────────────────────────────────────────
+export function DateInput({ 
+  value, 
+  onChange, 
+  label, 
+  required = false 
+}: { 
+  value: string; 
+  onChange: (val: string) => void;
+  label?: string;
+  required?: boolean;
+}) {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    // Format: YYYY-MM-DD
+    if (val.length <= 10) {
+      onChange(val);
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    const target = e.currentTarget;
+    if (e.key === 'Backspace') return;
+    
+    if (target.value.length === 4 || target.value.length === 7) {
+      if (e.key !== '-') {
+        e.preventDefault();
+        onChange(target.value + '-');
+      }
+    }
+  };
+
+  return (
+    <div>
+      {label && <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">{label}{required ? ' *' : ''}</label>}
+      <input 
+        type="text"
+        inputMode="numeric"
+        placeholder="YYYY-MM-DD"
+        className={inputClass}
+        value={value}
+        onChange={handleChange}
+        onKeyDown={handleKeyDown}
+        maxLength={10}
+      />
+    </div>
+  );
+}
+
+// ── Time Input Helper ────────────────────────────────────────────────────────
+export function TimeInput({ 
+  value, 
+  onChange, 
+  label 
+}: { 
+  value: string; 
+  onChange: (val: string) => void;
+  label?: string;
+}) {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    if (val.length <= 5) {
+      onChange(val);
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    const target = e.currentTarget;
+    if (e.key === 'Backspace') return;
+    
+    if (target.value.length === 2) {
+      if (e.key !== ':') {
+        e.preventDefault();
+        onChange(target.value + ':');
+      }
+    }
+  };
+
+  return (
+    <div>
+      {label && <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">{label}</label>}
+      <input 
+        type="text"
+        inputMode="numeric"
+        placeholder="HH:MM"
+        className={inputClass}
+        value={value}
+        onChange={handleChange}
+        onKeyDown={handleKeyDown}
+        maxLength={5}
+      />
+    </div>
+  );
+}
 
 export const btnPrimary = [
   'inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white',
