@@ -101,16 +101,16 @@ interface ModalProps {
 export function Modal({ open, onClose, title, children, wide }: ModalProps) {
   if (!open) return null;
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4"
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto"
       style={{ background: 'rgba(15,23,42,0.6)', backdropFilter: 'blur(4px)' }}
       onClick={onClose}>
       <div
-        className={`bg-white rounded-xl sm:rounded-2xl shadow-2xl w-full ${wide ? 'max-w-2xl' : 'max-w-lg'} max-h-[90vh] flex flex-col`}
+        className={`bg-white rounded-xl sm:rounded-2xl shadow-2xl w-full ${wide ? 'max-w-2xl' : 'max-w-lg'} my-auto flex flex-col`}
+        style={{ maxHeight: 'calc(100vh - 2rem)' }}
         onClick={(e) => e.stopPropagation()}
-        style={{ animation: 'modalIn 0.18s ease-out' }}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-slate-100">
+        <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-slate-100 flex-shrink-0">
           <h2 className="text-sm sm:text-base font-semibold text-slate-900">{title}</h2>
           <button onClick={onClose}
             className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-all text-base sm:text-lg font-light">
@@ -124,6 +124,21 @@ export function Modal({ open, onClose, title, children, wide }: ModalProps) {
         @keyframes modalIn {
           from { opacity: 0; transform: scale(0.96) translateY(8px); }
           to   { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        
+        /* Fix date/time picker overflow on mobile */
+        input[type="date"]::-webkit-calendar-picker-indicator,
+        input[type="time"]::-webkit-calendar-picker-indicator {
+          cursor: pointer;
+        }
+        
+        @media (max-width: 640px) {
+          input[type="date"],
+          input[type="time"],
+          input[type="datetime-local"] {
+            position: relative;
+            z-index: 1;
+          }
         }
       `}</style>
     </div>

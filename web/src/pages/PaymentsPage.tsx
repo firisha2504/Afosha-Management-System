@@ -1087,7 +1087,7 @@ export default function PaymentsPage() {
           ) : (
             <>
               <p className="text-xs text-slate-500">Record payment for multiple members. Override amount per member if needed.</p>
-              <div className="grid grid-cols-2 gap-3 p-4 bg-slate-50 rounded-xl border">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-4 bg-slate-50 rounded-xl border">
                 <div>
                   <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Default Amount (ETB) *</label>
                   <input className={inputClass} type="number" min="1" step="0.01" placeholder="e.g. 50" value={bulkAmount} onChange={e => setBulkAmount(e.target.value)} />

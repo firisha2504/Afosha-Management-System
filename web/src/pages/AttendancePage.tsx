@@ -380,14 +380,24 @@ export default function AttendancePage() {
             <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Location</label>
             <input className={inputClass} placeholder="Location" value={meetingForm.location} onChange={(e) => setMeetingForm({ ...meetingForm, location: e.target.value })} />
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Date *</label>
-              <input className={inputClass} type="date" value={meetingForm.meetingDate} onChange={(e) => setMeetingForm({ ...meetingForm, meetingDate: e.target.value })} />
+              <input 
+                className={`${inputClass} relative`}
+                type="date" 
+                value={meetingForm.meetingDate} 
+                onChange={(e) => setMeetingForm({ ...meetingForm, meetingDate: e.target.value })} 
+              />
             </div>
             <div>
               <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Time</label>
-              <input className={inputClass} type="time" value={meetingForm.meetingTime} onChange={(e) => setMeetingForm({ ...meetingForm, meetingTime: e.target.value })} />
+              <input 
+                className={`${inputClass} relative`}
+                type="time" 
+                value={meetingForm.meetingTime} 
+                onChange={(e) => setMeetingForm({ ...meetingForm, meetingTime: e.target.value })} 
+              />
             </div>
           </div>
           <div>
