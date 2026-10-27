@@ -534,8 +534,8 @@ class _QuickActions extends StatelessWidget {
   Widget build(BuildContext context) {
     final actions = [
       _Action(icon: Icons.payment_outlined, label: isOm ? 'Kaffaltii' : 'Payments', color: primary, index: 1),
-      _Action(icon: Icons.receipt_long_outlined, label: isOm ? 'Herrega' : 'Receipts', color: gold, index: 4),
-      _Action(icon: Icons.event_available_outlined, label: isOm ? 'Argama' : 'Attendance', color: Colors.teal.shade600, index: 4),
+      _Action(icon: Icons.receipt_long_outlined, label: isOm ? 'Herrega' : 'Receipts', color: gold, index: 3),
+      _Action(icon: Icons.event_available_outlined, label: isOm ? 'Argama' : 'Attendance', color: Colors.teal.shade600, index: 3),
     ];
 
     return GridView.count(
