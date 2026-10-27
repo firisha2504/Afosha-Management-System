@@ -1,9 +1,8 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Plus, Receipt, Pencil, Trash2, Users, CheckCircle2, AlertCircle, RotateCcw, ChevronDown, ChevronRight } from 'lucide-react';
+import { Plus, Receipt, Users, CheckCircle2, AlertCircle, RotateCcw, ChevronDown, ChevronRight } from 'lucide-react';
 import { api } from '../lib/api';
 import { PageHeader, Badge, LoadingSpinner, Modal, inputClass, btnPrimary, btnSecondary, Select, DateInput } from '../components/ui';
-import { useAuth } from '../contexts/AuthContext';
 import { formatMeetingLabel, formatMeetingShort } from '../lib/meetingUtils';
 
 interface Payment {
@@ -31,8 +30,6 @@ const METHODS = ['CASH', 'BANK_TRANSFER', 'MOBILE_MONEY'];
 
 export default function PaymentsPage() {
   const { t } = useTranslation();
-  const { user } = useAuth();
-  const isAdmin = user?.role === 'ADMIN';
 
   const [payments, setPayments] = useState<Payment[]>([]);
   const [members, setMembers] = useState<Member[]>([]);
@@ -112,20 +109,44 @@ export default function PaymentsPage() {
     }).finally(() => setLoading(false));
   };
 
-  // Load unpaid obligations when switching to UNPAID view
-  const loadUnpaidObligations = async () => {
+  // Load all obligations (paid and unpaid) for complete member lists
+  const loadAllObligations = async () => {
     setLoadingObligationsView(true);
     try {
-      const { data } = await api.get('/finance/obligations');
-      const obligations = data.data || [];
+      // For weekly: get the most recent week with data
+      const weeklyResponse = await api.get('/finance/contributions/weekly');
+      const weeklyData = weeklyResponse.data.data || {};
       
-      // Separate by type
-      const weekly = obligations.filter((o: any) => o.type === 'WEEKLY');
-      const special = obligations.filter((o: any) => o.type === 'SPECIAL');
+      // Get current week's members with their obligations
       
-      setWeeklyObligations(weekly);
+      // Get all special contributions with their member obligations
+      const specialResponse = await api.get('/finance/obligations');
+      const specialObligs = specialResponse.data.data || [];
+      
+      // Transform weekly response to match our state structure
+      if (weeklyData.members && Array.isArray(weeklyData.members)) {
+        const weeklyMembers = weeklyData.members.map((m: any) => ({
+          id: m.memberId,
+          type: 'WEEKLY',
+          memberId: m.memberId,
+          memberName: m.fullName,
+          memberMemberId: m.memberNumber,
+          amount: m.totalDue || 0,
+          amountPaid: m.amountPaid || 0,
+          status: m.status || 'PENDING',
+          dueDate: m.dueDate,
+          weekNumber: weeklyData.week,
+          year: weeklyData.year,
+          campaignType: 'WEEKLY'
+        }));
+        setWeeklyObligations(weeklyMembers);
+      }
+      
+      // Filter special obligations
+      const special = specialObligs.filter((o: any) => o.type === 'SPECIAL');
       setSpecialObligations(special);
-    } catch {
+    } catch (err) {
+      console.error('Error loading obligations:', err);
       setWeeklyObligations([]);
       setSpecialObligations([]);
     } finally {
@@ -135,12 +156,10 @@ export default function PaymentsPage() {
 
   useEffect(() => { load(); }, []);
 
-  // Load unpaid obligations for All, Weekly, and Special tabs
+  // Load all obligations when component mounts or when switching tabs
   useEffect(() => {
-    if (paymentTypeTab === 'WEEKLY' || paymentTypeTab === 'SPECIAL' || paymentTypeTab === 'ALL') {
-      loadUnpaidObligations();
-    }
-  }, [paymentTypeTab]);
+    loadAllObligations();
+  }, []);
 
   // Fetch member obligations when member is selected
   const fetchMemberObligations = async (memberId: string) => {
@@ -226,11 +245,11 @@ export default function PaymentsPage() {
   };
 
   // ── Edit (pending or verified) ──
-  const openEdit = (p: Payment) => {
-    setEditPayment(p);
-    setEditForm({ amount: String(Number(p.amount)), paymentMethod: p.paymentMethod, transactionReference: p.transactionReference || '', notes: p.notes || '', paymentDate: p.paymentDate.slice(0, 10), reason: '' });
-    setEditError('');
-  };
+  // const openEdit = (p: Payment) => {
+  //   setEditPayment(p);
+  //   setEditForm({ amount: String(Number(p.amount)), paymentMethod: p.paymentMethod, transactionReference: p.transactionReference || '', notes: p.notes || '', paymentDate: p.paymentDate.slice(0, 10), reason: '' });
+  //   setEditError('');
+  // };
 
   const saveEdit = async () => {
     if (!editPayment) return;
@@ -345,31 +364,69 @@ export default function PaymentsPage() {
     return statusMatch && typeMatch && paidUnpaidMatch && weekMatch;
   });
 
-  // Group payments by week for collapsible sections
+  // Group payments by week for collapsible sections (only non-weekly payments)
   const groupedPayments = useMemo(() => {
     const groups: Record<string, Payment[]> = {};
     
     filtered.forEach(payment => {
-      if (payment.obligation) {
-        // Weekly payment - group by week
-        const key = `week-${payment.obligation.weekNumber}-${payment.obligation.year}`;
-        if (!groups[key]) groups[key] = [];
-        groups[key].push(payment);
-      } else if (payment.notes?.toLowerCase().includes('penalty')) {
-        // Penalty payment
-        const key = 'penalty';
-        if (!groups[key]) groups[key] = [];
-        groups[key].push(payment);
-      } else {
-        // Other payments (special contributions, etc.)
-        const key = 'other';
-        if (!groups[key]) groups[key] = [];
-        groups[key].push(payment);
+      if (!payment.obligation && !payment.specialContributionObligation) {
+        // Non-weekly, non-special contribution payments (penalty, general)
+        if (payment.notes?.toLowerCase().includes('penalty')) {
+          // Penalty payment
+          const key = 'penalty';
+          if (!groups[key]) groups[key] = [];
+          groups[key].push(payment);
+        } else {
+          // Other payments
+          const key = 'other';
+          if (!groups[key]) groups[key] = [];
+          groups[key].push(payment);
+        }
       }
+      // Weekly and special contribution payments are handled separately below
     });
     
     return groups;
   }, [filtered]);
+
+  // Group weekly obligations by week (show ALL members, paid or not)
+  const groupedWeeklyObligations = useMemo(() => {
+    const groups: Record<string, { weekNumber: number; year: number; dueDate: string; obligations: any[] }> = {};
+    
+    weeklyObligations.forEach(obligation => {
+      const key = `${obligation.weekNumber}-${obligation.year}`;
+      if (!groups[key]) {
+        groups[key] = {
+          weekNumber: obligation.weekNumber,
+          year: obligation.year,
+          dueDate: obligation.dueDate,
+          obligations: []
+        };
+      }
+      groups[key].obligations.push(obligation);
+    });
+    
+    return groups;
+  }, [weeklyObligations]);
+
+  // Group special contribution obligations by campaign (show ALL members, paid or not)
+  const groupedSpecialContributions = useMemo(() => {
+    const groups: Record<string, { title: string; type: string; obligations: any[] }> = {};
+    
+    specialObligations.forEach(obligation => {
+      const key = obligation.specialContributionId;
+      if (!groups[key]) {
+        groups[key] = {
+          title: obligation.title,
+          type: obligation.campaignType,
+          obligations: []
+        };
+      }
+      groups[key].obligations.push(obligation);
+    });
+    
+    return groups;
+  }, [specialObligations]);
 
 
   // Unpaid obligations not already represented by a payment record
@@ -390,6 +447,10 @@ export default function PaymentsPage() {
   
   const totalVerified = payments.filter(p => p.status === 'VERIFIED').reduce((s, p) => s + Number(p.amount), 0);
   const totalPending  = payments.filter(p => p.status === 'PENDING').reduce((s, p) => s + Number(p.amount), 0);
+  
+  // Calculate totals including obligations
+  const allPaidObligations = [...weeklyObligations, ...specialObligations].filter(o => o.status === 'PAID').reduce((s: number, o: any) => s + Number(o.amountPaid), 0);
+  const allPendingObligations = [...weeklyObligations, ...specialObligations].filter(o => o.status === 'PENDING' || o.status === 'OVERDUE').reduce((s: number, o: any) => s + (Number(o.amount) - Number(o.amountPaid)), 0);
 
   return (
     <div>
@@ -432,21 +493,21 @@ export default function PaymentsPage() {
           {/* Summary */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-5">
             <div className="bg-white rounded-xl border p-4 text-center">
-              <p className="text-2xl font-bold text-slate-800">{payments.length}</p>
+              <p className="text-2xl font-bold text-slate-800">{payments.length + weeklyObligations.length + specialObligations.length}</p>
               <p className="text-xs text-slate-500 mt-1">Total Payments</p>
             </div>
             <div className="bg-white rounded-xl border p-4 text-center">
-              <p className="text-2xl font-bold text-emerald-600">{payments.filter(p => p.status === 'VERIFIED').length}</p>
+              <p className="text-2xl font-bold text-emerald-600">{payments.filter(p => p.status === 'VERIFIED').length + [...weeklyObligations, ...specialObligations].filter(o => o.status === 'PAID').length}</p>
               <p className="text-xs text-slate-500 mt-1">Verified</p>
             </div>
             <div className="bg-white rounded-xl border p-4 text-center">
-              <p className="text-2xl font-bold text-amber-500">{payments.filter(p => p.status === 'PENDING').length}</p>
+              <p className="text-2xl font-bold text-amber-500">{payments.filter(p => p.status === 'PENDING').length + [...weeklyObligations, ...specialObligations].filter(o => o.status === 'PENDING' || o.status === 'OVERDUE').length}</p>
               <p className="text-xs text-slate-500 mt-1">Pending</p>
             </div>
             <div className="bg-white rounded-xl border p-4 text-center">
-              <p className="text-base font-bold text-emerald-600">{totalVerified.toLocaleString()} ETB</p>
+              <p className="text-base font-bold text-emerald-600">{(totalVerified + allPaidObligations).toLocaleString()} ETB</p>
               <p className="text-xs text-slate-400">Verified</p>
-              <p className="text-base font-bold text-amber-500 mt-0.5">{totalPending.toLocaleString()} ETB</p>
+              <p className="text-base font-bold text-amber-500 mt-0.5">{(totalPending + allPendingObligations).toLocaleString()} ETB</p>
               <p className="text-xs text-slate-400">Pending</p>
             </div>
           </div>
@@ -537,8 +598,9 @@ export default function PaymentsPage() {
               loadingObligationsView ? (
                 <div className="px-5 py-10 text-center"><LoadingSpinner /></div>
               ) : (
-                <table className="w-full">
-                  <thead className="bg-slate-50">
+                <div className="table-responsive">
+                  <table>
+                    <thead className="bg-slate-50">
                     <tr>
                       <th className="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Member</th>
                       <th className="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase">
@@ -615,11 +677,13 @@ export default function PaymentsPage() {
                     })()}
                   </tbody>
                 </table>
+              </div>
               )
             ) : (
               /* Original payments table */
-              <table className="w-full">
-              <thead className="bg-slate-50">
+              <div className="table-responsive">
+                <table>
+                <thead className="bg-slate-50">
                 <tr>
                   <th className="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Payment ID</th>
                   <th className="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Member</th>
@@ -633,9 +697,7 @@ export default function PaymentsPage() {
               </thead>
               <tbody className="divide-y">
                 {(() => {
-                  const showUnpaidRows = paidUnpaidFilter === 'ALL' && statusFilter !== 'VERIFIED';
-                  const unpaidRows = showUnpaidRows ? filteredUnpaidObligations : [];
-                  const hasRows = Object.keys(groupedPayments).length > 0 || unpaidRows.length > 0;
+                  const hasRows = Object.keys(groupedPayments).length > 0 || Object.keys(groupedWeeklyObligations).length > 0 || Object.keys(groupedSpecialContributions).length > 0;
 
                   if (!hasRows) {
                     return (
@@ -645,119 +707,70 @@ export default function PaymentsPage() {
 
                   return (
                     <>
-                      {/* Grouped payments by week */}
-                      {Object.entries(groupedPayments)
+                      {/* Weekly Contributions (All Members) */}
+                      {Object.entries(groupedWeeklyObligations)
                         .sort(([keyA], [keyB]) => {
-                          // Sort: newest week first, then penalty, then other
-                          const getWeekNum = (key: string) => {
-                            if (key.startsWith('week-')) {
-                              const parts = key.split('-');
-                              return parseInt(parts[2]) * 1000 + parseInt(parts[1]); // year * 1000 + weekNum
-                            }
-                            return key === 'penalty' ? -1 : -2;
-                          };
-                          return getWeekNum(keyB) - getWeekNum(keyA);
+                          const [weekA, yearA] = keyA.split('-').map(Number);
+                          const [weekB, yearB] = keyB.split('-').map(Number);
+                          if (yearB !== yearA) return yearB - yearA;
+                          return weekB - weekA;
                         })
-                        .map(([weekKey, weekPayments]) => {
-                          const isCollapsed = collapsedWeeks[weekKey];
-                          const total = weekPayments.reduce((sum, p) => sum + Number(p.amount), 0);
-                          
-                          // Get week display name
-                          let weekDisplay: string;
-                          if (weekKey.startsWith('week-')) {
-                            const parts = weekKey.split('-');
-                            const firstDueDate = weekPayments[0]?.obligation?.dueDate;
-                            weekDisplay = formatMeetingLabel(Number(parts[1]), Number(parts[2]), firstDueDate);
-                          } else if (weekKey === 'penalty') {
-                            weekDisplay = 'Penalty Payments';
-                          } else {
-                            weekDisplay = 'Other Payments';
-                          }
+                        .map(([weekKey, group]: [string, any]) => {
+                          const isCollapsed = collapsedWeeks[`week-${weekKey}`];
+                          const totalAmount = group.obligations.reduce((sum: number, o: any) => sum + Number(o.amount), 0);
+                          const totalPaid = group.obligations.reduce((sum: number, o: any) => sum + Number(o.amountPaid), 0);
+                          const weekDisplay = formatMeetingLabel(group.weekNumber, group.year, group.dueDate);
                           
                           return (
-                            <React.Fragment key={weekKey}>
-                              {/* Week Header (Collapsible) */}
-                              <tr key={`header-${weekKey}`} className="bg-slate-100 hover:bg-slate-200 cursor-pointer" onClick={() => toggleWeek(weekKey)}>
+                            <React.Fragment key={`week-${weekKey}`}>
+                              {/* Weekly Header (Collapsible) */}
+                              <tr key={`header-week-${weekKey}`} className="bg-blue-100 hover:bg-blue-200 cursor-pointer" onClick={() => toggleWeek(`week-${weekKey}`)}>
                                 <td colSpan={8} className="px-5 py-3">
                                   <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-3">
                                       {isCollapsed ? (
-                                        <ChevronRight size={16} className="text-slate-600" />
+                                        <ChevronRight size={16} className="text-blue-700" />
                                       ) : (
-                                        <ChevronDown size={16} className="text-slate-600" />
+                                        <ChevronDown size={16} className="text-blue-700" />
                                       )}
-                                      <span className="font-semibold text-slate-800">{weekDisplay}</span>
-                                      <span className="text-xs text-slate-500">
-                                        ({weekPayments.length} {weekPayments.length === 1 ? 'payment' : 'payments'} - {total.toLocaleString()} ETB)
+                                      <span className="font-semibold text-blue-900">{weekDisplay}</span>
+                                      <span className="text-xs text-blue-700">
+                                        ({group.obligations.length} member{group.obligations.length === 1 ? '' : 's'} - {totalAmount.toLocaleString()} ETB due, {totalPaid.toLocaleString()} ETB paid)
                                       </span>
                                     </div>
                                   </div>
                                 </td>
                               </tr>
                               
-                              {/* Week Payments (Show/Hide based on collapse state) */}
-                              {!isCollapsed && weekPayments.map((payment) => {
-                                const paymentType = payment.obligation ? 'WEEKLY' : payment.specialContributionObligation ? 'SPECIAL' : (payment.notes && (payment.notes.includes('Penalty payment') || payment.notes.toLowerCase().includes('penalty'))) ? 'PENALTY' : 'GENERAL';
-                                const typeColor = paymentType === 'WEEKLY' ? 'bg-blue-50 text-blue-700 ring-1 ring-blue-200' : paymentType === 'SPECIAL' ? 'bg-purple-50 text-purple-700 ring-1 ring-purple-200' : paymentType === 'PENALTY' ? 'bg-red-50 text-red-700 ring-1 ring-red-200' : 'bg-slate-50 text-slate-600 ring-1 ring-slate-200';
-                                const typeLabel = paymentType === 'WEEKLY' ? 'Weekly' : paymentType === 'SPECIAL' ? 'Special' : paymentType === 'PENALTY' ? 'Penalty' : 'General';
-                                const typeDetail = paymentType === 'WEEKLY' && payment.obligation ? formatMeetingShort(payment.obligation.weekNumber) : paymentType === 'SPECIAL' && payment.specialContributionObligation ? payment.specialContributionObligation.specialContribution?.title : '';
+                              {/* Weekly Obligations (All Members) */}
+                              {!isCollapsed && group.obligations.map((obligation: any) => {
+                                const remaining = Number(obligation.amount) - Number(obligation.amountPaid);
+                                const statusColor = obligation.status === 'PAID' ? 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200' : obligation.status === 'PARTIAL' ? 'bg-amber-50 text-amber-700 ring-1 ring-amber-200' : obligation.status === 'OVERDUE' ? 'bg-red-50 text-red-700 ring-1 ring-red-200' : 'bg-red-50 text-red-700 ring-1 ring-red-200';
                                 return (
-                                  <tr key={payment.id} className="hover:bg-slate-50">
-                                    <td className="px-5 py-3 text-xs font-mono text-slate-400">{payment.paymentId}</td>
+                                  <tr key={`week-obl-${obligation.id}`} className="hover:bg-slate-50 bg-blue-50/50">
+                                    <td className="px-5 py-3 text-xs font-mono text-slate-400">—</td>
                                     <td className="px-5 py-3">
-                                      <p className="text-sm font-medium text-slate-800">{payment.member.fullName}</p>
-                                      <p className="text-xs text-slate-400">#{payment.member.memberId}</p>
+                                      <p className="text-sm font-medium text-slate-800">{obligation.memberName}</p>
+                                      <p className="text-xs text-slate-400">#{obligation.memberMemberId}</p>
                                     </td>
                                     <td className="px-5 py-3">
-                                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${typeColor}`}>
-                                        {typeLabel}
+                                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 ring-1 ring-blue-200">
+                                        Weekly
                                       </span>
-                                      {typeDetail && <p className="text-xs text-slate-400 mt-1">{typeDetail}</p>}
+                                      <p className="text-xs text-slate-400 mt-1">{formatMeetingShort(obligation.weekNumber)}</p>
                                     </td>
                                     <td className="px-5 py-3 text-right text-sm font-bold text-slate-800">
-                                      {Number(payment.amount).toLocaleString()} ETB
+                                      {Number(obligation.amount).toLocaleString()} ETB
                                     </td>
-                                    <td className="px-5 py-3 text-xs text-slate-500">{payment.paymentMethod.replace(/_/g, ' ')}</td>
-                                    <td className="px-5 py-3 text-sm text-slate-500">{new Date(payment.paymentDate).toLocaleDateString()}</td>
-                                    <td className="px-5 py-3"><Badge status={payment.status} /></td>
+                                    <td className="px-5 py-3 text-xs text-emerald-600">{Number(obligation.amountPaid).toLocaleString()} ETB</td>
+                                    <td className="px-5 py-3 text-sm text-slate-500">{new Date(obligation.dueDate || Date.now()).toLocaleDateString()}</td>
                                     <td className="px-5 py-3">
-                                      <div className="flex gap-1 flex-wrap">
-                                        {/* Verify — pending only */}
-                                        {payment.status === 'PENDING' && isAdmin && (
-                                          <button onClick={() => setVerifyTarget(payment)}
-                                            className="px-2.5 py-1 bg-emerald-600 text-white text-xs rounded-lg hover:bg-emerald-700 flex items-center gap-1">
-                                            <CheckCircle2 size={11} /> Verify
-                                          </button>
-                                        )}
-                                        {/* Edit — both pending and verified (admin only) */}
-                                        {isAdmin && (
-                                          <button onClick={() => openEdit(payment)}
-                                            className={`px-2.5 py-1 border text-xs rounded-lg flex items-center gap-1 hover:bg-slate-50 ${payment.status === 'VERIFIED' ? 'border-amber-200 text-amber-600 hover:bg-amber-50' : 'text-slate-600'}`}
-                                            title={payment.status === 'VERIFIED' ? 'Edit verified payment (with rollback)' : 'Edit payment'}>
-                                            <Pencil size={11} />
-                                          </button>
-                                        )}
-                                        {/* Rollback — verified only */}
-                                        {payment.status === 'VERIFIED' && isAdmin && (
-                                          <button
-                                            onClick={() => { setRollbackTarget(payment); setRollbackReason(''); setRollbackError(''); }}
-                                            className="px-2.5 py-1 border border-red-200 text-red-500 text-xs rounded-lg hover:bg-red-50 flex items-center gap-1"
-                                            title="Rollback verified payment">
-                                            <RotateCcw size={11} /> Rollback
-                                          </button>
-                                        )}
-                                        {/* Delete — pending only */}
-                                        {payment.status === 'PENDING' && isAdmin && (
-                                          <button onClick={() => { setDeleteId(payment.id); setDeleteError(''); }}
-                                            className="px-2.5 py-1 border border-red-100 text-red-400 text-xs rounded-lg hover:bg-red-50">
-                                            <Trash2 size={11} />
-                                          </button>
-                                        )}
-                                        <button onClick={() => viewReceipt(payment.id)}
-                                          className="px-2.5 py-1 border text-xs rounded-lg flex items-center gap-1 hover:bg-slate-50 text-slate-600">
-                                          <Receipt size={11} /> Receipt
-                                        </button>
-                                      </div>
+                                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${statusColor}`}>
+                                        {obligation.status}
+                                      </span>
+                                    </td>
+                                    <td className="px-5 py-3 text-xs text-slate-400">
+                                      {remaining > 0 ? `${remaining.toLocaleString()} ETB outstanding` : 'Paid'}
                                     </td>
                                   </tr>
                                 );
@@ -766,36 +779,67 @@ export default function PaymentsPage() {
                           );
                         })}
                       
-                      {/* Unpaid obligations */}
-                      {unpaidRows.map((obligation: any) => {
-                        const remaining = Number(obligation.amount) - Number(obligation.amountPaid);
-                        const isWeekly = obligation.type === 'WEEKLY';
-                        const typeColor = isWeekly ? 'bg-blue-50 text-blue-700 ring-1 ring-blue-200' : 'bg-purple-50 text-purple-700 ring-1 ring-purple-200';
-                        const typeLabel = isWeekly ? 'Weekly' : 'Special';
-                        const typeDetail = isWeekly
-                          ? formatMeetingShort(obligation.weekNumber)
-                          : obligation.title;
+                      {/* Special Contributions (All Members) */}
+                      {Object.entries(groupedSpecialContributions).map(([groupKey, group]: [string, any]) => {
+                        const isCollapsed = collapsedWeeks[`special-${groupKey}`];
+                        const totalAmount = group.obligations.reduce((sum: number, o: any) => sum + Number(o.amount), 0);
+                        const totalPaid = group.obligations.reduce((sum: number, o: any) => sum + Number(o.amountPaid), 0);
+                        
                         return (
-                          <tr key={`unpaid-${obligation.id}`} className="hover:bg-slate-50 bg-amber-50/30">
-                            <td className="px-5 py-3 text-xs font-mono text-slate-300">—</td>
-                            <td className="px-5 py-3">
-                              <p className="text-sm font-medium text-slate-800">{obligation.memberName}</p>
-                              <p className="text-xs text-slate-400">#{obligation.memberMemberId}</p>
-                            </td>
-                            <td className="px-5 py-3">
-                              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${typeColor}`}>
-                                {typeLabel}
-                              </span>
-                              {typeDetail && <p className="text-xs text-slate-400 mt-1">{typeDetail}</p>}
-                            </td>
-                            <td className="px-5 py-3 text-right text-sm font-bold text-red-600">
-                              {remaining.toLocaleString()} ETB
-                            </td>
-                            <td className="px-5 py-3 text-xs text-slate-400">—</td>
-                            <td className="px-5 py-3 text-sm text-slate-500">{new Date(obligation.dueDate).toLocaleDateString()}</td>
-                            <td className="px-5 py-3"><Badge status={obligation.status} /></td>
-                            <td className="px-5 py-3 text-xs text-slate-400">No payment</td>
-                          </tr>
+                          <React.Fragment key={`special-${groupKey}`}>
+                            {/* Special Contribution Header (Collapsible) */}
+                            <tr key={`header-special-${groupKey}`} className="bg-purple-100 hover:bg-purple-200 cursor-pointer" onClick={() => toggleWeek(`special-${groupKey}`)}>
+                              <td colSpan={8} className="px-5 py-3">
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-3">
+                                    {isCollapsed ? (
+                                      <ChevronRight size={16} className="text-purple-700" />
+                                    ) : (
+                                      <ChevronDown size={16} className="text-purple-700" />
+                                    )}
+                                    <span className="font-semibold text-purple-900">{group.title}</span>
+                                    <span className="text-xs text-purple-700">
+                                      ({group.obligations.length} member{group.obligations.length === 1 ? '' : 's'} - {totalAmount.toLocaleString()} ETB due, {totalPaid.toLocaleString()} ETB paid)
+                                    </span>
+                                  </div>
+                                </div>
+                              </td>
+                            </tr>
+                            
+                            {/* Special Contribution Obligations (All Members) */}
+                            {!isCollapsed && group.obligations.map((obligation: any) => {
+                              const remaining = Number(obligation.amount) - Number(obligation.amountPaid);
+                              const statusColor = obligation.status === 'PAID' ? 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200' : obligation.status === 'PARTIAL' ? 'bg-amber-50 text-amber-700 ring-1 ring-amber-200' : 'bg-red-50 text-red-700 ring-1 ring-red-200';
+                              return (
+                                <tr key={`special-obl-${obligation.id}`} className="hover:bg-slate-50 bg-purple-50/50">
+                                  <td className="px-5 py-3 text-xs font-mono text-slate-400">—</td>
+                                  <td className="px-5 py-3">
+                                    <p className="text-sm font-medium text-slate-800">{obligation.memberName}</p>
+                                    <p className="text-xs text-slate-400">#{obligation.memberMemberId}</p>
+                                  </td>
+                                  <td className="px-5 py-3">
+                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-purple-50 text-purple-700 ring-1 ring-purple-200">
+                                      Special
+                                    </span>
+                                    <p className="text-xs text-slate-400 mt-1">{group.title}</p>
+                                  </td>
+                                  <td className="px-5 py-3 text-right text-sm font-bold text-slate-800">
+                                    {Number(obligation.amount).toLocaleString()} ETB
+                                  </td>
+                                  <td className="px-5 py-3 text-xs text-emerald-600">{Number(obligation.amountPaid).toLocaleString()} ETB</td>
+                                  <td className="px-5 py-3 text-sm text-slate-500">{new Date(obligation.dueDate || Date.now()).toLocaleDateString()}</td>
+                                  <td className="px-5 py-3">
+                                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${statusColor}`}>
+                                      {obligation.status}
+                                    </span>
+                                  </td>
+                                  <td className="px-5 py-3 text-xs text-slate-400">
+                                    {remaining > 0 ? `${remaining.toLocaleString()} ETB outstanding` : 'Paid'}
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </React.Fragment>
                         );
                       })}
                     </>
@@ -803,6 +847,7 @@ export default function PaymentsPage() {
                 })()}
               </tbody>
             </table>
+            </div>
             )}
           </div>
         </>

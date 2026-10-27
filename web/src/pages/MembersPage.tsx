@@ -283,18 +283,19 @@ export default function MembersPage() {
 
           {membersLoading ? <LoadingSpinner /> : (
             <div className="bg-white rounded-xl border overflow-hidden">
-              <table className="w-full">
-                <thead className="bg-slate-50">
-                  <tr>
-                    <th className="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Member ID</th>
-                    <th className="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Full Name</th>
-                    <th className="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Phone</th>
-                    <th className="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Registered</th>
-                    <th className="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Status</th>
-                    <th className="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y">
+              <div className="table-responsive">
+                <table>
+                  <thead className="bg-slate-50">
+                    <tr>
+                      <th className="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Member ID</th>
+                      <th className="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Full Name</th>
+                      <th className="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Phone</th>
+                      <th className="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Registered</th>
+                      <th className="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Status</th>
+                      <th className="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y">
                   {members.length === 0 ? (
                     <tr><td colSpan={6} className="px-5 py-10 text-center text-sm text-slate-400">No members found.</td></tr>
                   ) : members.map((m) => (
@@ -382,7 +383,8 @@ export default function MembersPage() {
                     </tr>
                   ))}
                 </tbody>
-              </table>
+                </table>
+              </div>
             </div>
           )}
         </>
@@ -412,18 +414,19 @@ export default function MembersPage() {
                 </div>
               ) : (
                 <div className="bg-white rounded-xl border overflow-hidden">
-                  <table className="w-full">
-                    <thead className="bg-slate-50">
-                      <tr>
-                        <th className="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Username</th>
-                        <th className="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Phone</th>
-                        <th className="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Email</th>
-                        <th className="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Created</th>
-                        <th className="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Status</th>
-                        <th className="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y">
+                  <div className="table-responsive">
+                    <table>
+                      <thead className="bg-slate-50">
+                        <tr>
+                          <th className="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Username</th>
+                          <th className="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Phone</th>
+                          <th className="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Email</th>
+                          <th className="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Created</th>
+                          <th className="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Status</th>
+                          <th className="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y">
                       {auditors.map((a) => (
                         <tr key={a.id} className="hover:bg-slate-50">
                           <td className="px-5 py-3">
@@ -465,7 +468,8 @@ export default function MembersPage() {
                         </tr>
                       ))}
                     </tbody>
-                  </table>
+                    </table>
+                  </div>
                 </div>
               )}
             </>

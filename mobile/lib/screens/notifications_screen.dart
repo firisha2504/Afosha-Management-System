@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/locale_provider.dart';
+import '../providers/theme_provider.dart';
 import '../services/api_service.dart';
 
 class NotificationsScreen extends StatefulWidget {
@@ -48,9 +49,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   Widget build(BuildContext context) {
     final locale = context.watch<LocaleProvider>();
     final isOm = locale.locale.languageCode == 'om';
+    final isDark = context.watch<ThemeProvider>().isDarkMode;
     
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: isDark ? const Color(0xFF0F1419) : const Color(0xFFF8FAFC),
       body: RefreshIndicator(
         onRefresh: _load,
         color: _accent,

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { AlertCircle, CheckCircle2, Gift, XCircle } from 'lucide-react';
+import { AlertCircle, CheckCircle2, Gift, XCircle, Search } from 'lucide-react';
 import { api } from '../lib/api';
 import { PageHeader, LoadingSpinner, Modal, inputClass, btnSecondary, Select } from '../components/ui';
 import { useAuth } from '../contexts/AuthContext';
@@ -43,6 +43,9 @@ export default function PenaltiesPage() {
   const [statusFilter, setStatusFilter] = useState<string>('OUTSTANDING'); // Default to showing only outstanding
   const [isMonthlyFilter, setIsMonthlyFilter] = useState<string>('');
   
+  // Search and filter members
+  const [search, setSearch] = useState<string>('');
+  
   // Selected member to view penalties
   const [selectedMemberId, setSelectedMemberId] = useState<string>('');
   const [memberPenalties, setMemberPenalties] = useState<Penalty[]>([]);
@@ -58,20 +61,18 @@ export default function PenaltiesPage() {
     try {
       const [penaltiesRes, membersRes] = await Promise.all([
         api.get('/penalties'),
-        api.get('/members', { params: { limit: 200, status: 'APPROVED' } })
+        api.get('/members', { params: { limit: 200 } }) // Load ALL members, not just APPROVED
       ]);
       const allPenalties = penaltiesRes.data.data || [];
       const allMembers = membersRes.data.data || [];
       
       setPenalties(allPenalties);
       
-      // Filter to show only members who have OUTSTANDING penalties (not paid/waived)
-      const memberIdsWithOutstandingPenalties = new Set(
-        allPenalties
-          .filter((p: any) => p.status === 'OUTSTANDING')
-          .map((p: any) => p.memberId)
+      // Show ALL members who have ANY penalties (outstanding, settled, or waived)
+      const memberIdsWithPenalties = new Set(
+        allPenalties.map((p: any) => p.memberId)
       );
-      const membersWithPenalties = allMembers.filter((m: Member) => memberIdsWithOutstandingPenalties.has(m.id));
+      const membersWithPenalties = allMembers.filter((m: Member) => memberIdsWithPenalties.has(m.memberId));
       
       setMembers(membersWithPenalties);
     } catch (error) {
@@ -104,6 +105,13 @@ export default function PenaltiesPage() {
       loadMemberPenalties(selectedMemberId);
     }
   }, [selectedMemberId]);
+
+  // Filter members based on search term
+  const filteredMembers = members.filter(m =>
+    search === '' ||
+    m.fullName.toLowerCase().includes(search.toLowerCase()) ||
+    m.memberId.toLowerCase().includes(search.toLowerCase())
+  );
 
   const openWaiveModal = (penalty: Penalty) => {
     setWaivePenalty(penalty);
@@ -169,8 +177,9 @@ export default function PenaltiesPage() {
     .reduce((sum, p) => sum + Number(p.amount), 0);
 
   const renderPenaltyTable = (penaltiesToShow: (Penalty | PenaltyWithMember)[], showMemberColumn = true) => (
-    <table className="w-full">
-      <thead className="bg-slate-50">
+    <div className="table-responsive">
+      <table>
+        <thead className="bg-slate-50">
         <tr>
           {showMemberColumn && (
             <th className="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Member</th>
@@ -305,7 +314,8 @@ export default function PenaltiesPage() {
           ))
         )}
       </tbody>
-    </table>
+      </table>
+    </div>
   );
 
   return (
@@ -390,13 +400,38 @@ export default function PenaltiesPage() {
 
           {/* Member Selector */}
           <div className="bg-white rounded-xl border p-4 mb-6">
-            <label className="block text-sm font-medium text-slate-700 mb-2">
+            <label className="block text-sm font-medium text-slate-700 mb-3">
               View Penalties for Specific Member:
             </label>
+            
+            {/* Search Input */}
+            <div className="mb-3 relative">
+              <Search className="absolute left-3 top-3 text-slate-400" size={18} />
+              <input
+                type="text"
+                placeholder="Search member name or ID..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className={`${inputClass} pl-10`}
+              />
+              {search && (
+                <button
+                  onClick={() => setSearch('')}
+                  className="absolute right-3 top-3 text-slate-400 hover:text-slate-600"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+
+            {/* Member Dropdown - show filtered results */}
             <Select 
               value={selectedMemberId} 
               onChange={setSelectedMemberId}
-              options={[{ value: '', label: '-- Select Member --' }, ...members.map(m => ({ value: m.id, label: `${m.fullName} (#{m.memberId})` }))]}
+              options={[
+                { value: '', label: filteredMembers.length > 0 ? '-- Select Member --' : 'No members found' },
+                ...filteredMembers.map(m => ({ value: m.id, label: `${m.fullName} (#{m.memberId})` }))
+              ]}
             />
           </div>
 

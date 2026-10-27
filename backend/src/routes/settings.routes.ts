@@ -368,6 +368,199 @@ router.get('/reports/:type/export', authenticate, authorize('ADMIN', 'AUDITOR'),
   let exportConfig: ExportConfig | null = null;
 
   switch (type) {
+    case 'unpaid': {
+      // Fetch all unpaid/partial/overdue obligations
+      const [weeklyObligations, specialObligations, penalties] = await Promise.all([
+        prisma.weeklyObligation.findMany({
+          where: { 
+            status: { in: ['PENDING', 'OVERDUE', 'PARTIAL'] },
+            member: { status: 'APPROVED' }
+          },
+          select: {
+            id: true,
+            weekNumber: true,
+            year: true,
+            contributionAmount: true,
+            penaltyAmount: true,
+            totalDue: true,
+            amountPaid: true,
+            status: true,
+            dueDate: true,
+            member: { 
+              select: { 
+                id: true,
+                fullName: true, 
+                memberId: true,
+                outstandingBalance: true,
+                user: { select: { phone: true } }
+              } 
+            },
+          },
+          orderBy: [{ dueDate: 'asc' }, { member: { fullName: 'asc' } }],
+        }),
+        prisma.specialContributionObligation.findMany({
+          where: { 
+            status: { in: ['PENDING', 'OVERDUE', 'PARTIAL'] },
+            isExempt: false,
+            member: { status: 'APPROVED' }
+          },
+          select: {
+            id: true,
+            amount: true,
+            amountPaid: true,
+            status: true,
+            specialContribution: { 
+              select: { 
+                title: true, 
+                titleOm: true, 
+                type: true, 
+                dueDate: true,
+                campaignId: true
+              } 
+            },
+            member: { 
+              select: { 
+                id: true,
+                fullName: true, 
+                memberId: true,
+                outstandingBalance: true,
+                user: { select: { phone: true } }
+              } 
+            },
+          },
+          orderBy: [{ specialContribution: { dueDate: 'asc' } }, { member: { fullName: 'asc' } }],
+        }),
+        prisma.penalty.findMany({
+          where: { 
+            status: 'OUTSTANDING',
+            member: { status: 'APPROVED' }
+          },
+          select: {
+            id: true,
+            amount: true,
+            reason: true,
+            weekNumber: true,
+            year: true,
+            isMonthly: true,
+            status: true,
+            createdAt: true,
+            member: { 
+              select: { 
+                id: true,
+                fullName: true, 
+                memberId: true,
+                outstandingBalance: true,
+                user: { select: { phone: true } }
+              } 
+            },
+          },
+          orderBy: [{ createdAt: 'desc' }, { member: { fullName: 'asc' } }],
+        }),
+      ]);
+
+      // Calculate totals
+      const weeklyUnpaid = weeklyObligations.reduce((sum, o) => 
+        sum + (Number(o.totalDue) - Number(o.amountPaid)), 0
+      );
+      const specialUnpaid = specialObligations.reduce((sum, o) => 
+        sum + (Number(o.amount) - Number(o.amountPaid)), 0
+      );
+      const penaltiesUnpaid = penalties.reduce((sum, p) => 
+        sum + Number(p.amount), 0
+      );
+
+      // Build export data combining all three types
+      const allItems: Array<{
+        memberId: string;
+        name: string;
+        type: string;
+        amount: number;
+        reason?: string;
+        status: string;
+        date: string;
+      }> = [];
+
+      weeklyObligations.forEach(o => {
+        const remaining = Number(o.totalDue) - Number(o.amountPaid);
+        if (remaining > 0) {
+          allItems.push({
+            memberId: o.member.memberId,
+            name: o.member.fullName,
+            type: `Weekly Week ${o.weekNumber}/${o.year}`,
+            amount: remaining,
+            status: o.status,
+            date: new Date(o.dueDate).toLocaleDateString(),
+          });
+        }
+      });
+
+      specialObligations.forEach(o => {
+        const remaining = Number(o.amount) - Number(o.amountPaid);
+        if (remaining > 0) {
+          allItems.push({
+            memberId: o.member.memberId,
+            name: o.member.fullName,
+            type: `Special: ${o.specialContribution.title}`,
+            amount: remaining,
+            status: o.status,
+            date: o.specialContribution.dueDate ? new Date(o.specialContribution.dueDate).toLocaleDateString() : '—',
+          });
+        }
+      });
+
+      penalties.forEach(p => {
+        allItems.push({
+          memberId: p.member.memberId,
+          name: p.member.fullName,
+          type: `${p.isMonthly ? 'Monthly' : 'Weekly'} Penalty`,
+          amount: Number(p.amount),
+          reason: p.reason,
+          status: p.status,
+          date: new Date(p.createdAt).toLocaleDateString(),
+        });
+      });
+
+      exportConfig = {
+        title: t(lang, 'reports.titleUnpaid'),
+        pdfHeaders: [
+          t(lang, 'reports.headerMemberId'),
+          t(lang, 'reports.headerName'),
+          t(lang, 'reports.headerType'),
+          t(lang, 'reports.headerAmount'),
+          t(lang, 'reports.headerReason'),
+          t(lang, 'reports.headerStatus'),
+          t(lang, 'reports.headerDate'),
+        ],
+        pdfRows: allItems.map((item) => [
+          item.memberId,
+          item.name,
+          item.type,
+          String(item.amount),
+          item.reason || '—',
+          item.status,
+          item.date,
+        ]),
+        excelColumns: [
+          { header: t(lang, 'reports.headerMemberId'), key: 'memberId', width: 12 },
+          { header: t(lang, 'reports.headerName'), key: 'name', width: 25 },
+          { header: t(lang, 'reports.headerType'), key: 'type', width: 25 },
+          { header: t(lang, 'reports.headerAmount'), key: 'amount', width: 12 },
+          { header: t(lang, 'reports.headerReason'), key: 'reason', width: 25 },
+          { header: t(lang, 'reports.headerStatus'), key: 'status', width: 12 },
+          { header: t(lang, 'reports.headerDate'), key: 'date', width: 15 },
+        ],
+        excelRows: allItems.map((item) => ({
+          memberId: item.memberId,
+          name: item.name,
+          type: item.type,
+          amount: item.amount,
+          reason: item.reason || '—',
+          status: item.status,
+          date: item.date,
+        })),
+      };
+      break;
+    }
     case 'contributions': {
       const allPayments = await prisma.payment.findMany({
         where: { paymentDate: dateFilter, status: 'VERIFIED' },

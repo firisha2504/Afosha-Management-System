@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/locale_provider.dart';
+import '../providers/theme_provider.dart';
 import '../services/api_service.dart';
 
 class ContributionsScreen extends StatefulWidget {
@@ -46,9 +47,10 @@ class _ContributionsScreenState extends State<ContributionsScreen> {
   @override
   Widget build(BuildContext context) {
     final isOm = context.watch<LocaleProvider>().locale.languageCode == 'om';
+    final isDark = context.watch<ThemeProvider>().isDarkMode;
     
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: isDark ? const Color(0xFF0F1419) : const Color(0xFFF8FAFC),
       body: RefreshIndicator(
         onRefresh: _load,
         color: _accent,
@@ -203,47 +205,57 @@ class _SummaryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade100),
-        boxShadow: [
-          BoxShadow(
-              color: Colors.black.withOpacity(0.04),
-              blurRadius: 8,
-              offset: const Offset(0, 2))
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(10),
+    return Consumer<ThemeProvider>(
+      builder: (context, themeProvider, _) {
+        final isDark = themeProvider.isDarkMode;
+        return Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF1A1F2E) : Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: isDark ? const Color(0xFF2D3748) : Colors.grey.shade100,
             ),
-            child: Icon(icon, color: color, size: 20),
+            boxShadow: [
+              BoxShadow(
+                  color: Colors.black.withOpacity(isDark ? 0.2 : 0.04),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2))
+            ],
           ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(value,
-                    style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 15,
-                        color: color)),
-                Text(label,
-                    style: const TextStyle(fontSize: 11, color: Colors.grey)),
-              ],
-            ),
+          child: Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: color.withOpacity(isDark ? 0.15 : 0.1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(icon, color: color, size: 20),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(value,
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 15,
+                            color: color)),
+                    Text(label,
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: isDark ? Colors.grey.shade500 : Colors.grey,
+                        )),
+                  ],
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 }
@@ -256,12 +268,16 @@ class _PaymentCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isOm = context.watch<LocaleProvider>().locale.languageCode == 'om';
+    final isDark = context.watch<ThemeProvider>().isDarkMode;
     final isVerified = payment['status'] == 'VERIFIED';
     final statusColor =
         isVerified ? Colors.green.shade600 : Colors.orange.shade600;
-    final bgColor = isVerified ? Colors.green.shade50 : Colors.orange.shade50;
-    final borderColor =
-        isVerified ? Colors.green.shade100 : Colors.orange.shade100;
+    final bgColor = isDark
+        ? (isVerified ? Colors.green.shade900 : Colors.orange.shade900)
+        : (isVerified ? Colors.green.shade50 : Colors.orange.shade50);
+    final borderColor = isDark
+        ? (isVerified ? Colors.green.shade700 : Colors.orange.shade700)
+        : (isVerified ? Colors.green.shade100 : Colors.orange.shade100);
 
     // Format date
     String dateStr = payment['paymentDate'] ?? payment['createdAt'] ?? '';
@@ -275,12 +291,12 @@ class _PaymentCard extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1A1F2E) : Colors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: borderColor),
         boxShadow: [
           BoxShadow(
-              color: Colors.black.withOpacity(0.04),
+              color: Colors.black.withOpacity(isDark ? 0.2 : 0.04),
               blurRadius: 8,
               offset: const Offset(0, 2))
         ],
@@ -311,8 +327,11 @@ class _PaymentCard extends StatelessWidget {
                 children: [
                   Text(
                     '${num.tryParse(payment['amount'].toString())?.toStringAsFixed(0) ?? payment['amount']} ETB',
-                    style: const TextStyle(
-                        fontWeight: FontWeight.bold, fontSize: 15),
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 15,
+                      color: isDark ? const Color(0xFFE5E7EB) : Colors.black,
+                    ),
                   ),
                   const SizedBox(height: 2),
                   Row(

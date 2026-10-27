@@ -191,6 +191,19 @@ router.get('/member', authenticate, authorize('MEMBER'), async (req: AuthRequest
   const present = attendance.filter((a) => a.status === 'PRESENT').length;
   const attendancePercentage = attendance.length > 0 ? Math.round((present / attendance.length) * 100) : 0;
 
+  // Calculate total amount paid (verified payments only)
+  const paidPayments = await prisma.payment.findMany({
+    where: { memberId: member.id, status: 'VERIFIED' },
+    include: {
+      obligation: { select: { contributionAmount: true } },
+    },
+  });
+
+  let totalAmountPaid = 0;
+  for (const payment of paidPayments) {
+    totalAmountPaid += Number(payment.amount);
+  }
+
   const upcomingMeetings = await prisma.meeting.findMany({
     where: { meetingDate: { gte: new Date() } },
     take: 3,
@@ -206,6 +219,7 @@ router.get('/member', authenticate, authorize('MEMBER'), async (req: AuthRequest
       status: member.status,
       profilePicture: member.profilePicture,
       // Financial
+      totalAmountPaid,
       outstandingBalance: member.outstandingBalance,
       totalPenalties: member.penalties.reduce((s, p) => s + Number(p.amount), 0),
       penalties: member.penalties,

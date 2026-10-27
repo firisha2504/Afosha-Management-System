@@ -33,3 +33,19 @@ body {
 
 /* Smooth transitions */
 a, button { transition: all 0.15s ease; }
+
+/* Responsive table scrolling on mobile */
+.table-responsive {
+  @apply overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0;
+}
+
+.table-responsive table {
+  @apply w-full;
+  min-width: 600px;
+}
+
+/* Better scrollbar for table container */
+.table-responsive::-webkit-scrollbar { height: 6px; }
+.table-responsive::-webkit-scrollbar-track { background: #f1f5f9; }
+.table-responsive::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+.table-responsive::-webkit-scrollbar-thumb:hover { background: #94a3b8; }

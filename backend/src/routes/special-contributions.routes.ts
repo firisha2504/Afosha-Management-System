@@ -220,27 +220,30 @@ router.get('/penalties/summary', authenticate, authorize('ADMIN', 'AUDITOR'), as
     orderBy: { fullName: 'asc' },
   });
 
-  const summary = members.map((m) => {
-    const totalPenalties = m.penalties.filter((p) => p.status !== 'WAIVED').reduce((s, p) => s + Number(p.amount), 0);
-    const unpaidPenalties = m.penalties.filter((p) => p.status === 'OUTSTANDING').reduce((s, p) => s + Number(p.amount), 0);
-    const totalFines = m.fines.reduce((s, f) => s + Number(f.amount), 0);
-    const unpaidFines = m.fines.filter((f) => !f.isPaid).reduce((s, f) => s + Number(f.amount), 0);
-    return {
-      id: m.id,
-      fullName: m.fullName,
-      memberId: m.memberId,
-      totalPenalties,
-      unpaidPenalties,
-      paidPenalties: totalPenalties - unpaidPenalties,
-      penaltyCount: m.penalties.length,
-      unpaidPenaltyCount: m.penalties.filter((p) => p.status === 'OUTSTANDING').length,
-      totalFines,
-      unpaidFines,
-      totalOutstanding: unpaidPenalties + unpaidFines,
-      recentPenalties: m.penalties.slice(0, 3),
-      recentFines: m.fines.slice(0, 3),
-    };
-  });
+  const summary = members
+    .map((m) => {
+      const totalPenalties = m.penalties.filter((p) => p.status !== 'WAIVED').reduce((s, p) => s + Number(p.amount), 0);
+      const unpaidPenalties = m.penalties.filter((p) => p.status === 'OUTSTANDING').reduce((s, p) => s + Number(p.amount), 0);
+      const totalFines = m.fines.reduce((s, f) => s + Number(f.amount), 0);
+      const unpaidFines = m.fines.filter((f) => !f.isPaid).reduce((s, f) => s + Number(f.amount), 0);
+      return {
+        id: m.id,
+        fullName: m.fullName,
+        memberId: m.memberId,
+        totalPenalties,
+        unpaidPenalties,
+        paidPenalties: totalPenalties - unpaidPenalties,
+        penaltyCount: m.penalties.length,
+        unpaidPenaltyCount: m.penalties.filter((p) => p.status === 'OUTSTANDING').length,
+        totalFines,
+        unpaidFines,
+        totalOutstanding: unpaidPenalties + unpaidFines,
+        recentPenalties: m.penalties.slice(0, 3),
+        recentFines: m.fines.slice(0, 3),
+      };
+    })
+    // Filter to only members with penalties or fines
+    .filter((m) => m.penaltyCount > 0 || m.totalFines > 0);
 
   sendSuccess(res, summary, 'general.success', lang);
 });

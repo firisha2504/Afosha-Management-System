@@ -7,6 +7,7 @@ import '../services/api_service.dart';
 import '../config/api_config.dart';
 import 'profile_screen.dart';
 import 'contributions_screen.dart';
+import 'payment_screen.dart';
 import 'notifications_screen.dart';
 import 'more_screen.dart';
 
@@ -47,7 +48,7 @@ class _HomeScreenState extends State<HomeScreen> {
           isOm: isOm,
           loading: _loading,
           onRefresh: _loadDashboard),
-      const ContributionsScreen(),
+      const PaymentScreen(),
       const NotificationsScreen(),
       const MoreScreen(),
       const ProfileScreen(),
@@ -55,34 +56,39 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Scaffold(
       body: screens[currentIndex],
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: currentIndex,
-        onDestinationSelected: (i) => setState(() => currentIndex = i),
-        backgroundColor: Colors.white,
-        elevation: 8,
-        shadowColor: Colors.black12,
-        destinations: [
-          NavigationDestination(
-              icon: const Icon(Icons.home_outlined),
-              selectedIcon: const Icon(Icons.home),
-              label: isOm ? 'Mana' : 'Home'),
-          NavigationDestination(
-              icon: const Icon(Icons.payment_outlined),
-              selectedIcon: const Icon(Icons.payment),
-              label: isOm ? 'Kaffaltii' : 'Payments'),
-          NavigationDestination(
-              icon: const Icon(Icons.notifications_outlined),
-              selectedIcon: const Icon(Icons.notifications),
-              label: isOm ? 'Akeekkachiisa' : 'Alerts'),
-          NavigationDestination(
-              icon: const Icon(Icons.more_horiz),
-              selectedIcon: const Icon(Icons.more_horiz),
-              label: isOm ? 'Biroo' : 'More'),
-          NavigationDestination(
-              icon: const Icon(Icons.person_outlined),
-              selectedIcon: const Icon(Icons.person),
-              label: isOm ? 'Profaayil' : 'Profile'),
-        ],
+      bottomNavigationBar: Consumer<ThemeProvider>(
+        builder: (context, themeProvider, _) {
+          final isDark = themeProvider.isDarkMode;
+          return NavigationBar(
+            selectedIndex: currentIndex,
+            onDestinationSelected: (i) => setState(() => currentIndex = i),
+            backgroundColor: isDark ? const Color(0xFF1A1F2E) : Colors.white,
+            elevation: 8,
+            shadowColor: Colors.black.withOpacity(isDark ? 0.3 : 0.12),
+            destinations: [
+              NavigationDestination(
+                  icon: const Icon(Icons.home_outlined),
+                  selectedIcon: const Icon(Icons.home),
+                  label: isOm ? 'Mana' : 'Home'),
+              NavigationDestination(
+                  icon: const Icon(Icons.payment_outlined),
+                  selectedIcon: const Icon(Icons.payment),
+                  label: isOm ? 'Kaffaltii' : 'Payments'),
+              NavigationDestination(
+                  icon: const Icon(Icons.notifications_outlined),
+                  selectedIcon: const Icon(Icons.notifications),
+                  label: isOm ? 'Akeekkachiisa' : 'Alerts'),
+              NavigationDestination(
+                  icon: const Icon(Icons.more_horiz),
+                  selectedIcon: const Icon(Icons.more_horiz),
+                  label: isOm ? 'Biroo' : 'More'),
+              NavigationDestination(
+                  icon: const Icon(Icons.person_outlined),
+                  selectedIcon: const Icon(Icons.person),
+                  label: isOm ? 'Profaayil' : 'Profile'),
+            ],
+          );
+        },
       ),
     );
   }
@@ -142,13 +148,16 @@ class _DashboardTabState extends State<_DashboardTab> {
           await _loadNotifications();
         },
         color: primary,
-        child: CustomScrollView(
+        child: Consumer<ThemeProvider>(
+          builder: (context, themeProvider, _) {
+            final isDark = themeProvider.isDarkMode;
+            return CustomScrollView(
           slivers: [
             // -- App Bar ──
             SliverAppBar(
               expandedHeight: 160,
               pinned: true,
-              backgroundColor: primary,
+              backgroundColor: isDark ? const Color(0xFF0F1419) : primary,
               actions: [
                 // Theme toggle
                 Consumer<ThemeProvider>(
@@ -345,7 +354,15 @@ class _DashboardTabState extends State<_DashboardTab> {
                         color: const Color(0xFFDC2626),
                       )),
                     ]),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 20),
+
+                    // -- Payment Summary Card ──
+                    _PaymentSummaryCard(
+                      totalAmountPaid: _fmt(widget.dashboard?['totalAmountPaid']),
+                      totalPenalties: _fmt(widget.dashboard?['totalPenalties']),
+                      outstandingBalance: _fmt(widget.dashboard?['outstandingBalance']),
+                      isOm: widget.isOm,
+                    ),
                     const SizedBox(height: 20),
 
                     // -- Attendance ──
@@ -388,7 +405,9 @@ class _DashboardTabState extends State<_DashboardTab> {
                   ]),
                 ),
               ),
-          ],
+            ],
+            );
+          },
         ),
       ),
     );
@@ -415,126 +434,141 @@ class _NotificationBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Get unread notifications
-    final unread = notifications.where((n) => n['isRead'] != true).toList();
-    
-    if (unread.isEmpty) {
-      return const SizedBox.shrink();
-    }
-
-    // Show the most recent unread notification
-    final latest = unread.first;
-
-    return GestureDetector(
-      onTap: () {
-        // Navigate to notifications page
-        final state = context.findAncestorStateOfType<_HomeScreenState>();
-        if (state != null) {
-          state.setState(() {
-            state.currentIndex = 2; // Notifications tab
-          });
+    return Consumer<ThemeProvider>(
+      builder: (context, themeProvider, _) {
+        final isDark = themeProvider.isDarkMode;
+        
+        // Get unread notifications
+        final unread = notifications.where((n) => n['isRead'] != true).toList();
+        
+        if (unread.isEmpty) {
+          return const SizedBox.shrink();
         }
-      },
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              Colors.blue.shade50,
-              Colors.blue.shade100.withOpacity(0.5),
-            ],
-          ),
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: Colors.blue.shade200),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.blue.withOpacity(0.1),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: Colors.blue.shade600,
-                borderRadius: BorderRadius.circular(10),
+
+        // Show the most recent unread notification
+        final latest = unread.first;
+
+        return GestureDetector(
+          onTap: () {
+            // Navigate to notifications page
+            final state = context.findAncestorStateOfType<_HomeScreenState>();
+            if (state != null) {
+              state.setState(() {
+                state.currentIndex = 2;
+              });
+            }
+          },
+          child: Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: isDark
+                    ? [
+                        Colors.blue.shade900.withOpacity(0.3),
+                        Colors.blue.shade800.withOpacity(0.2),
+                      ]
+                    : [
+                        Colors.blue.shade50,
+                        Colors.blue.shade100.withOpacity(0.5),
+                      ],
               ),
-              child: const Icon(
-                Icons.notifications_active,
-                color: Colors.white,
-                size: 20,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: isDark ? Colors.blue.shade700 : Colors.blue.shade200,
               ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.blue.withOpacity(isDark ? 0.15 : 0.1),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
+            child: Row(
+              children: [
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: Colors.blue.shade600,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(
+                    Icons.notifications_active,
+                    color: Colors.white,
+                    size: 20,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Expanded(
-                        child: Text(
-                          isOm
-                              ? (latest['titleOm'] ?? latest['title'] ?? '')
-                              : (latest['title'] ?? ''),
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 13,
-                            color: Colors.black87,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      if (unread.length > 1)
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 2,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.blue.shade600,
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: Text(
-                            '+${unread.length - 1}',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              isOm
+                                  ? (latest['titleOm'] ?? latest['title'] ?? '')
+                                  : (latest['title'] ?? ''),
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                                color: isDark
+                                    ? const Color(0xFFE5E7EB)
+                                    : Colors.black87,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
+                          if (unread.length > 1)
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.blue.shade600,
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Text(
+                                '+${unread.length - 1}',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        isOm
+                            ? (latest['messageOm'] ?? latest['message'] ?? '')
+                            : (latest['message'] ?? ''),
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: isDark ? Colors.grey.shade400 : Colors.grey.shade700,
                         ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ],
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    isOm
-                        ? (latest['messageOm'] ?? latest['message'] ?? '')
-                        : (latest['message'] ?? ''),
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: Colors.grey.shade700,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ),
+                ),
+                const SizedBox(width: 8),
+                Icon(
+                  Icons.arrow_forward_ios,
+                  size: 14,
+                  color: Colors.blue.shade400,
+                ),
+              ],
             ),
-            const SizedBox(width: 8),
-            Icon(
-              Icons.arrow_forward_ios,
-              size: 14,
-              color: Colors.blue.shade400,
-            ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 }
@@ -550,49 +584,100 @@ class _QuickStatsRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [primary.withOpacity(0.08), gold.withOpacity(0.05)],
-        ),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: primary.withOpacity(0.12)),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          _QuickStat(label: isOm ? 'ID' : 'Member ID', value: dashboard?['memberId'] ?? '-', color: primary),
-          _Divider(),
-          _QuickStat(label: isOm ? 'Haala' : 'Status', value: dashboard?['status'] ?? 'APPROVED', color: Colors.green.shade700),
-          _Divider(),
-          _QuickStat(label: isOm ? 'Argama' : 'Attendance', value: '${dashboard?['attendancePercentage'] ?? 0}%', color: gold),
-        ],
-      ),
+    return Consumer<ThemeProvider>(
+      builder: (context, themeProvider, _) {
+        final isDark = themeProvider.isDarkMode;
+        return Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                primary.withOpacity(isDark ? 0.08 : 0.08),
+                gold.withOpacity(isDark ? 0.04 : 0.05),
+              ],
+            ),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: isDark ? primary.withOpacity(0.2) : primary.withOpacity(0.12),
+            ),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _QuickStat(
+                label: isOm ? 'ID' : 'Member ID',
+                value: dashboard?['memberId'] ?? '-',
+                color: primary,
+                isDark: isDark,
+              ),
+              _Divider(isDark: isDark),
+              _QuickStat(
+                label: isOm ? 'Haala' : 'Status',
+                value: dashboard?['status'] ?? 'APPROVED',
+                color: Colors.green.shade700,
+                isDark: isDark,
+              ),
+              _Divider(isDark: isDark),
+              _QuickStat(
+                label: isOm ? 'Argama' : 'Attendance',
+                value: '${dashboard?['attendancePercentage'] ?? 0}%',
+                color: gold,
+                isDark: isDark,
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }
 
 class _Divider extends StatelessWidget {
+  final bool isDark;
+  const _Divider({this.isDark = false});
+  
   @override
   Widget build(BuildContext context) =>
-      Container(width: 1, height: 32, color: Colors.grey.shade200);
+      Container(
+        width: 1,
+        height: 32,
+        color: isDark ? Colors.grey.shade700 : Colors.grey.shade200,
+      );
 }
 
 class _QuickStat extends StatelessWidget {
   final String label;
   final String value;
   final Color color;
+  final bool isDark;
 
-  const _QuickStat({required this.label, required this.value, required this.color});
+  const _QuickStat({
+    required this.label,
+    required this.value,
+    required this.color,
+    this.isDark = false,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Text(value, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: color)),
+        Text(
+          value,
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 15,
+            color: color,
+          ),
+        ),
         const SizedBox(height: 2),
-        Text(label, style: const TextStyle(fontSize: 10, color: Colors.grey)),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 10,
+            color: isDark ? Colors.grey.shade500 : Colors.grey,
+          ),
+        ),
       ],
     );
   }
@@ -616,38 +701,68 @@ class _FinanceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: Colors.grey.shade100),
-          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2))],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return Consumer<ThemeProvider>(
+      builder: (context, themeProvider, _) {
+        final isDark = themeProvider.isDarkMode;
+        return GestureDetector(
+          onTap: onTap,
+          child: Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF1A1F2E) : Colors.white,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: isDark ? const Color(0xFF2D3748) : Colors.grey.shade100,
+              ),
+              boxShadow: [BoxShadow(
+                color: Colors.black.withOpacity(isDark ? 0.2 : 0.04),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              )],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  width: 34, height: 34,
-                  decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
-                  child: Icon(icon, color: color, size: 18),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Container(
+                      width: 34,
+                      height: 34,
+                      decoration: BoxDecoration(
+                        color: color.withOpacity(isDark ? 0.15 : 0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Icon(icon, color: color, size: 18),
+                    ),
+                    if (onTap != null)
+                      Icon(Icons.arrow_forward_ios, size: 12, color: isDark ? Colors.grey.shade600 : Colors.grey.shade400),
+                  ],
                 ),
-                if (onTap != null)
-                  Icon(Icons.arrow_forward_ios, size: 12, color: Colors.grey.shade400),
+                const SizedBox(height: 10),
+                Text(
+                  value,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                    color: isDark ? const Color(0xFFE5E7EB) : const Color(0xFF0F172A),
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: isDark ? Colors.grey.shade500 : Colors.grey,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ],
             ),
-            const SizedBox(height: 10),
-            Text(value, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Color(0xFF0F172A))),
-            const SizedBox(height: 2),
-            Text(title, style: const TextStyle(fontSize: 11, color: Colors.grey), maxLines: 1, overflow: TextOverflow.ellipsis),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 }
@@ -662,57 +777,81 @@ class _AttendanceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = percentage >= 80 ? Colors.green.shade600
-        : percentage >= 60 ? Colors.orange.shade600
-        : Colors.red.shade600;
+    return Consumer<ThemeProvider>(
+      builder: (context, themeProvider, _) {
+        final isDark = themeProvider.isDarkMode;
+        final color = percentage >= 80 ? Colors.green.shade600
+            : percentage >= 60 ? Colors.orange.shade600
+            : Colors.red.shade600;
 
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Colors.grey.shade100),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2))],
-      ),
-      child: Row(
-        children: [
-          // Progress circle
-          SizedBox(
-            width: 64, height: 64,
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                CircularProgressIndicator(
-                  value: percentage / 100,
-                  backgroundColor: Colors.grey.shade100,
-                  valueColor: AlwaysStoppedAnimation<Color>(color),
-                  strokeWidth: 6,
-                ),
-                Text('$percentage%', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: color)),
-              ],
+        return Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF1A1F2E) : Colors.white,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: isDark ? const Color(0xFF2D3748) : Colors.grey.shade100,
             ),
+            boxShadow: [BoxShadow(
+              color: Colors.black.withOpacity(isDark ? 0.2 : 0.04),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            )],
           ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(isOm ? 'Argama Waliigalaa' : 'Overall Attendance',
-                    style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
-                const SizedBox(height: 4),
-                Text(
-                  percentage >= 80
-                      ? (isOm ? 'Baay\'ee gaarii!' : 'Excellent attendance!')
-                      : percentage >= 60
-                          ? (isOm ? 'Garii, itti fufaa!' : 'Good, keep it up!')
-                          : (isOm ? 'Argama fooyyessaa!' : 'Needs improvement'),
-                  style: TextStyle(fontSize: 12, color: color),
+          child: Row(
+            children: [
+              SizedBox(
+                width: 64,
+                height: 64,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    CircularProgressIndicator(
+                      value: percentage / 100,
+                      backgroundColor: isDark ? Colors.grey.shade700 : Colors.grey.shade100,
+                      valueColor: AlwaysStoppedAnimation<Color>(color),
+                      strokeWidth: 6,
+                    ),
+                    Text(
+                      '$percentage%',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                        color: color,
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      isOm ? 'Argama Waliigalaa' : 'Overall Attendance',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14,
+                        color: isDark ? const Color(0xFFE5E7EB) : const Color(0xFF0F172A),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      percentage >= 80
+                          ? (isOm ? 'Baay\'ee gaarii!' : 'Excellent attendance!')
+                          : percentage >= 60
+                              ? (isOm ? 'Garii, itti fufaa!' : 'Good, keep it up!')
+                              : (isOm ? 'Argama fooyyessaa!' : 'Needs improvement'),
+                      style: TextStyle(fontSize: 12, color: color),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 }
@@ -727,32 +866,37 @@ class _QuickActions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final actions = [
-      _Action(icon: Icons.payment_outlined, label: isOm ? 'Kaffaltii' : 'Payments', color: primary, index: 1),
-      _Action(icon: Icons.receipt_long_outlined, label: isOm ? 'Herrega' : 'Receipts', color: gold, index: 3),
-      _Action(icon: Icons.event_available_outlined, label: isOm ? 'Argama' : 'Attendance', color: Colors.teal.shade600, index: 3),
-    ];
+    return Consumer<ThemeProvider>(
+      builder: (context, themeProvider, _) {
+        final isDark = themeProvider.isDarkMode;
+        final actions = [
+          _Action(icon: Icons.payment_outlined, label: isOm ? 'Kaffaltii' : 'Payments', color: primary, index: 1),
+          _Action(icon: Icons.receipt_long_outlined, label: isOm ? 'Herrega' : 'Receipts', color: gold, index: 3),
+          _Action(icon: Icons.event_available_outlined, label: isOm ? 'Argama' : 'Attendance', color: Colors.teal.shade600, index: 3),
+        ];
 
-    return GridView.count(
-      crossAxisCount: 4,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      mainAxisSpacing: 8,
-      crossAxisSpacing: 8,
-      children: actions
-          .map((a) => _ActionTile(
-                action: a,
-                onTap: () {
-                  // Find the home screen state and change tab
-                  final state = context.findAncestorStateOfType<_HomeScreenState>();
-                  if (state != null) {
-                    state.setState(() {
-                      state.currentIndex = a.index;
-                    });
-                  }
-                },
-              ))
-          .toList(),
+        return GridView.count(
+          crossAxisCount: 4,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          mainAxisSpacing: 8,
+          crossAxisSpacing: 8,
+          children: actions
+              .map((a) => _ActionTile(
+                    action: a,
+                    isDark: isDark,
+                    onTap: () {
+                      final state = context.findAncestorStateOfType<_HomeScreenState>();
+                      if (state != null) {
+                        state.setState(() {
+                          state.currentIndex = a.index;
+                        });
+                      }
+                    },
+                  ))
+              .toList(),
+        );
+      },
     );
   }
 }
@@ -769,8 +913,13 @@ class _Action {
 class _ActionTile extends StatelessWidget {
   final _Action action;
   final VoidCallback onTap;
+  final bool isDark;
 
-  const _ActionTile({required this.action, required this.onTap});
+  const _ActionTile({
+    required this.action,
+    required this.onTap,
+    this.isDark = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -779,17 +928,29 @@ class _ActionTile extends StatelessWidget {
       child: Column(
         children: [
           Container(
-            width: 52, height: 52,
+            width: 52,
+            height: 52,
             decoration: BoxDecoration(
-              color: action.color.withOpacity(0.1),
+              color: action.color.withOpacity(isDark ? 0.15 : 0.1),
               borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: action.color.withOpacity(0.15)),
+              border: Border.all(
+                color: action.color.withOpacity(isDark ? 0.25 : 0.15),
+              ),
             ),
             child: Icon(action.icon, color: action.color, size: 24),
           ),
           const SizedBox(height: 6),
-          Text(action.label, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w500),
-              textAlign: TextAlign.center, maxLines: 1, overflow: TextOverflow.ellipsis),
+          Text(
+            action.label,
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w500,
+              color: isDark ? const Color(0xFFE5E7EB) : const Color(0xFF0F172A),
+            ),
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
         ],
       ),
     );
@@ -806,58 +967,102 @@ class _MeetingCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final date = DateTime.tryParse(meeting['meetingDate'] ?? '');
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Colors.grey.shade100),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 6)],
-      ),
-      child: Row(
-        children: [
-          // Date badge
-          Container(
-            width: 48, height: 52,
-            decoration: BoxDecoration(
-              color: primary.withOpacity(0.08),
-              borderRadius: BorderRadius.circular(10),
+    return Consumer<ThemeProvider>(
+      builder: (context, themeProvider, _) {
+        final isDark = themeProvider.isDarkMode;
+        final date = DateTime.tryParse(meeting['meetingDate'] ?? '');
+        return Container(
+          margin: const EdgeInsets.only(bottom: 8),
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF1A1F2E) : Colors.white,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: isDark ? const Color(0xFF2D3748) : Colors.grey.shade100,
             ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  date != null ? _monthName(date.month) : '-',
-                  style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: primary),
-                ),
-                Text(
-                  date != null ? date.day.toString() : '-',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: primary, height: 1.1),
-                ),
-              ],
-            ),
+            boxShadow: [BoxShadow(
+              color: Colors.black.withOpacity(isDark ? 0.2 : 0.04),
+              blurRadius: 6,
+            )],
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(meeting['title'] ?? '', style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
-                if (meeting['meetingTime'] != null)
-                  Text(meeting['meetingTime'], style: const TextStyle(fontSize: 12, color: Colors.grey)),
-                if (meeting['location'] != null)
-                  Row(children: [
-                    const Icon(Icons.location_on_outlined, size: 12, color: Colors.grey),
-                    const SizedBox(width: 2),
-                    Text(meeting['location'], style: const TextStyle(fontSize: 11, color: Colors.grey)),
-                  ]),
-              ],
-            ),
+          child: Row(
+            children: [
+              Container(
+                width: 48,
+                height: 52,
+                decoration: BoxDecoration(
+                  color: primary.withOpacity(isDark ? 0.12 : 0.08),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      date != null ? _monthName(date.month) : '-',
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                        color: primary,
+                      ),
+                    ),
+                    Text(
+                      date != null ? date.day.toString() : '-',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: primary,
+                        height: 1.1,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      meeting['title'] ?? '',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14,
+                        color: isDark ? const Color(0xFFE5E7EB) : const Color(0xFF0F172A),
+                      ),
+                    ),
+                    if (meeting['meetingTime'] != null)
+                      Text(
+                        meeting['meetingTime'],
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: isDark ? Colors.grey.shade500 : Colors.grey,
+                        ),
+                      ),
+                    if (meeting['location'] != null)
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.location_on_outlined,
+                            size: 12,
+                            color: isDark ? Colors.grey.shade500 : Colors.grey,
+                          ),
+                          const SizedBox(width: 2),
+                          Text(
+                            meeting['location'],
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: isDark ? Colors.grey.shade500 : Colors.grey,
+                            ),
+                          ),
+                        ],
+                      ),
+                  ],
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -874,41 +1079,69 @@ class _NotifCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade100),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 36, height: 36,
-            decoration: BoxDecoration(color: Colors.blue.shade50, borderRadius: BorderRadius.circular(10)),
-            child: Icon(Icons.notifications_outlined, color: Colors.blue.shade600, size: 18),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  isOm ? (notif['titleOm'] ?? notif['title'] ?? '') : (notif['title'] ?? ''),
-                  style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
-                  maxLines: 1, overflow: TextOverflow.ellipsis,
-                ),
-                Text(
-                  isOm ? (notif['messageOm'] ?? notif['message'] ?? '') : (notif['message'] ?? ''),
-                  style: const TextStyle(fontSize: 11, color: Colors.grey),
-                  maxLines: 2, overflow: TextOverflow.ellipsis,
-                ),
-              ],
+    return Consumer<ThemeProvider>(
+      builder: (context, themeProvider, _) {
+        final isDark = themeProvider.isDarkMode;
+        return Container(
+          margin: const EdgeInsets.only(bottom: 8),
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF1A1F2E) : Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: isDark ? const Color(0xFF2D3748) : Colors.grey.shade100,
             ),
           ),
-        ],
-      ),
+          child: Row(
+            children: [
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: isDark ? Colors.blue.shade900 : Colors.blue.shade50,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(
+                  Icons.notifications_outlined,
+                  color: Colors.blue.shade600,
+                  size: 18,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      isOm
+                          ? (notif['titleOm'] ?? notif['title'] ?? '')
+                          : (notif['title'] ?? ''),
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 13,
+                        color: isDark ? const Color(0xFFE5E7EB) : const Color(0xFF0F172A),
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    Text(
+                      isOm
+                          ? (notif['messageOm'] ?? notif['message'] ?? '')
+                          : (notif['message'] ?? ''),
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: isDark ? Colors.grey.shade500 : Colors.grey,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }
@@ -920,12 +1153,228 @@ class _SectionTitle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
-        const SizedBox(width: 8),
-        Expanded(child: Divider(color: Colors.grey.shade200)),
-      ],
+    return Consumer<ThemeProvider>(
+      builder: (context, themeProvider, _) {
+        final isDark = themeProvider.isDarkMode;
+        return Row(
+          children: [
+            Text(
+              title,
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 15,
+                color: isDark ? const Color(0xFFE5E7EB) : const Color(0xFF0F172A),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Divider(
+                color: isDark ? Colors.grey.shade700 : Colors.grey.shade200,
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+// -- Payment Summary Card ──────────────────────────────────────────────────────
+class _PaymentSummaryCard extends StatelessWidget {
+  final String totalAmountPaid;
+  final String totalPenalties;
+  final String outstandingBalance;
+  final bool isOm;
+
+  const _PaymentSummaryCard({
+    required this.totalAmountPaid,
+    required this.totalPenalties,
+    required this.outstandingBalance,
+    required this.isOm,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<ThemeProvider>(
+      builder: (context, themeProvider, _) {
+        final isDark = themeProvider.isDarkMode;
+        return Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF1A1F2E) : Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: isDark ? const Color(0xFF2D3748) : Colors.grey.shade100,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(isDark ? 0.2 : 0.04),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                isOm ? 'Haala Kaffaltii' : 'Payment Summary',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                  color: isDark ? const Color(0xFFE5E7EB) : const Color(0xFF0F172A),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  // Total Amount Paid
+                  Expanded(
+                    child: Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.green.shade50.withOpacity(isDark ? 0.15 : 1),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: Colors.green.shade200.withOpacity(isDark ? 0.3 : 1),
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.check_circle,
+                                color: Colors.green.shade600,
+                                size: 18,
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                isOm ? 'Caffaltii' : 'Paid',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: isDark
+                                      ? Colors.green.shade300
+                                      : Colors.green.shade700,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            '$totalAmountPaid ETB',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                              color: Colors.green.shade600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  // Penalties
+                  Expanded(
+                    child: Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.red.shade50.withOpacity(isDark ? 0.15 : 1),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: Colors.red.shade200.withOpacity(isDark ? 0.3 : 1),
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.warning_rounded,
+                                color: Colors.red.shade600,
+                                size: 18,
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                isOm ? 'Adabbii' : 'Penalties',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: isDark ? Colors.red.shade300 : Colors.red.shade700,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            '$totalPenalties ETB',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                              color: Colors.red.shade600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  // Outstanding
+                  Expanded(
+                    child: Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.orange.shade50.withOpacity(isDark ? 0.15 : 1),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: Colors.orange.shade200.withOpacity(isDark ? 0.3 : 1),
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.pending,
+                                color: Colors.orange.shade600,
+                                size: 18,
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                isOm ? 'Hafe' : 'Due',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: isDark
+                                      ? Colors.orange.shade300
+                                      : Colors.orange.shade700,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            '$outstandingBalance ETB',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                              color: Colors.orange.shade600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }

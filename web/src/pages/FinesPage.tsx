@@ -218,8 +218,9 @@ export default function FinesPage() {
 
               {summaryLoading ? <LoadingSpinner /> : (
                 <div className="bg-white rounded-xl border overflow-hidden">
-                  <table className="w-full">
-                    <thead className="bg-slate-50">
+                  <div className="table-responsive">
+                    <table>
+                      <thead className="bg-slate-50">
                       <tr>
                         <th className="px-5 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Member</th>
                         <th className="px-5 py-3 text-right text-xs font-semibold text-slate-500 uppercase">Penalties Issued</th>
@@ -279,7 +280,8 @@ export default function FinesPage() {
                         </tr>
                       ))}
                     </tbody>
-                  </table>
+                    </table>
+                  </div>
                 </div>
               )}
             </>
@@ -287,23 +289,44 @@ export default function FinesPage() {
 
           {/* ── Fines Log Tab ── */}
           {tab === 'fines' && (
-            <div className="bg-white rounded-xl border overflow-hidden">
-              <table className="w-full">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Member</th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Type</th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Amount</th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Reason</th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Date</th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Status</th>
-                    {isAdmin && <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Actions</th>}
-                  </tr>
-                </thead>
-                <tbody className="divide-y">
-                  {fines.length === 0 ? (
-                    <tr><td colSpan={7} className="px-6 py-10 text-center text-sm text-slate-400">No fines recorded.</td></tr>
-                  ) : fines.map((f) => (
+            <>
+              {/* Search */}
+              <div className="mb-4">
+                <input
+                  className={inputClass}
+                  placeholder="Search member by name or ID..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  style={{ maxWidth: 320 }}
+                />
+              </div>
+
+              <div className="bg-white rounded-xl border overflow-hidden">
+                <div className="table-responsive">
+                  <table>
+                    <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Member</th>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Type</th>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Amount</th>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Reason</th>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Date</th>
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Status</th>
+                      {isAdmin && <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Actions</th>}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y">
+                    {fines.filter((f) =>
+                      search === '' ||
+                      f.member.fullName.toLowerCase().includes(search.toLowerCase()) ||
+                      f.member.memberId.toLowerCase().includes(search.toLowerCase())
+                    ).length === 0 ? (
+                      <tr><td colSpan={7} className="px-6 py-10 text-center text-sm text-slate-400">No fines found.</td></tr>
+                    ) : fines.filter((f) =>
+                      search === '' ||
+                      f.member.fullName.toLowerCase().includes(search.toLowerCase()) ||
+                      f.member.memberId.toLowerCase().includes(search.toLowerCase())
+                    ).map((f) => (
                     <tr key={f.id} className="hover:bg-gray-50">
                       <td className="px-6 py-3 text-sm font-medium">
                         {f.member.fullName}
@@ -358,9 +381,11 @@ export default function FinesPage() {
                       )}
                     </tr>
                   ))}
-                </tbody>
-              </table>
-            </div>
+                  </tbody>
+                </table>
+                </div>
+              </div>
+            </>
           )}
         </>
       )}

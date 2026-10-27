@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../providers/auth_provider.dart';
 import '../providers/locale_provider.dart';
+import '../providers/theme_provider.dart';
 import '../services/api_service.dart';
 import '../config/api_config.dart';
 
@@ -243,6 +244,7 @@ class _ProfileScreenState extends State<ProfileScreen>
   Widget build(BuildContext context) {
     final locale = context.watch<LocaleProvider>();
     final isOm = locale.locale.languageCode == 'om';
+    final isDark = context.watch<ThemeProvider>().isDarkMode;
     final theme = Theme.of(context);
     final primary = theme.colorScheme.primary;
 
@@ -251,6 +253,7 @@ class _ProfileScreenState extends State<ProfileScreen>
     }
 
     return Scaffold(
+      backgroundColor: isDark ? const Color(0xFF0F1419) : Colors.white,
       body: NestedScrollView(
         headerSliverBuilder: (context, _) => [
           SliverAppBar(

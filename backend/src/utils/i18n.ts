@@ -17,6 +17,7 @@ export const messages = {
       headerMetric: 'Metric',
       headerValue: 'Value',
       // report titles
+      titleUnpaid: 'Unpaid Contributions Report',
       titleContributions: 'Contributions Report',
       titlePenalties: 'Penalties Report',
       titleAttendance: 'Attendance Report',
@@ -88,6 +89,7 @@ export const messages = {
       headerMetric: 'Qabxii',
       headerValue: 'Gatii',
       // report titles
+      titleUnpaid: 'Gabaasa Kaffaltii Hin Kaffalamne',
       titleContributions: 'Gabaasa Kaffaltii',
       titlePenalties: 'Gabaasa Adabbii',
       titleAttendance: 'Gabaasa Argama',

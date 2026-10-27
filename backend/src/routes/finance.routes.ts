@@ -172,18 +172,11 @@ router.get('/contributions/weekly', authenticate, authorize('ADMIN', 'AUDITOR'),
     take: 52,
   });
 
-  // Get all approved members
-  const members = await prisma.member.findMany({
-    where: { status: 'APPROVED' },
-    select: { id: true, fullName: true, memberId: true, outstandingBalance: true },
-    orderBy: { fullName: 'asc' },
-  });
-
-  // Get obligations for target week
+  // Get obligations for target week (includes ALL members with obligations, regardless of approval status)
   const obligations = await prisma.weeklyObligation.findMany({
     where: { weekNumber: targetWeek, year: targetYear },
     include: {
-      member: { select: { id: true, fullName: true, memberId: true } },
+      member: { select: { id: true, fullName: true, memberId: true, outstandingBalance: true } },
       payments: {
         select: { id: true, amount: true, paymentMethod: true, paymentDate: true, status: true, receiptNumber: true },
         orderBy: { paymentDate: 'desc' },
@@ -191,8 +184,24 @@ router.get('/contributions/weekly', authenticate, authorize('ADMIN', 'AUDITOR'),
     },
   });
 
+  // Get APPROVED members for members without obligations
+  const approvedMembers = await prisma.member.findMany({
+    where: { status: 'APPROVED' },
+    select: { id: true, fullName: true, memberId: true, outstandingBalance: true },
+    orderBy: { fullName: 'asc' },
+  });
+
   // Map member ID → obligation
   const obligationMap = new Map(obligations.map((o) => [o.memberId, o]));
+  
+  // Get all members: those with obligations PLUS approved members without obligations
+  const obligationMemberIds = new Set(obligations.map(o => o.memberId));
+  const approvedWithoutObligation = approvedMembers.filter(m => !obligationMemberIds.has(m.id));
+  
+  const members = [
+    ...obligations.map(o => o.member),
+    ...approvedWithoutObligation
+  ].sort((a, b) => a.fullName.localeCompare(b.fullName));
 
   // Get ALL verified payments for each member in this week range (to catch payments not linked to obligations)
   const weekStart = obligations.length > 0

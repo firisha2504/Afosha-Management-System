@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/locale_provider.dart';
+import '../providers/theme_provider.dart';
 import 'penalties_screen.dart';
 import 'receipts_screen.dart';
 import 'special_contributions_screen.dart';
@@ -15,9 +16,10 @@ class MoreScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isOm = context.watch<LocaleProvider>().locale.languageCode == 'om';
+    final isDark = context.watch<ThemeProvider>().isDarkMode;
     
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: isDark ? const Color(0xFF0F1419) : const Color(0xFFF8FAFC),
       body: CustomScrollView(
         slivers: [
           // ── Header ──
