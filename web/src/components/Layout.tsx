@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { NavLink, useNavigate } from 'react-router-dom';
+import { api } from '../lib/api';
 
 interface LayoutProps { children: ReactNode; }
 
@@ -51,7 +52,25 @@ export default function Layout({ children }: LayoutProps) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = React.useState(false);
+  const [logoUrl, setLogoUrl] = React.useState<string | null>(null);
   const navItems = user?.role === 'ADMIN' ? adminNav : auditorNav;
+
+  // Fetch logo on mount
+  React.useEffect(() => {
+    const fetchLogo = async () => {
+      try {
+        const { data } = await api.get('/settings/logo');
+        if (data?.logoPath) {
+          const API_URL = import.meta.env.VITE_API_URL || '/api';
+          const BASE = API_URL.replace('/api', '');
+          setLogoUrl(`${BASE}${data.logoPath}`);
+        }
+      } catch {
+        // Logo not found, use default
+      }
+    };
+    fetchLogo();
+  }, []);
 
   const toggleLanguage = () => {
     const next = i18n.language === 'om' ? 'en' : 'om';
@@ -92,10 +111,18 @@ export default function Layout({ children }: LayoutProps) {
         {/* Logo */}
         <div className="px-6 py-5 border-b border-white/8 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl flex items-center justify-center text-white font-bold text-sm"
-              style={{ background: 'linear-gradient(135deg, #16a34a, #d97706)' }}>
-              A
-            </div>
+            {logoUrl ? (
+              <img 
+                src={logoUrl} 
+                alt="App Logo"
+                className="w-9 h-9 rounded-xl object-contain"
+              />
+            ) : (
+              <div className="w-9 h-9 rounded-xl flex items-center justify-center text-white font-bold text-sm"
+                style={{ background: 'linear-gradient(135deg, #16a34a, #d97706)' }}>
+                A
+              </div>
+            )}
             <div>
               <h1 className="text-white font-semibold text-sm leading-tight">{t('app.name')}</h1>
               <p className="text-slate-300 text-xs">{t('app.subtitle')}</p>

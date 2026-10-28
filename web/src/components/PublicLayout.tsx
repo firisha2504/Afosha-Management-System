@@ -2,7 +2,8 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Globe, Mail, Phone, MapPin, Heart, Share2, MessageCircle, Users, ArrowLeft, Menu, X } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { api } from '../lib/api';
 
 interface PublicLayoutProps {
   children: React.ReactNode;
@@ -15,6 +16,24 @@ export default function PublicLayout({ children }: PublicLayoutProps) {
   const { user } = useAuth();
   const isOm = i18n.language === 'om';
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
+
+  // Fetch logo on mount
+  useEffect(() => {
+    const fetchLogo = async () => {
+      try {
+        const { data } = await api.get('/settings/logo');
+        if (data?.logoPath) {
+          const API_URL = import.meta.env.VITE_API_URL || '/api';
+          const BASE = API_URL.replace('/api', '');
+          setLogoUrl(`${BASE}${data.logoPath}`);
+        }
+      } catch {
+        // Logo not found, use default
+      }
+    };
+    fetchLogo();
+  }, []);
 
   const toggleLanguage = () => {
     const next = i18n.language === 'om' ? 'en' : 'om';
@@ -40,10 +59,18 @@ export default function PublicLayout({ children }: PublicLayoutProps) {
 
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2 sm:gap-3 group" onClick={() => setMobileMenuOpen(false)}>
-            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl flex items-center justify-center font-bold text-base sm:text-lg shadow-md"
-              style={{ background: 'linear-gradient(135deg, #d97706, #f59e0b)', color: '#1e1b4b' }}>
-              A
-            </div>
+            {logoUrl ? (
+              <img 
+                src={logoUrl} 
+                alt="Afosha Logo"
+                className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl object-contain shadow-md"
+              />
+            ) : (
+              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl flex items-center justify-center font-bold text-base sm:text-lg shadow-md"
+                style={{ background: 'linear-gradient(135deg, #d97706, #f59e0b)', color: '#1e1b4b' }}>
+                A
+              </div>
+            )}
             <div className="hidden xs:block">
               <p className="text-white font-bold text-sm sm:text-base leading-tight">Afosha</p>
               <p className="text-xs leading-tight" style={{ color: '#93c5fd' }}>
@@ -165,10 +192,18 @@ export default function PublicLayout({ children }: PublicLayoutProps) {
             {/* Col 1 — Brand */}
             <div className="md:col-span-1">
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-11 h-11 rounded-xl flex items-center justify-center font-bold text-xl shadow"
-                  style={{ background: 'linear-gradient(135deg, #d97706, #f59e0b)', color: '#1e1b4b' }}>
-                  A
-                </div>
+                {logoUrl ? (
+                  <img 
+                    src={logoUrl} 
+                    alt="Afosha Logo"
+                    className="w-11 h-11 rounded-xl object-contain shadow"
+                  />
+                ) : (
+                  <div className="w-11 h-11 rounded-xl flex items-center justify-center font-bold text-xl shadow"
+                    style={{ background: 'linear-gradient(135deg, #d97706, #f59e0b)', color: '#1e1b4b' }}>
+                    A
+                  </div>
+                )}
                 <div>
                   <p className="font-bold text-white text-lg">Afosha</p>
                   <p className="text-xs" style={{ color: '#93c5fd' }}>AMS</p>
