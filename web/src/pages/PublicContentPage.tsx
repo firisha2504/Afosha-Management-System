@@ -52,7 +52,7 @@ export default function PublicContentPage() {
 
   const loadLogo = async () => {
     try {
-      const { data } = await api.get('/settings/logo');
+      const { data } = await api.get('/settings/logo/info');
       if (data?.logoPath) {
         setCurrentLogo(`${import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000'}${data.logoPath}`);
       }

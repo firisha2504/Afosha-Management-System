@@ -960,7 +960,25 @@ router.post('/logo', authenticate, authorize('ADMIN'), upload.single('logo'), as
   sendSuccess(res, { logoPath }, 'general.success', lang);
 });
 
-// Get current logo (public endpoint)
+// Get current logo path (JSON response for frontend)
+router.get('/logo/info', async (_req, res: Response) => {
+  try {
+    const logoSetting = await prisma.systemSetting.findUnique({
+      where: { key: 'mobile_app_logo' },
+    });
+
+    if (!logoSetting || !logoSetting.value) {
+      sendSuccess(res, { logoPath: null }, 'general.success', 'om');
+      return;
+    }
+
+    sendSuccess(res, { logoPath: logoSetting.value }, 'general.success', 'om');
+  } catch (error) {
+    sendError(res, 'general.error', 'om', 500);
+  }
+});
+
+// Get current logo (public endpoint - serves file directly)
 router.get('/logo', async (_req, res: Response) => {
   try {
     const logoSetting = await prisma.systemSetting.findUnique({

@@ -22,7 +22,7 @@ export default function PublicLayout({ children }: PublicLayoutProps) {
   useEffect(() => {
     const fetchLogo = async () => {
       try {
-        const { data } = await api.get('/settings/logo');
+        const { data } = await api.get('/settings/logo/info');
         if (data?.logoPath) {
           const API_URL = import.meta.env.VITE_API_URL || '/api';
           const BASE = API_URL.replace('/api', '');
