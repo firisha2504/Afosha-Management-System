@@ -34,33 +34,33 @@ export default function PublicHomePage() {
         minHeight: '88vh',
         display: 'flex', alignItems: 'center',
       }}>
-        {/* Community members network pattern */}
-        <div className="absolute inset-0 opacity-8" style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 400'%3E%3Cdefs%3E%3ClinearGradient id='grad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%2322c55e;stop-opacity:0.3' /%3E%3Cstop offset='100%25' style='stop-color:%23d97706;stop-opacity:0.3' /%3E%3C/linearGradient%3E%3C/defs%3E%3C!-- Savings icons --%3E%3Cg fill='url(%23grad)'%3E%3Ccircle cx='100' cy='100' r='15'/%3E%3Ccircle cx='300' cy='150' r='12'/%3E%3Ccircle cx='200' cy='250' r='14'/%3E%3Ccircle cx='350' cy='300' r='13'/%3E%3Ccircle cx='50' cy='300' r='11'/%3E%3C/g%3E%3C!-- Connection lines --%3E%3Cg stroke='%2322c55e' stroke-width='1' stroke-opacity='0.2'%3E%3Cline x1='100' y1='100' x2='200' y2='250'/%3E%3Cline x1='100' y1='100' x2='300' y2='150'/%3E%3Cline x1='300' y1='150' x2='350' y2='300'/%3E%3Cline x1='200' y1='250' x2='50' y2='300'/%3E%3C/g%3E%3C/svg%3E")`,
+        {/* Community members network pattern - VISIBLE */}
+        <div className="absolute inset-0 opacity-25" style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 400'%3E%3Cdefs%3E%3ClinearGradient id='grad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%2322c55e;stop-opacity:0.8' /%3E%3Cstop offset='100%25' style='stop-color:%23d97706;stop-opacity:0.8' /%3E%3C/linearGradient%3E%3C/defs%3E%3C!-- Savings/members circles --%3E%3Cg fill='url(%23grad)'%3E%3Ccircle cx='100' cy='100' r='20'/%3E%3Ccircle cx='300' cy='150' r='18'/%3E%3Ccircle cx='200' cy='250' r='22'/%3E%3Ccircle cx='350' cy='300' r='19'/%3E%3Ccircle cx='50' cy='300' r='16'/%3E%3Ccircle cx='150' cy='50' r='17'/%3E%3C/g%3E%3C!-- Connection lines between members --%3E%3Cg stroke='%2322c55e' stroke-width='2' stroke-opacity='0.4'%3E%3Cline x1='100' y1='100' x2='200' y2='250'/%3E%3Cline x1='100' y1='100' x2='300' y2='150'/%3E%3Cline x1='300' y1='150' x2='350' y2='300'/%3E%3Cline x1='200' y1='250' x2='50' y2='300'/%3E%3Cline x1='150' y1='50' x2='100' y2='100'/%3E%3C/g%3E%3C/svg%3E")`,
           backgroundSize: '400px 400px',
           backgroundRepeat: 'repeat',
         }} />
         
-        {/* Subtle grid pattern */}
-        <div className="absolute inset-0 opacity-5" style={{
-          backgroundImage: 'linear-gradient(rgba(147,197,253,0.2) 1px,transparent 1px),linear-gradient(90deg,rgba(147,197,253,0.2) 1px,transparent 1px)',
+        {/* Grid pattern - more visible */}
+        <div className="absolute inset-0 opacity-15" style={{
+          backgroundImage: 'linear-gradient(rgba(100,200,100,0.3) 1px,transparent 1px),linear-gradient(90deg,rgba(100,200,100,0.3) 1px,transparent 1px)',
           backgroundSize: '60px 60px',
         }} />
         
-        {/* Floating decorative cards - Member profiles */}
-        <div className="absolute top-20 left-8 w-28 h-20 rounded-xl opacity-8 pointer-events-none shadow-xl border border-green-500/20"
-          style={{ background: 'linear-gradient(135deg, rgba(34,197,94,0.1), rgba(16,185,129,0.1))', transform: 'rotate(-15deg)' }} />
-        <div className="absolute top-40 right-16 w-32 h-24 rounded-xl opacity-8 pointer-events-none shadow-xl border border-orange-500/20"
-          style={{ background: 'linear-gradient(135deg, rgba(217,119,6,0.1), rgba(245,158,11,0.1))', transform: 'rotate(20deg)' }} />
-        <div className="absolute bottom-32 left-12 w-24 h-16 rounded-xl opacity-7 pointer-events-none shadow-lg border border-blue-500/20"
-          style={{ background: 'linear-gradient(135deg, rgba(59,130,246,0.1), rgba(29,78,216,0.1))', transform: 'rotate(-25deg)' }} />
-        <div className="absolute bottom-20 right-20 w-30 h-22 rounded-xl opacity-7 pointer-events-none shadow-lg border border-pink-500/20"
-          style={{ background: 'linear-gradient(135deg, rgba(236,72,153,0.1), rgba(219,39,119,0.1))', transform: 'rotate(15deg)' }} />
+        {/* Floating decorative cards - Member profiles - MORE VISIBLE */}
+        <div className="absolute top-20 left-8 w-28 h-20 rounded-xl opacity-30 pointer-events-none shadow-xl border-2 border-green-400"
+          style={{ background: 'linear-gradient(135deg, rgba(34,197,94,0.3), rgba(16,185,129,0.3))', transform: 'rotate(-15deg)' }} />
+        <div className="absolute top-40 right-16 w-32 h-24 rounded-xl opacity-30 pointer-events-none shadow-xl border-2 border-orange-400"
+          style={{ background: 'linear-gradient(135deg, rgba(217,119,6,0.3), rgba(245,158,11,0.3))', transform: 'rotate(20deg)' }} />
+        <div className="absolute bottom-32 left-12 w-24 h-16 rounded-xl opacity-25 pointer-events-none shadow-lg border-2 border-blue-400"
+          style={{ background: 'linear-gradient(135deg, rgba(59,130,246,0.3), rgba(29,78,216,0.3))', transform: 'rotate(-25deg)' }} />
+        <div className="absolute bottom-20 right-20 w-30 h-22 rounded-xl opacity-25 pointer-events-none shadow-lg border-2 border-pink-400"
+          style={{ background: 'linear-gradient(135deg, rgba(236,72,153,0.3), rgba(219,39,119,0.3))', transform: 'rotate(15deg)' }} />
         
-        {/* Glow orbs - Community themed colors */}
-        <div className="absolute top-1/4 right-1/4 w-80 h-80 rounded-full opacity-8 blur-3xl pointer-events-none"
+        {/* Glow orbs - MORE VISIBLE */}
+        <div className="absolute top-1/4 right-1/4 w-80 h-80 rounded-full opacity-20 blur-3xl pointer-events-none"
           style={{ background: 'radial-gradient(circle, #22c55e, transparent)' }} />
-        <div className="absolute bottom-1/4 left-1/4 w-64 h-64 rounded-full opacity-8 blur-3xl pointer-events-none"
+        <div className="absolute bottom-1/4 left-1/4 w-64 h-64 rounded-full opacity-20 blur-3xl pointer-events-none"
           style={{ background: 'radial-gradient(circle, #d97706, transparent)' }} />
 
         <div className="relative max-w-6xl mx-auto px-4 py-20 text-center z-10">
