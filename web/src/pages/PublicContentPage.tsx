@@ -53,8 +53,8 @@ export default function PublicContentPage() {
   const loadLogo = async () => {
     try {
       const { data } = await api.get('/settings/logo/info');
-      if (data?.logoPath) {
-        setCurrentLogo(`${import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000'}${data.logoPath}`);
+      if (data?.data?.logoPath) {
+        setCurrentLogo(`${import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000'}${data.data.logoPath}`);
       }
     } catch {
       // Logo not found or error, that's okay

@@ -60,13 +60,16 @@ export default function Layout({ children }: LayoutProps) {
     const fetchLogo = async () => {
       try {
         const { data } = await api.get('/settings/logo/info');
-        if (data?.logoPath) {
+        console.log('Logo response:', data);
+        if (data?.data?.logoPath) {
           const API_URL = import.meta.env.VITE_API_URL || '/api';
           const BASE = API_URL.replace('/api', '');
-          setLogoUrl(`${BASE}${data.logoPath}`);
+          const url = `${BASE}${data.data.logoPath}`;
+          console.log('Setting logo URL:', url);
+          setLogoUrl(url);
         }
-      } catch {
-        // Logo not found, use default
+      } catch (error) {
+        console.error('Failed to fetch logo:', error);
       }
     };
     fetchLogo();
@@ -115,10 +118,10 @@ export default function Layout({ children }: LayoutProps) {
               <img 
                 src={logoUrl} 
                 alt="App Logo"
-                className="w-9 h-9 rounded-xl object-contain"
+                className="w-12 h-12 rounded-xl object-contain"
               />
             ) : (
-              <div className="w-9 h-9 rounded-xl flex items-center justify-center text-white font-bold text-sm"
+              <div className="w-12 h-12 rounded-xl flex items-center justify-center text-white font-bold text-sm"
                 style={{ background: 'linear-gradient(135deg, #16a34a, #d97706)' }}>
                 A
               </div>

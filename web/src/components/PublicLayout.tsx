@@ -23,13 +23,16 @@ export default function PublicLayout({ children }: PublicLayoutProps) {
     const fetchLogo = async () => {
       try {
         const { data } = await api.get('/settings/logo/info');
-        if (data?.logoPath) {
+        console.log('Logo response:', data);
+        if (data?.data?.logoPath) {
           const API_URL = import.meta.env.VITE_API_URL || '/api';
           const BASE = API_URL.replace('/api', '');
-          setLogoUrl(`${BASE}${data.logoPath}`);
+          const url = `${BASE}${data.data.logoPath}`;
+          console.log('Setting logo URL:', url);
+          setLogoUrl(url);
         }
-      } catch {
-        // Logo not found, use default
+      } catch (error) {
+        console.error('Failed to fetch logo:', error);
       }
     };
     fetchLogo();
@@ -63,10 +66,10 @@ export default function PublicLayout({ children }: PublicLayoutProps) {
               <img 
                 src={logoUrl} 
                 alt="Afosha Logo"
-                className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl object-contain shadow-md"
+                className="w-12 h-12 sm:w-14 sm:h-14 rounded-lg sm:rounded-xl object-contain shadow-md"
               />
             ) : (
-              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl flex items-center justify-center font-bold text-base sm:text-lg shadow-md"
+              <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-lg sm:rounded-xl flex items-center justify-center font-bold text-base sm:text-lg shadow-md"
                 style={{ background: 'linear-gradient(135deg, #d97706, #f59e0b)', color: '#1e1b4b' }}>
                 A
               </div>
@@ -196,10 +199,10 @@ export default function PublicLayout({ children }: PublicLayoutProps) {
                   <img 
                     src={logoUrl} 
                     alt="Afosha Logo"
-                    className="w-11 h-11 rounded-xl object-contain shadow"
+                    className="w-16 h-16 rounded-xl object-contain shadow"
                   />
                 ) : (
-                  <div className="w-11 h-11 rounded-xl flex items-center justify-center font-bold text-xl shadow"
+                  <div className="w-16 h-16 rounded-xl flex items-center justify-center font-bold text-2xl shadow"
                     style={{ background: 'linear-gradient(135deg, #d97706, #f59e0b)', color: '#1e1b4b' }}>
                     A
                   </div>
