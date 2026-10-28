@@ -9,6 +9,7 @@ import dashboardRoutes from './dashboard.routes.js';
 import settingsRoutes from './settings.routes.js';
 import specialContributionsRoutes from './special-contributions.routes.js';
 import publicRoutes from './public.routes.js';
+import teamRoutes from './team.routes.js';
 import { authenticate } from '../middleware/auth.js';
 
 const router = Router();
@@ -23,6 +24,7 @@ router.use('/dashboard', dashboardRoutes);
 router.use('/settings', settingsRoutes);
 router.use('/special-contributions', specialContributionsRoutes);
 router.use('/public', publicRoutes);
+router.use('/team', teamRoutes);
 
 router.get('/health', (_req, res) => {
   res.json({ status: 'ok', service: 'AMS API', timestamp: new Date().toISOString() });

@@ -22,6 +22,7 @@ import PublicHomePage from './pages/public/PublicHomePage';
 import AboutPage from './pages/public/AboutPage';
 import ProfilePage from './pages/ProfilePage';
 import PublicContentPage from './pages/PublicContentPage';
+import TeamManagementPage from './pages/TeamManagementPage';
 import './i18n';
 
 function App() {
@@ -110,6 +111,7 @@ function App() {
             <Route path="/public-content" element={<PublicContentPage />} />
             <Route path="/backup" element={<BackupPage />} />
             <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/team-management" element={<TeamManagementPage />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

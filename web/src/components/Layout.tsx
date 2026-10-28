@@ -26,6 +26,7 @@ const adminNav = [
   { to: '/notifications', icon: Bell, labelKey: 'nav.notifications' },
   { to: '/history', icon: History, labelKey: 'nav.history' },
   { to: '/audit-logs', icon: Shield, labelKey: 'nav.auditLogs' },
+  { to: '/team-management', icon: Users, labelKey: 'Team Management' },
   { to: '/settings', icon: Settings, labelKey: 'nav.settings' },
   { to: '/public-content', icon: Globe, labelKey: 'Public Content' },
   { to: '/backup', icon: Database, labelKey: 'nav.backup' },

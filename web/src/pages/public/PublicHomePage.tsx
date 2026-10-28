@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Users, Calendar, ArrowRight, Shield, Heart, BookOpen } from 'lucide-react';
+import { Users, Calendar, ArrowRight, Shield, Heart, BookOpen, Crown } from 'lucide-react';
 import PublicLayout from '../../components/PublicLayout';
 import { api } from '../../lib/api';
 import { LoadingSpinner } from '../../components/ui';
@@ -12,17 +12,31 @@ interface HomeData {
   upcomingMeetings: Array<{ id: string; title: string; location?: string; meetingDate: string; meetingTime?: string }>;
 }
 
+interface TeamMember {
+  id: string;
+  name: string;
+  nameOm?: string;
+  role: string;
+  roleOm?: string;
+  type: 'member' | 'leader';
+}
+
 export default function PublicHomePage() {
   const { t, i18n } = useTranslation();
   const [data, setData] = useState<HomeData | null>(null);
+  const [team, setTeam] = useState<TeamMember[]>([]);
   const [loading, setLoading] = useState(true);
   const isOm = i18n.language === 'om';
 
   useEffect(() => {
-    api.get('/public/home')
-      .then((res: { data: { data: HomeData } }) => setData(res.data.data))
-      .catch(() => setData(null))
-      .finally(() => setLoading(false));
+    Promise.all([
+      api.get('/public/home')
+        .then((res: { data: { data: HomeData } }) => setData(res.data.data))
+        .catch(() => setData(null)),
+      api.get('/team')
+        .then((res: { data: { data: TeamMember[] } }) => setTeam(res.data.data || []))
+        .catch(() => setTeam([])),
+    ]).finally(() => setLoading(false));
   }, []);
 
   return (
@@ -253,6 +267,73 @@ export default function PublicHomePage() {
           </div>
         </div>
       </section>
+
+      {/* ── Team & Leadership Section ── */}
+      {team.length > 0 && (
+        <section className="py-12 sm:py-16 md:py-20">
+          <div className="max-w-6xl mx-auto px-4">
+            {/* Members Section */}
+            {team.filter(m => m.type === 'member').length > 0 && (
+              <div className="mb-16">
+                <div className="text-center mb-8 sm:mb-12">
+                  <h2 className="text-2xl sm:text-3xl font-bold mb-3 flex items-center justify-center gap-2" style={{ color: '#e2e8f0' }}>
+                    <Users size={28} style={{ color: '#22c55e' }} />
+                    {isOm ? 'Miseensota Koree' : 'Team Members'}
+                  </h2>
+                  <div className="w-16 h-1 rounded-full mx-auto" style={{ background: 'linear-gradient(90deg, #22c55e, #16a34a)' }} />
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {team.filter(m => m.type === 'member').map((member) => (
+                    <div key={member.id} className="rounded-xl p-6 text-center transition-all hover:shadow-lg"
+                      style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                      <div className="w-20 h-20 rounded-full mx-auto mb-4 flex items-center justify-center text-3xl"
+                        style={{ background: 'linear-gradient(135deg, #22c55e, #10b981)' }}>
+                        👤
+                      </div>
+                      <h3 className="font-bold text-lg mb-1" style={{ color: '#e2e8f0' }}>
+                        {isOm && member.nameOm ? member.nameOm : member.name}
+                      </h3>
+                      <p className="text-sm" style={{ color: '#f59e0b' }}>
+                        {isOm && member.roleOm ? member.roleOm : member.role}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Leaders Section */}
+            {team.filter(m => m.type === 'leader').length > 0 && (
+              <div>
+                <div className="text-center mb-8 sm:mb-12">
+                  <h2 className="text-2xl sm:text-3xl font-bold mb-3 flex items-center justify-center gap-2" style={{ color: '#e2e8f0' }}>
+                    <Crown size={28} style={{ color: '#d97706' }} />
+                    {isOm ? 'Dareessota' : 'Leadership'}
+                  </h2>
+                  <div className="w-16 h-1 rounded-full mx-auto" style={{ background: 'linear-gradient(90deg, #d97706, #f59e0b)' }} />
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {team.filter(m => m.type === 'leader').map((leader) => (
+                    <div key={leader.id} className="rounded-xl p-6 text-center transition-all hover:shadow-lg"
+                      style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                      <div className="w-20 h-20 rounded-full mx-auto mb-4 flex items-center justify-center text-3xl"
+                        style={{ background: 'linear-gradient(135deg, #d97706, #f59e0b)' }}>
+                        👔
+                      </div>
+                      <h3 className="font-bold text-lg mb-1" style={{ color: '#e2e8f0' }}>
+                        {isOm && leader.nameOm ? leader.nameOm : leader.name}
+                      </h3>
+                      <p className="text-sm" style={{ color: '#22c55e' }}>
+                        {isOm && leader.roleOm ? leader.roleOm : leader.role}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </section>
+      )}
 
       {/* ── Upcoming Meetings ── */}
       <section style={{ background: 'rgba(9, 21, 64, 0.6)', borderTop: '1px solid rgba(255,255,255,0.06)', borderBottom: '1px solid rgba(255,255,255,0.06)' }} className="py-12 sm:py-16">
