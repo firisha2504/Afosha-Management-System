@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Save, FileText, Image } from 'lucide-react';
+import { Save, FileText, Image, CheckCircle, XCircle } from 'lucide-react';
 import { api } from '../lib/api';
-import { PageHeader, LoadingSpinner, inputClass, btnPrimary, btnSecondary } from '../components/ui';
+import { PageHeader, LoadingSpinner, inputClass, btnPrimary, btnSecondary, Modal } from '../components/ui';
 
 interface ContentTab {
   slug: string;
@@ -27,11 +27,17 @@ export default function PublicContentPage() {
   const [saving, setSaving] = useState(false);
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string>('');
+  const [currentLogo, setCurrentLogo] = useState<string | null>(null);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalType, setModalType] = useState<'success' | 'error'>('success');
+  const [modalMessage, setModalMessage] = useState('');
 
   const isOm = i18n.language === 'om';
 
   useEffect(() => {
     loadContent();
+    loadLogo();
   }, []);
 
   const loadContent = async () => {
@@ -41,6 +47,17 @@ export default function PublicContentPage() {
       setTabs(data.data || []);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadLogo = async () => {
+    try {
+      const { data } = await api.get('/settings/logo');
+      if (data?.logoPath) {
+        setCurrentLogo(`${import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000'}${data.logoPath}`);
+      }
+    } catch {
+      // Logo not found or error, that's okay
     }
   };
 
@@ -86,19 +103,32 @@ export default function PublicContentPage() {
 
   const uploadLogo = async () => {
     if (!logoFile) return;
-    const formData = new FormData();
-    formData.append('logo', logoFile);
     
+    setUploadingLogo(true);
     try {
-      // Note: This endpoint needs to be created in backend
-      await api.post('/settings/logo', formData, {
+      const formData = new FormData();
+      formData.append('logo', logoFile);
+      
+      const { data } = await api.post('/settings/logo', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
-      alert('Logo uploaded successfully!');
+      
+      // Update current logo display
+      setCurrentLogo(`${import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000'}${data.data.logoPath}`);
       setLogoFile(null);
       setLogoPreview('');
+      
+      // Show success modal
+      setModalType('success');
+      setModalMessage('Logo uploaded successfully! The new logo will appear on the public landing page immediately.');
+      setModalOpen(true);
     } catch {
-      alert('Failed to upload logo. Please try again.');
+      // Show error modal
+      setModalType('error');
+      setModalMessage('Failed to upload logo. Please try again.');
+      setModalOpen(true);
+    } finally {
+      setUploadingLogo(false);
     }
   };
 
@@ -119,39 +149,56 @@ export default function PublicContentPage() {
             <h2 className="text-lg font-semibold text-gray-800">Organization Logo</h2>
           </div>
           
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Upload Logo (SVG, PNG, or JPG)
-              </label>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleLogoChange}
-                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100"
-              />
+          <div className="flex flex-col md:flex-row gap-6 items-start">
+            {/* Current Logo */}
+            <div className="flex-shrink-0">
+              <p className="text-sm font-medium text-gray-700 mb-2">Current Logo</p>
+              <div className="w-32 h-32 border-2 border-gray-200 rounded-lg flex items-center justify-center bg-gray-50">
+                {currentLogo ? (
+                  <img src={currentLogo} alt="Organization Logo" className="w-full h-full object-contain rounded-lg" />
+                ) : (
+                  <Image className="w-12 h-12 text-gray-400" />
+                )}
+              </div>
             </div>
 
-            {logoPreview && (
-              <div className="flex items-center gap-4">
-                <div className="w-24 h-24 rounded-xl border-2 border-gray-200 p-2 bg-gray-50">
-                  <img src={logoPreview} alt="Logo preview" className="w-full h-full object-contain" />
+            {/* Upload New Logo */}
+            <div className="flex-1 w-full">
+              <p className="text-sm font-medium text-gray-700 mb-2">Upload New Logo</p>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Logo File (SVG, PNG, or JPG)
+                  </label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleLogoChange}
+                    className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100"
+                  />
                 </div>
-                <button
-                  onClick={uploadLogo}
-                  className={btnPrimary}
-                  disabled={!logoFile}
-                >
-                  <Save size={16} className="inline mr-2" />
-                  Upload Logo
-                </button>
-              </div>
-            )}
 
-            <p className="text-xs text-gray-500">
-              Note: The logo will appear on the public landing page and in the header.
-              Recommended size: 512x512px (square format works best)
-            </p>
+                {logoPreview && (
+                  <div className="flex items-center gap-4">
+                    <div className="w-24 h-24 rounded-lg border-2 border-blue-200 flex items-center justify-center bg-blue-50 flex-shrink-0">
+                      <img src={logoPreview} alt="Logo preview" className="w-full h-full object-contain rounded-lg" />
+                    </div>
+                    <button
+                      onClick={uploadLogo}
+                      disabled={uploadingLogo}
+                      className={btnPrimary}
+                    >
+                      <Save size={16} className="inline mr-2" />
+                      {uploadingLogo ? 'Uploading...' : 'Upload Logo'}
+                    </button>
+                  </div>
+                )}
+
+                <p className="text-xs text-gray-500">
+                  Recommended size: 512x512px (square format works best). The logo will appear on the public landing page and in the header.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -287,6 +334,24 @@ export default function PublicContentPage() {
           </ul>
         </div>
       </div>
+
+      {/* Success/Error Modal */}
+      <Modal open={modalOpen} onClose={() => setModalOpen(false)} title={modalType === 'success' ? 'Success' : 'Error'}>
+        <div className="text-center py-4">
+          {modalType === 'success' ? (
+            <CheckCircle className="w-16 h-16 text-green-600 mx-auto mb-4" />
+          ) : (
+            <XCircle className="w-16 h-16 text-red-600 mx-auto mb-4" />
+          )}
+          <p className="text-slate-700 text-sm leading-relaxed">{modalMessage}</p>
+          <button
+            onClick={() => setModalOpen(false)}
+            className={`mt-6 ${btnPrimary}`}
+          >
+            OK
+          </button>
+        </div>
+      </Modal>
     </div>
   );
 }
