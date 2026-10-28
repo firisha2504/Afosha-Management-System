@@ -176,6 +176,84 @@ export default function PublicHomePage() {
         </div>
       </section>
 
+      {/* ── Our Community Section with Photo ── */}
+      <section style={{ background: 'rgba(9, 21, 64, 0.4)', borderTop: '1px solid rgba(255,255,255,0.06)', borderBottom: '1px solid rgba(255,255,255,0.06)' }} className="py-12 sm:py-16 md:py-20">
+        <div className="max-w-6xl mx-auto px-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-center">
+            
+            {/* Left - Image */}
+            <div className="relative rounded-2xl overflow-hidden shadow-2xl h-72 md:h-96">
+              <div className="absolute inset-0 bg-gradient-to-br from-green-400/20 to-orange-400/20" style={{
+                backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 400'%3E%3Cdefs%3E%3ClinearGradient id='communityGrad'%3E%3Cstop offset='0%25' stop-color='%2322c55e' stop-opacity='0.1'/%3E%3Cstop offset='100%25' stop-color='%23d97706' stop-opacity='0.1'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='400' height='400' fill='url(%23communityGrad)'/%3E%3C!-- Stylized people in circle --%3E%3Ccircle cx='200' cy='100' r='25' fill='%2322c55e' opacity='0.3'/%3E%3Ccircle cx='300' cy='180' r='25' fill='%23d97706' opacity='0.3'/%3E%3Ccircle cx='250' cy='280' r='25' fill='%233b82f6' opacity='0.3'/%3E%3Ccircle cx='150' cy='280' r='25' fill='%23ec4899' opacity='0.3'/%3E%3Ccircle cx='100' cy='180' r='25' fill='%2306b6d4' opacity='0.3'/%3E%3C!-- Connection lines --%3E%3Cg stroke='%2322c55e' stroke-width='2' stroke-opacity='0.2'%3E%3Cline x1='200' y1='100' x2='300' y2='180'/%3E%3Cline x1='300' y1='180' x2='250' y2='280'/%3E%3Cline x1='250' y1='280' x2='150' y2='280'/%3E%3Cline x1='150' y1='280' x2='100' y2='180'/%3E%3Cline x1='100' y1='180' x2='200' y2='100'/%3E%3C/g%3E%3C!-- Center text --%3E%3Ctext x='200' y='200' text-anchor='middle' font-size='40' font-weight='bold' fill='%2322c55e' opacity='0.15'%3E👥%3C/text%3E%3C/svg%3E")`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+              }} />
+              <div className="absolute inset-0 bg-gradient-to-t from-blue-900/40 via-transparent to-transparent" />
+              <div className="absolute inset-0 flex items-center justify-center text-center p-6">
+                <div>
+                  <div className="text-6xl md:text-7xl mb-4">👥</div>
+                  <p className="text-xl sm:text-2xl font-bold text-white mb-2">{isOm ? 'Hawaasa Nukeenyaa' : 'Our Community'}</p>
+                  <p className="text-sm sm:text-base" style={{ color: '#bfdbfe' }}>
+                    {isOm 
+                      ? 'Miseensota 3+ tokkummaa fi waan addaa hordofuu.' 
+                      : '3+ members working together for our community'}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Right - Description */}
+            <div>
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-6" style={{ color: '#e2e8f0' }}>
+                {isOm ? 'Hawaasa Ciminaa Keenyaa' : 'Strengthening Our Community'}
+              </h2>
+              
+              <p className="text-base sm:text-lg mb-5 leading-relaxed" style={{ color: '#bfdbfe' }}>
+                {isOm
+                  ? 'Gamtaa Dargaggoota Melka Jabdu hawaasa miseensa guutaa fi sirna bulchiinsaa gaaruu kanaaf dhaabamee jira. Tokkummaa, midhaa waliin, fi gumiin hedduu, nu milka\'aa godhuuf kan gargaara.'
+                  : 'Gamtaa Dargaggoota Melka Jabdu (Community of Melka Jabdu Youth) is dedicated to strengthening our community through cooperation, trust, and collective responsibility.'}
+              </p>
+
+              <div className="space-y-4">
+                {[
+                  {
+                    icon: '✓',
+                    title: isOm ? 'Tokkummaa' : 'Unity',
+                    desc: isOm ? 'Miseensota guutaa waliin dhaabbaa hojjechaa.' : 'All members work together towards common goals',
+                  },
+                  {
+                    icon: '✓',
+                    title: isOm ? 'Midhaa Addaa' : 'Mutual Support',
+                    desc: isOm ? 'Nama jirtu hundaa midhaa kennuu fi walitti qabaachuu.' : 'We support each other through thick and thin',
+                  },
+                  {
+                    icon: '✓',
+                    title: isOm ? 'Adeemsa Addaa' : 'Transparent Process',
+                    desc: isOm ? 'Kaffaltii fi qusannoo sirriitti hordofama.' : 'Clear tracking of contributions and savings for all',
+                  },
+                ].map(({ icon, title, desc }) => (
+                  <div key={title} className="flex gap-4">
+                    <div className="flex-shrink-0 text-xl font-bold" style={{ color: '#22c55e' }}>{icon}</div>
+                    <div>
+                      <h3 className="font-semibold mb-1" style={{ color: '#e2e8f0' }}>{title}</h3>
+                      <p className="text-sm" style={{ color: '#bfdbfe' }}>{desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <Link to="/about" 
+                className="inline-flex items-center gap-2 mt-8 px-6 py-3 rounded-xl font-semibold text-sm sm:text-base shadow-lg hover:shadow-xl transition-all hover:-translate-y-0.5"
+                style={{ background: 'linear-gradient(135deg, #22c55e, #10b981)', color: 'white' }}>
+                {isOm ? 'Waa\'ee Keenya Hedduu Baruu' : 'Learn More About Us'}
+                <ArrowRight size={18} />
+              </Link>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
       {/* ── Upcoming Meetings ── */}
       <section style={{ background: 'rgba(9, 21, 64, 0.6)', borderTop: '1px solid rgba(255,255,255,0.06)', borderBottom: '1px solid rgba(255,255,255,0.06)' }} className="py-12 sm:py-16">
         <div className="max-w-6xl mx-auto px-4">
