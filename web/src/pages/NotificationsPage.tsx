@@ -54,9 +54,29 @@ export default function NotificationsPage() {
   };
 
   const deleteNotification = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this notification?')) return;
-    await api.delete(`/settings/notifications/${id}`);
-    load();
+    const confirmed = await showModal({
+      type: 'warning',
+      title: 'Delete Notification?',
+      message: 'Are you sure you want to delete this notification? This action cannot be undone.',
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      isDangerous: true,
+    });
+    
+    if (!confirmed) return;
+
+    try {
+      await api.delete(`/settings/notifications/${id}`);
+      load();
+    } catch (error) {
+      await showModal({
+        type: 'error',
+        title: 'Error',
+        message: 'Failed to delete notification',
+        confirmText: 'OK',
+        cancelText: '',
+      });
+    }
   };
 
   return (

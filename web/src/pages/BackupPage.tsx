@@ -2,12 +2,14 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Database, RotateCcw, AlertCircle, Trash2 } from 'lucide-react';
 import { api } from '../lib/api';
+import { useModal } from '../contexts/ModalContext';
 import { PageHeader, LoadingSpinner, btnPrimary, btnSecondary } from '../components/ui';
 
 interface Backup { id: string; filename: string; fileSize: number; type: string; createdAt: string; }
 
 export default function BackupPage() {
   const { t } = useTranslation();
+  const { showModal } = useModal();
   const [backups, setBackups] = useState<Backup[]>([]);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
@@ -32,25 +34,84 @@ export default function BackupPage() {
   };
 
   const restore = async (id: string) => {
-    if (!confirm('Restore settings, member balances, and payment records from this backup?')) return;
-    const { data } = await api.post(`/settings/backups/${id}/restore`);
-    const result = data.data;
-    alert(`Restored: ${result.settingsRestored} settings, ${result.membersRestored} members, ${result.paymentsRestored} payments`);
+    const confirmed = await showModal({
+      type: 'warning',
+      title: 'Restore Backup?',
+      message: 'This will restore settings, member balances, and payment records from this backup. Current data will be overwritten.',
+      confirmText: 'Restore',
+      cancelText: 'Cancel',
+    });
+    
+    if (!confirmed) return;
+
+    try {
+      const { data } = await api.post(`/settings/backups/${id}/restore`);
+      const result = data.data;
+      
+      await showModal({
+        type: 'success',
+        title: 'Backup Restored',
+        message: `Restored: ${result.settingsRestored} settings, ${result.membersRestored} members, ${result.paymentsRestored} payments`,
+        confirmText: 'OK',
+        cancelText: '',
+      });
+      load();
+    } catch (error: any) {
+      await showModal({
+        type: 'error',
+        title: 'Restore Failed',
+        message: error.response?.data?.message || 'Failed to restore backup',
+        confirmText: 'OK',
+        cancelText: '',
+      });
+    }
   };
 
   const resetDatabase = async () => {
-    // Three-step confirmation
-    if (!confirm('⚠️  WARNING: This will DELETE ALL member data!\n\nMembers, payments, penalties, and attendance will be permanently deleted.\n\nAn automatic backup will be created first.\n\nAre you sure?')) return;
+    // First confirmation
+    const firstConfirm = await showModal({
+      type: 'warning',
+      title: 'Delete All Member Data?',
+      message: 'This will permanently delete all members, payments, penalties, and attendance records. An automatic backup will be created first. This action cannot be undone!',
+      confirmText: 'I Understand, Continue',
+      cancelText: 'Cancel',
+      isDangerous: true,
+    });
     
-    if (!confirm('🚨 FINAL CONFIRMATION REQUIRED\n\nThis action CANNOT be undone!\n\nClick OK to permanently reset the database.')) return;
+    if (!firstConfirm) return;
+
+    // Second confirmation (final warning)
+    const finalConfirm = await showModal({
+      type: 'error',
+      title: 'Final Confirmation Required',
+      message: 'This action CANNOT be undone! Are you absolutely sure you want to permanently reset the database?',
+      confirmText: 'Yes, Reset Database',
+      cancelText: 'Cancel',
+      isDangerous: true,
+    });
+
+    if (!finalConfirm) return;
 
     setResetting(true);
     try {
       const { data } = await api.post('/settings/reset-database', { confirm: true });
-      alert(`✅ Database reset successful!\n\nBackup created: ${data.data.backupFile}\n\nAll member data has been cleared.`);
+      
+      await showModal({
+        type: 'success',
+        title: 'Database Reset Complete',
+        message: `Database reset successful! Backup created: ${data.data.backupFile}\n\nAll member data has been cleared.`,
+        confirmText: 'OK',
+        cancelText: '',
+      });
       load();
     } catch (error: any) {
-      alert(`❌ Error: ${error.response?.data?.message || 'Failed to reset database'}`);
+      await showModal({
+        type: 'error',
+        title: 'Reset Failed',
+        message: error.response?.data?.message || 'Failed to reset database',
+        confirmText: 'OK',
+        cancelText: '',
+      });
     } finally {
       setResetting(false);
     }

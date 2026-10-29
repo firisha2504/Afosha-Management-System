@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
+import { ModalProvider } from './contexts/ModalContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import LoginPage from './pages/LoginPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
@@ -24,90 +25,92 @@ import './i18n';
 function App() {
   return (
     <AuthProvider>
-      <BrowserRouter>
-        <style>{`
-          /* Prevent horizontal overflow on all devices */
-          html, body, #root {
-            overflow-x: hidden;
-            width: 100%;
-            max-width: 100vw;
-          }
-          
-          /* Global mobile input fixes */
-          @media (max-width: 768px) {
-            select,
-            input[type="date"],
-            input[type="time"],
-            input[type="datetime-local"],
-            input[type="month"],
-            input[type="week"] {
-              font-size: 16px !important;
-              position: relative;
-              z-index: 40;
-              max-height: 100vh;
+      <ModalProvider>
+        <BrowserRouter>
+          <style>{`
+            /* Prevent horizontal overflow on all devices */
+            html, body, #root {
+              overflow-x: hidden;
+              width: 100%;
+              max-width: 100vw;
             }
             
-            /* Ensure dropdown doesn't overflow viewport */
-            select {
-              max-width: calc(100vw - 2rem);
-              overflow-y: auto;
+            /* Global mobile input fixes */
+            @media (max-width: 768px) {
+              select,
+              input[type="date"],
+              input[type="time"],
+              input[type="datetime-local"],
+              input[type="month"],
+              input[type="week"] {
+                font-size: 16px !important;
+                position: relative;
+                z-index: 40;
+                max-height: 100vh;
+              }
+              
+              /* Ensure dropdown doesn't overflow viewport */
+              select {
+                max-width: calc(100vw - 2rem);
+                overflow-y: auto;
+              }
+              
+              /* Force date picker within bounds */
+              input[type="date"],
+              input[type="time"],
+              input[type="datetime-local"],
+              input[type="month"],
+              input[type="week"] {
+                position: relative;
+                max-width: calc(100vw - 1rem);
+                margin-left: auto;
+                margin-right: auto;
+              }
             }
             
-            /* Force date picker within bounds */
-            input[type="date"],
-            input[type="time"],
-            input[type="datetime-local"],
-            input[type="month"],
-            input[type="week"] {
-              position: relative;
-              max-width: calc(100vw - 1rem);
-              margin-left: auto;
-              margin-right: auto;
+            /* Hide picker indicator on mobile */
+            @media (max-width: 768px) {
+              input[type="date"]::-webkit-calendar-picker-indicator,
+              input[type="time"]::-webkit-calendar-picker-indicator,
+              input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+                cursor: pointer;
+                opacity: 0.7;
+                position: relative;
+                z-index: 50;
+              }
             }
-          }
-          
-          /* Hide picker indicator on mobile */
-          @media (max-width: 768px) {
-            input[type="date"]::-webkit-calendar-picker-indicator,
-            input[type="time"]::-webkit-calendar-picker-indicator,
-            input[type="datetime-local"]::-webkit-calendar-picker-indicator {
-              cursor: pointer;
-              opacity: 0.7;
+            
+            /* Container fix for pickers to stay in bounds */
+            .date-input-wrapper {
               position: relative;
-              z-index: 50;
+              overflow: visible;
             }
-          }
-          
-          /* Container fix for pickers to stay in bounds */
-          .date-input-wrapper {
-            position: relative;
-            overflow: visible;
-          }
-        `}</style>
-        <Routes>
-          <Route path="/" element={<PublicHomePage />} />
-          <Route path="/about" element={<AboutPage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-          <Route path="/change-password" element={<ChangePasswordPage />} />
-          <Route element={<ProtectedRoute />}>
-            <Route path="/dashboard" element={<DashboardPage />} />
-            <Route path="/members" element={<MembersPage />} />
-            <Route path="/financial" element={<FinancialManagementPage />} />
-            <Route path="/records" element={<MemberRecordsPage />} />
-            <Route path="/logs" element={<ActivityLogsPage />} />
-            <Route path="/attendance" element={<AttendancePage />} />
-            <Route path="/reports" element={<ReportsPage />} />
-            <Route path="/notifications" element={<NotificationsPage />} />
-            <Route path="/settings" element={<SettingsPage />} />
-            <Route path="/public-content" element={<PublicContentPage />} />
-            <Route path="/backup" element={<BackupPage />} />
-            <Route path="/profile" element={<ProfilePage />} />
-            <Route path="/team-management" element={<TeamManagementPage />} />
-          </Route>
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </BrowserRouter>
+          `}</style>
+          <Routes>
+            <Route path="/" element={<PublicHomePage />} />
+            <Route path="/about" element={<AboutPage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="/change-password" element={<ChangePasswordPage />} />
+            <Route element={<ProtectedRoute />}>
+              <Route path="/dashboard" element={<DashboardPage />} />
+              <Route path="/members" element={<MembersPage />} />
+              <Route path="/financial" element={<FinancialManagementPage />} />
+              <Route path="/records" element={<MemberRecordsPage />} />
+              <Route path="/logs" element={<ActivityLogsPage />} />
+              <Route path="/attendance" element={<AttendancePage />} />
+              <Route path="/reports" element={<ReportsPage />} />
+              <Route path="/notifications" element={<NotificationsPage />} />
+              <Route path="/settings" element={<SettingsPage />} />
+              <Route path="/public-content" element={<PublicContentPage />} />
+              <Route path="/backup" element={<BackupPage />} />
+              <Route path="/profile" element={<ProfilePage />} />
+              <Route path="/team-management" element={<TeamManagementPage />} />
+            </Route>
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </BrowserRouter>
+      </ModalProvider>
     </AuthProvider>
   );
 }

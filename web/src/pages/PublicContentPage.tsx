@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Save, FileText, Image, CheckCircle, XCircle } from 'lucide-react';
 import { api } from '../lib/api';
+import { useModal } from '../contexts/ModalContext';
 import { PageHeader, LoadingSpinner, inputClass, btnPrimary, btnSecondary, Modal } from '../components/ui';
 
 interface ContentTab {
@@ -21,6 +22,7 @@ const CONTENT_TABS = [
 
 export default function PublicContentPage() {
   const { i18n } = useTranslation();
+  const { showModal } = useModal();
   const [tabs, setTabs] = useState<ContentTab[]>([]);
   const [activeSlug, setActiveSlug] = useState('about-afosha');
   const [loading, setLoading] = useState(true);
@@ -29,9 +31,6 @@ export default function PublicContentPage() {
   const [logoPreview, setLogoPreview] = useState<string>('');
   const [currentLogo, setCurrentLogo] = useState<string | null>(null);
   const [uploadingLogo, setUploadingLogo] = useState(false);
-  const [modalOpen, setModalOpen] = useState(false);
-  const [modalType, setModalType] = useState<'success' | 'error'>('success');
-  const [modalMessage, setModalMessage] = useState('');
 
   const isOm = i18n.language === 'om';
 
@@ -81,9 +80,22 @@ export default function PublicContentPage() {
         content: current.content,
         contentOm: current.contentOm,
       });
-      alert('Content saved successfully!');
-    } catch {
-      alert('Failed to save content. Please try again.');
+      
+      await showModal({
+        type: 'success',
+        title: 'Content Saved',
+        message: 'Your content has been saved successfully!',
+        confirmText: 'OK',
+        cancelText: '',
+      });
+    } catch (error) {
+      await showModal({
+        type: 'error',
+        title: 'Save Failed',
+        message: 'Failed to save content. Please try again.',
+        confirmText: 'OK',
+        cancelText: '',
+      });
     } finally {
       setSaving(false);
     }

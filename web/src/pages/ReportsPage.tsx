@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Download, FileText, TrendingUp, Users, Calendar, AlertCircle } from 'lucide-react';
 import { api } from '../lib/api';
+import { useModal } from '../contexts/ModalContext';
 import { PageHeader, LoadingSpinner, btnPrimary, Select, DateInput } from '../components/ui';
 
 const REPORT_TYPES = [
@@ -579,6 +580,7 @@ export default function ReportsPage() {
   };
 
   const exportReport = async (format: 'excel' | 'pdf') => {
+    const { showModal } = useModal();
     const token = localStorage.getItem('accessToken');
     const lang = localStorage.getItem('language') || 'om';
     const params = new URLSearchParams({ format, ...(from && { from }), ...(to && { to }) });
@@ -586,7 +588,13 @@ export default function ReportsPage() {
       headers: { Authorization: `Bearer ${token}`, 'Accept-Language': lang },
     });
     if (!response.ok) {
-      alert('Export failed');
+      await showModal({
+        type: 'error',
+        title: 'Export Failed',
+        message: 'Failed to export report. Please try again.',
+        confirmText: 'OK',
+        cancelText: '',
+      });
       return;
     }
     const blob = await response.blob();
