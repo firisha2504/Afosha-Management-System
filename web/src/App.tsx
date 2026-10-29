@@ -6,24 +6,19 @@ import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import ChangePasswordPage from './pages/ChangePasswordPage';
 import DashboardPage from './pages/DashboardPage';
 import MembersPage from './pages/MembersPage';
-import PaymentsPage from './pages/PaymentsPage';
-import PenaltiesPage from './pages/PenaltiesPage';
-import SpecialContributionsPage from './pages/SpecialContributionsPage';
+import FinancialManagementPage from './pages/FinancialManagementPage';
+import MemberRecordsPage from './pages/MemberRecordsPage';
+import ActivityLogsPage from './pages/ActivityLogsPage';
 import AttendancePage from './pages/AttendancePage';
 import ReportsPage from './pages/ReportsPage';
 import SettingsPage from './pages/SettingsPage';
 import NotificationsPage from './pages/NotificationsPage';
-import AuditLogsPage from './pages/AuditLogsPage';
-import ContributionsPage from './pages/ContributionsPage';
-import FinesPage from './pages/FinesPage';
 import BackupPage from './pages/BackupPage';
-import HistoryPage from './pages/HistoryPage';
 import PublicHomePage from './pages/public/PublicHomePage';
 import AboutPage from './pages/public/AboutPage';
 import ProfilePage from './pages/ProfilePage';
 import PublicContentPage from './pages/PublicContentPage';
 import TeamManagementPage from './pages/TeamManagementPage';
-import JoiningObligationsPage from './pages/JoiningObligationsPage';
 import './i18n';
 
 function App() {
@@ -98,22 +93,17 @@ function App() {
           <Route element={<ProtectedRoute />}>
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/members" element={<MembersPage />} />
-            <Route path="/payments" element={<PaymentsPage />} />
-            <Route path="/penalties" element={<PenaltiesPage />} />
-            <Route path="/contributions" element={<ContributionsPage />} />
-            <Route path="/special-contributions" element={<SpecialContributionsPage />} />
+            <Route path="/financial" element={<FinancialManagementPage />} />
+            <Route path="/records" element={<MemberRecordsPage />} />
+            <Route path="/logs" element={<ActivityLogsPage />} />
             <Route path="/attendance" element={<AttendancePage />} />
-            <Route path="/fines" element={<FinesPage />} />
             <Route path="/reports" element={<ReportsPage />} />
             <Route path="/notifications" element={<NotificationsPage />} />
-            <Route path="/audit-logs" element={<AuditLogsPage />} />
-            <Route path="/history" element={<HistoryPage />} />
             <Route path="/settings" element={<SettingsPage />} />
             <Route path="/public-content" element={<PublicContentPage />} />
             <Route path="/backup" element={<BackupPage />} />
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/team-management" element={<TeamManagementPage />} />
-            <Route path="/joining-obligations" element={<JoiningObligationsPage />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
