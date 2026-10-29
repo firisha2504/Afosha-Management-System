@@ -31,6 +31,10 @@ interface ChartData {
   trends: { month: string; contributions: number; penalties: number }[]; 
 }
 
+interface AttendanceTrends {
+  trends: { week: string; percentage: number }[];
+}
+
 // Recent Activity type
 interface Activity {
   id: string;
@@ -45,6 +49,7 @@ export default function DashboardPage() {
   const { user } = useAuth();
   const [adminData, setAdminData] = useState<AdminDashboard | null>(null);
   const [chartData, setChartData] = useState<ChartData | null>(null);
+  const [attendanceTrends, setAttendanceTrends] = useState<AttendanceTrends | null>(null);
   const [auditorData, setAuditorData] = useState<{ weeklyCollections: number; outstandingPayments: number; recentPayments: unknown[] } | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -62,12 +67,14 @@ export default function DashboardPage() {
     const fetchDashboard = async () => {
       try {
         if (user?.role === 'ADMIN') {
-          const [dash, charts] = await Promise.all([
+          const [dash, charts, attendance] = await Promise.all([
             api.get('/dashboard/admin'),
             api.get('/dashboard/charts'),
+            api.get('/dashboard/attendance-trends'),
           ]);
           setAdminData(dash.data.data);
           setChartData(charts.data.data);
+          setAttendanceTrends(attendance.data.data);
         } else {
           const { data } = await api.get('/dashboard/auditor');
           setAuditorData(data.data);
@@ -258,7 +265,7 @@ export default function DashboardPage() {
                   <p className="text-sm text-gray-500 mt-1">Weekly attendance percentage</p>
                 </div>
                 <ResponsiveContainer width="100%" height={220}>
-                  <LineChart data={[
+                  <LineChart data={attendanceTrends?.trends || [
                     { week: 'Week 1', percentage: 96 },
                     { week: 'Week 2', percentage: 92 },
                     { week: 'Week 3', percentage: 94 },

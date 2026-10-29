@@ -291,4 +291,56 @@ router.get('/charts', authenticate, authorize('ADMIN'), async (req: AuthRequest,
   sendSuccess(res, { trends: months }, 'general.success', lang);
 });
 
+// Get attendance trends
+router.get('/attendance-trends', authenticate, authorize('ADMIN'), async (req: AuthRequest, res: Response) => {
+  const lang = req.lang || 'om';
+  
+  try {
+    // Get attendance records from last 6 weeks
+    const sixWeeksAgo = new Date();
+    sixWeeksAgo.setDate(sixWeeksAgo.getDate() - 42);
+
+    const attendanceData = await prisma.attendance.findMany({
+      where: {
+        createdAt: { gte: sixWeeksAgo },
+      },
+      include: {
+        meeting: { select: { meetingDate: true } },
+      },
+    });
+
+    // Group by week and calculate percentage
+    const weeks: { [key: number]: { present: number; total: number; week: number } } = {};
+
+    for (let i = 0; i < 6; i++) {
+      weeks[i] = { present: 0, total: 0, week: i + 1 };
+    }
+
+    attendanceData.forEach((record) => {
+      const weeksDiff = Math.floor((new Date().getTime() - new Date(record.createdAt).getTime()) / (7 * 24 * 60 * 60 * 1000));
+      const weekIndex = Math.min(5, Math.max(0, 5 - weeksDiff));
+
+      if (weeks[weekIndex]) {
+        weeks[weekIndex].total += 1;
+        if (record.status === 'PRESENT') {
+          weeks[weekIndex].present += 1;
+        }
+      }
+    });
+
+    // Convert to array and calculate percentages
+    const trends = Object.values(weeks)
+      .sort((a, b) => a.week - b.week)
+      .map((w) => ({
+        week: `Week ${w.week}`,
+        percentage: w.total > 0 ? Math.round((w.present / w.total) * 100) : 0,
+      }));
+
+    sendSuccess(res, { trends }, 'general.success', lang);
+  } catch (error) {
+    console.error('Attendance trends error:', error);
+    sendError(res, 'general.error', lang, 500);
+  }
+});
+
 export default router;
