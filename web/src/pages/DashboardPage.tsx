@@ -230,6 +230,37 @@ export default function DashboardPage() {
 
             {/* Two Column Charts */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Attendance Trend */}
+              <div className="bg-white rounded-xl p-6 border border-gray-200">
+                <div className="mb-4">
+                  <h3 className="text-base font-bold text-gray-900">Attendance Trend</h3>
+                  <p className="text-sm text-gray-500 mt-1">Weekly attendance percentage</p>
+                </div>
+                <ResponsiveContainer width="100%" height={220}>
+                  <LineChart data={[
+                    { week: 'Week 1', percentage: 96 },
+                    { week: 'Week 2', percentage: 92 },
+                    { week: 'Week 3', percentage: 94 },
+                    { week: 'Week 4', percentage: 95 },
+                    { week: 'Week 5', percentage: 97 },
+                    { week: 'Week 6', percentage: 99 },
+                  ]} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                    <XAxis dataKey="week" tick={{ fill: '#64748b', fontSize: 11 }} />
+                    <YAxis domain={[0, 100]} tick={{ fill: '#64748b', fontSize: 11 }} />
+                    <Tooltip />
+                    <Line 
+                      type="monotone" 
+                      dataKey="percentage" 
+                      stroke="#10b981" 
+                      strokeWidth={3}
+                      dot={{ fill: '#10b981', r: 4 }}
+                      activeDot={{ r: 6 }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+
               {/* Penalties & Fines - Using Real Data */}
               <div className="bg-white rounded-xl p-6 border border-gray-200">
                 <div className="mb-4">
@@ -261,7 +292,10 @@ export default function DashboardPage() {
                   </div>
                 )}
               </div>
+            </div>
 
+            {/* Special Contributions & Member Growth */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Special Contributions - Using Real Data */}
               <div className="bg-white rounded-xl p-6 border border-gray-200">
                 <h3 className="text-base font-bold text-gray-900 mb-4">Special Contributions</h3>
@@ -300,6 +334,59 @@ export default function DashboardPage() {
                     <div className="bg-pink-500 h-2 rounded-full" style={{ width: '47%' }}></div>
                   </div>
                 </div>
+              </div>
+
+              {/* Member Growth - Reference Chart */}
+              <div className="bg-white rounded-xl p-6 border border-gray-200">
+                <div className="mb-4">
+                  <h3 className="text-base font-bold text-gray-900">Member Growth</h3>
+                  <p className="text-sm text-gray-500 mt-1">Registered vs Approved Members</p>
+                </div>
+                <ResponsiveContainer width="100%" height={280}>
+                  <AreaChart data={[
+                    { month: 'Jan', registered: 180, approved: 175 },
+                    { month: 'Feb', registered: 185, approved: 180 },
+                    { month: 'Mar', registered: 190, approved: 185 },
+                    { month: 'May', registered: 195, approved: 190 },
+                    { month: 'Jun', registered: 200, approved: 195 },
+                    { month: 'Jul', registered: 205, approved: 200 },
+                    { month: 'Aug', registered: 210, approved: 205 },
+                    { month: 'Sep', registered: 215, approved: 210 },
+                    { month: 'Oct', registered: 220, approved: 215 },
+                  ]} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="colorRegistered" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
+                        <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+                      </linearGradient>
+                      <linearGradient id="colorApproved" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
+                        <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                    <XAxis dataKey="month" tick={{ fill: '#64748b', fontSize: 11 }} />
+                    <YAxis tick={{ fill: '#64748b', fontSize: 11 }} domain={[170, 230]} />
+                    <Tooltip />
+                    <Legend iconType="circle" wrapperStyle={{ fontSize: '12px' }} />
+                    <Area 
+                      type="monotone" 
+                      dataKey="registered" 
+                      stroke="#3b82f6" 
+                      fillOpacity={1} 
+                      fill="url(#colorRegistered)"
+                      name="Registered"
+                    />
+                    <Area 
+                      type="monotone" 
+                      dataKey="approved" 
+                      stroke="#10b981" 
+                      fillOpacity={1} 
+                      fill="url(#colorApproved)"
+                      name="Approved"
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
               </div>
             </div>
           </div>
