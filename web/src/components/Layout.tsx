@@ -3,9 +3,9 @@ import * as React from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   LayoutDashboard, Users, CreditCard, CalendarCheck, FileText,
-  Bell, Shield, Settings, Scale, Database, LogOut, Globe,
-  HeartHandshake, ChevronRight, UserCircle, ListChecks, History,
-  AlertCircle, Menu, X,
+  Bell, Settings, Database, LogOut, Globe,
+  HeartHandshake, ChevronRight, UserCircle, History,
+  AlertCircle, Menu, X, Search, ChevronDown,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { NavLink, useNavigate } from 'react-router-dom';
@@ -17,28 +17,26 @@ const adminNav = [
   { to: '/dashboard', icon: LayoutDashboard, labelKey: 'nav.dashboard' },
   { to: '/members', icon: Users, labelKey: 'nav.members' },
   { to: '/records', icon: CreditCard, labelKey: 'Member Records' },
-  { to: '/financial', icon: AlertCircle, labelKey: 'Financial Management' },
+  { to: '/financial', icon: AlertCircle, labelKey: 'Penalties & Fines' },
   { to: '/attendance', icon: CalendarCheck, labelKey: 'nav.attendance' },
   { to: '/reports', icon: FileText, labelKey: 'nav.reports' },
+  { to: '/logs', icon: History, labelKey: 'Audit & History' },
   { to: '/notifications', icon: Bell, labelKey: 'nav.notifications' },
-  { to: '/logs', icon: History, labelKey: 'Activity Logs' },
-  { to: '/team-management', icon: Users, labelKey: 'Team Management' },
   { to: '/settings', icon: Settings, labelKey: 'nav.settings' },
-  { to: '/public-content', icon: Globe, labelKey: 'Public Content' },
   { to: '/backup', icon: Database, labelKey: 'nav.backup' },
-  { to: '/profile', icon: UserCircle, labelKey: 'nav.profile' },
+  { to: '/team-management', icon: UserCircle, labelKey: 'Team Management' },
+  { to: '/public-content', icon: Globe, labelKey: 'Public Content' },
 ];
 
 const auditorNav = [
   { to: '/dashboard', icon: LayoutDashboard, labelKey: 'nav.dashboard' },
   { to: '/members', icon: Users, labelKey: 'nav.members' },
   { to: '/records', icon: CreditCard, labelKey: 'Member Records' },
-  { to: '/financial', icon: AlertCircle, labelKey: 'Financial Management' },
+  { to: '/financial', icon: AlertCircle, labelKey: 'Penalties & Fines' },
   { to: '/attendance', icon: CalendarCheck, labelKey: 'nav.attendance' },
   { to: '/reports', icon: FileText, labelKey: 'nav.reports' },
+  { to: '/logs', icon: History, labelKey: 'Audit & History' },
   { to: '/notifications', icon: Bell, labelKey: 'nav.notifications' },
-  { to: '/logs', icon: History, labelKey: 'Activity Logs' },
-  { to: '/profile', icon: UserCircle, labelKey: 'nav.profile' },
 ];
 
 export default function Layout({ children }: LayoutProps) {
@@ -85,7 +83,7 @@ export default function Layout({ children }: LayoutProps) {
   const userInitial = (user?.username || user?.phone || 'U')[0].toUpperCase();
 
   return (
-    <div className="flex h-screen bg-slate-50 overflow-hidden">
+    <div className="flex h-screen bg-gray-50 overflow-hidden">
       
       {/* Mobile overlay backdrop */}
       {sidebarOpen && (
@@ -98,31 +96,25 @@ export default function Layout({ children }: LayoutProps) {
       {/* Sidebar */}
       <aside className={`${
         sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-      } lg:translate-x-0 fixed lg:relative inset-y-0 left-0 z-50 w-64 flex flex-col shrink-0 transition-transform duration-300 ease-in-out`}
-        style={{ background: 'linear-gradient(165deg, #0f2d1a 0%, #14532d 60%, #0f2d1a 100%)' }}>
-
-        {/* Decorative accent */}
-        <div className="absolute top-0 left-0 right-0 h-1"
-          style={{ background: 'linear-gradient(90deg, #16a34a, #d97706)' }} />
+      } lg:translate-x-0 fixed lg:relative inset-y-0 left-0 z-50 w-64 flex flex-col shrink-0 transition-transform duration-300 ease-in-out bg-[#0a2540]`}>
 
         {/* Logo */}
-        <div className="px-6 py-5 border-b border-white/8 flex items-center justify-between">
+        <div className="px-5 py-6 border-b border-white/10 flex items-center justify-between">
           <div className="flex items-center gap-3">
             {logoUrl ? (
               <img 
                 src={logoUrl} 
                 alt="App Logo"
-                className="w-12 h-12 rounded-xl object-contain"
+                className="w-10 h-10 rounded-lg object-contain bg-white/5 p-1.5"
               />
             ) : (
-              <div className="w-12 h-12 rounded-xl flex items-center justify-center text-white font-bold text-sm"
-                style={{ background: 'linear-gradient(135deg, #16a34a, #d97706)' }}>
+              <div className="w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold text-lg bg-gradient-to-br from-green-500 to-emerald-600">
                 A
               </div>
             )}
             <div>
-              <h1 className="text-white font-semibold text-sm leading-tight">{t('app.name')}</h1>
-              <p className="text-slate-300 text-xs">{t('app.subtitle')}</p>
+              <h1 className="text-white font-bold text-base tracking-tight">AFOSHA</h1>
+              <p className="text-gray-400 text-xs font-medium">MANAGEMENT SYSTEM</p>
             </div>
           </div>
           
@@ -136,7 +128,7 @@ export default function Layout({ children }: LayoutProps) {
         </div>
 
         {/* Nav */}
-        <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
+        <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
           {navItems.map(({ to, icon: Icon, labelKey }) => (
             <NavLink
               key={to}
@@ -144,50 +136,36 @@ export default function Layout({ children }: LayoutProps) {
               end={to === '/dashboard'}
               onClick={() => setSidebarOpen(false)}
               className={({ isActive }) =>
-                `group flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 ${
+                `group flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 ${
                   isActive
-                    ? 'bg-green-600/20 text-green-400 shadow-sm'
-                    : 'text-slate-300 hover:bg-white/6 hover:text-white'
+                    ? 'bg-gradient-to-r from-green-500/20 to-emerald-500/20 text-white border-l-4 border-green-500 pl-3'
+                    : 'text-gray-300 hover:bg-white/5 hover:text-white hover:pl-4'
                 }`
               }
             >
               {({ isActive }) => (
                 <>
-                  <Icon size={17} className={isActive ? 'text-green-400' : 'text-slate-500 group-hover:text-slate-300'} />
+                  <Icon size={19} className={isActive ? 'text-green-400' : 'text-gray-400 group-hover:text-gray-300'} />
                   <span className="flex-1">{t(labelKey)}</span>
-                  {isActive && <ChevronRight size={14} className="text-green-400 opacity-60" />}
+                  {isActive && <ChevronRight size={16} className="text-green-400" />}
                 </>
               )}
             </NavLink>
           ))}
         </nav>
 
-        {/* Footer — user info only */}
-        <div className="px-3 pb-4 pt-3 border-t border-white/8">
-          <div className="mx-1 px-3 py-2 rounded-lg bg-white/4 flex items-center gap-2">
-            {profilePictureUrl ? (
-              <img 
-                src={profilePictureUrl} 
-                alt="Profile"
-                className="w-7 h-7 rounded-full object-cover shrink-0 border border-white/20"
-                onError={(e) => {
-                  e.currentTarget.style.display = 'none';
-                  const fallback = e.currentTarget.nextElementSibling as HTMLElement;
-                  if (fallback) fallback.style.display = 'flex';
-                }}
-              />
-            ) : null}
-            <div 
-              className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-semibold shrink-0"
-              style={{ 
-                background: 'linear-gradient(135deg, #16a34a, #d97706)',
-                display: profilePictureUrl ? 'none' : 'flex'
-              }}>
-              {userInitial}
+        {/* Footer tagline */}
+        <div className="px-4 pb-6 pt-3 border-t border-white/10">
+          <div className="flex items-start gap-2 text-gray-400">
+            <div className="mt-0.5">
+              <svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+              </svg>
             </div>
-            <div className="min-w-0">
-              <p className="text-slate-300 text-xs font-medium truncate">{user?.username || user?.phone}</p>
-              <p className="text-slate-500 text-xs">{user?.role}</p>
+            <div>
+              <p className="text-xs font-semibold text-white mb-0.5">Together for a</p>
+              <p className="text-xs font-semibold text-white">Stronger Future</p>
+              <p className="text-xs text-gray-500 mt-1">Afosha Management System</p>
             </div>
           </div>
         </div>
@@ -196,57 +174,85 @@ export default function Layout({ children }: LayoutProps) {
       {/* Main */}
       <main className="flex-1 overflow-y-auto">
         {/* Top bar */}
-        <div className="sticky top-0 z-10 bg-slate-50/80 backdrop-blur-sm border-b border-slate-200/60 px-3 sm:px-4 md:px-8 py-3 sm:py-4 flex items-center justify-between">
+        <div className="sticky top-0 z-10 bg-white border-b border-gray-200 px-4 sm:px-6 md:px-8 py-4 flex items-center justify-between gap-4">
           
-          {/* Hamburger menu button */}
-          <button
-            onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="lg:hidden text-slate-600 hover:bg-slate-100 p-2 rounded-lg transition-all"
-          >
-            <Menu size={20} />
-          </button>
+          {/* Left side - Hamburger + Search */}
+          <div className="flex items-center gap-3 flex-1 max-w-2xl">
+            <button
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+              className="lg:hidden text-gray-600 hover:bg-gray-100 p-2 rounded-lg transition-all"
+            >
+              <Menu size={20} />
+            </button>
 
-          <div className="hidden lg:block" />
+            {/* Search bar */}
+            <div className="relative flex-1 hidden sm:block">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+              <input 
+                type="text"
+                placeholder="Search members, payments, or anything..."
+                className="w-full pl-10 pr-4 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500 transition-all"
+              />
+            </div>
+          </div>
           
-          <div className="flex items-center gap-1.5 sm:gap-2">
-            <span className="hidden sm:inline text-xs text-slate-400 bg-slate-100 px-2 sm:px-3 py-1.5 rounded-full font-medium">
-              {new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
-            </span>
-            <button onClick={toggleLanguage}
-              className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 rounded-full text-xs font-medium text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 transition-all shadow-sm">
-              <Globe size={13} className="sm:hidden" />
-              <Globe size={14} className="hidden sm:inline" />
-              <span className="hidden sm:inline">{i18n.language === 'om' ? 'English' : 'Afaan Oromoo'}</span>
-              <span className="sm:hidden">{i18n.language === 'om' ? 'EN' : 'OM'}</span>
+          {/* Right side - Actions */}
+          <div className="flex items-center gap-2">
+            {/* Notifications */}
+            <button 
+              onClick={() => navigate('/notifications')}
+              className="relative p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-all"
+              title="Notifications"
+            >
+              <Bell size={20} />
+              <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
             </button>
-            <button onClick={logout}
-              className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 rounded-full text-xs font-medium text-red-600 bg-white border border-red-100 hover:bg-red-50 transition-all shadow-sm">
-              <LogOut size={13} className="sm:hidden" />
-              <LogOut size={14} className="hidden sm:inline" />
-              <span className="hidden sm:inline">Logout</span>
+
+            {/* Language Toggle */}
+            <button 
+              onClick={toggleLanguage}
+              className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100 border border-gray-200 transition-all"
+            >
+              <Globe size={16} />
+              <span className="hidden sm:inline">{i18n.language === 'om' ? 'English' : 'Oromoo'}</span>
+              <ChevronDown size={14} className="hidden sm:inline" />
             </button>
-            <button onClick={() => navigate('/profile')} title="My Profile"
-              className="w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center overflow-hidden text-white text-xs font-semibold ml-1 hover:ring-2 hover:ring-green-400 transition-all"
-              style={{ background: profilePictureUrl ? 'transparent' : 'linear-gradient(135deg, #16a34a, #d97706)' }}>
-              {profilePictureUrl ? (
-                <img 
-                  src={profilePictureUrl} 
-                  alt="Profile"
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    const target = e.currentTarget;
-                    target.style.display = 'none';
-                    const parent = target.parentElement;
-                    if (parent) {
-                      parent.style.background = 'linear-gradient(135deg, #16a34a, #d97706)';
-                      parent.textContent = userInitial;
-                    }
-                  }}
-                />
-              ) : (
-                userInitial
-              )}
-            </button>
+
+            {/* User Profile Menu */}
+            <div className="relative">
+              <button 
+                onClick={() => navigate('/profile')}
+                className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 transition-all border border-gray-200"
+              >
+                {profilePictureUrl ? (
+                  <img 
+                    src={profilePictureUrl} 
+                    alt="Profile"
+                    className="w-8 h-8 rounded-full object-cover"
+                    onError={(e) => {
+                      const target = e.currentTarget;
+                      target.style.display = 'none';
+                      const parent = target.parentElement;
+                      if (parent) {
+                        const fallback = document.createElement('div');
+                        fallback.className = 'w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-semibold bg-gradient-to-br from-green-500 to-emerald-600';
+                        fallback.textContent = userInitial;
+                        parent.insertBefore(fallback, target);
+                      }
+                    }}
+                  />
+                ) : (
+                  <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-semibold bg-gradient-to-br from-green-500 to-emerald-600">
+                    {userInitial}
+                  </div>
+                )}
+                <div className="hidden md:block text-left">
+                  <p className="text-sm font-semibold text-gray-900">{user?.role === 'ADMIN' ? 'Admin' : user?.role}</p>
+                  <p className="text-xs text-gray-500">{user?.role === 'ADMIN' ? 'System Administrator' : 'Auditor'}</p>
+                </div>
+                <ChevronDown size={16} className="text-gray-400 hidden md:inline" />
+              </button>
+            </div>
           </div>
         </div>
         <div className="p-4 sm:p-6 md:p-8">{children}</div>
