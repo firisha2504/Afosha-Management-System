@@ -138,8 +138,13 @@ export default function DashboardPage() {
               <div className="p-3 bg-blue-50 rounded-lg">
                 <DollarSign className="text-blue-600" size={24} />
               </div>
-              <span className="text-xs font-semibold text-blue-600 bg-blue-50 px-2 py-1 rounded-full flex items-center gap-1">
-                <TrendingUp size={12} /> +18%
+              <span className={`text-xs font-semibold px-2 py-1 rounded-full flex items-center gap-1 ${
+                adminData.weeklyContributions > 0
+                  ? 'text-blue-600 bg-blue-50'
+                  : 'text-gray-500 bg-gray-100'
+              }`}>
+                {adminData.weeklyContributions > 0 ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
+                {adminData.weeklyContributions > 0 ? '+18%' : '0%'}
               </span>
             </div>
             <h3 className="text-gray-600 text-sm font-medium mb-1">Total Contributions (this month)</h3>
