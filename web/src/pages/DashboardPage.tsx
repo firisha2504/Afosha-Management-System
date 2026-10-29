@@ -120,7 +120,7 @@ export default function DashboardPage() {
                 <Users className="text-green-600" size={24} />
               </div>
               <span className="text-xs font-semibold text-green-600 bg-green-50 px-2 py-1 rounded-full flex items-center gap-1">
-                <TrendingUp size={12} /> +12%
+                <TrendingUp size={12} /> {adminData.totalMembers > 0 ? '+' : ''}0%
               </span>
             </div>
             <h3 className="text-gray-600 text-sm font-medium mb-1">Total Members</h3>
@@ -144,7 +144,9 @@ export default function DashboardPage() {
             </div>
             <h3 className="text-gray-600 text-sm font-medium mb-1">Total Contributions (this month)</h3>
             <p className="text-3xl font-bold text-gray-900">ETB {Number(adminData.weeklyContributions).toLocaleString()}</p>
-            <p className="text-xs text-gray-500 mt-2">Target: ETB 46,000</p>
+            <p className="text-xs text-gray-500 mt-2">
+              {adminData.weeklyContributions > 0 ? `Progress: ETB ${Number(adminData.weeklyContributions).toLocaleString()}` : 'No contributions yet'}
+            </p>
           </div>
 
           {/* Pending Payments */}
@@ -153,13 +155,22 @@ export default function DashboardPage() {
               <div className="p-3 bg-amber-50 rounded-lg">
                 <Clock className="text-amber-600" size={24} />
               </div>
-              <span className="text-xs font-semibold text-amber-600 bg-amber-50 px-2 py-1 rounded-full flex items-center gap-1">
-                <TrendingDown size={12} /> -5%
+              <span className={`text-xs font-semibold px-2 py-1 rounded-full flex items-center gap-1 ${
+                adminData.pendingMembers > 0 
+                  ? 'text-amber-600 bg-amber-50' 
+                  : 'text-green-600 bg-green-50'
+              }`}>
+                {adminData.pendingMembers > 0 ? <TrendingDown size={12} /> : <TrendingUp size={12} />}
+                {adminData.pendingMembers > 0 ? '-5%' : '0%'}
               </span>
             </div>
             <h3 className="text-gray-600 text-sm font-medium mb-1">Pending Payments</h3>
             <p className="text-3xl font-bold text-gray-900">{adminData.pendingMembers}</p>
-            <p className="text-xs text-gray-500 mt-2">Total: ETB {Number(adminData.totalOutstandingBalance).toLocaleString()}</p>
+            <p className="text-xs text-gray-500 mt-2">
+              {adminData.pendingMembers > 0 
+                ? `Total: ETB ${Number(adminData.totalOutstandingBalance).toLocaleString()}` 
+                : 'All caught up!'}
+            </p>
           </div>
 
           {/* Outstanding Penalties */}
@@ -168,8 +179,13 @@ export default function DashboardPage() {
               <div className="p-3 bg-red-50 rounded-lg">
                 <AlertTriangle className="text-red-600" size={24} />
               </div>
-              <span className="text-xs font-semibold text-red-600 bg-red-50 px-2 py-1 rounded-full flex items-center gap-1">
-                <TrendingDown size={12} /> -8%
+              <span className={`text-xs font-semibold px-2 py-1 rounded-full flex items-center gap-1 ${
+                adminData.unpaidPenalties > 0
+                  ? 'text-red-600 bg-red-50'
+                  : 'text-green-600 bg-green-50'
+              }`}>
+                {adminData.unpaidPenalties > 0 ? <TrendingDown size={12} /> : <TrendingUp size={12} />}
+                {adminData.unpaidPenalties > 0 ? '-8%' : '0%'}
               </span>
             </div>
             <h3 className="text-gray-600 text-sm font-medium mb-1">Outstanding Penalties</h3>
