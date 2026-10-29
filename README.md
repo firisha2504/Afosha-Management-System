@@ -302,4 +302,4 @@ This project is proprietary software developed for Afosha organization.
 
 
 
-how can i do this the app is only members uses
+ 

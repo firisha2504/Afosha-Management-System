@@ -357,6 +357,110 @@ router.patch('/:id/approve', authenticate, authorize('ADMIN'), validateBody(appr
   sendSuccess(res, member, messageKey, lang);
 });
 
+// Admin edit member (ADMIN only)
+router.patch('/:id', authenticate, authorize('ADMIN'), async (req: AuthRequest, res: Response) => {
+  const lang = req.lang || 'om';
+  const memberId = String(req.params.id);
+  const { fullName, phone, email, address, occupation, gender, dateOfBirth } = req.body;
+
+  const member = await prisma.member.findUnique({
+    where: { id: memberId },
+    include: { user: true },
+  });
+
+  if (!member) {
+    sendError(res, 'member.notFound', lang, 404);
+    return;
+  }
+
+  // Check phone uniqueness if changing
+  if (phone && phone !== member.user.phone) {
+    const existing = await prisma.user.findFirst({
+      where: { phone, NOT: { id: member.userId } },
+    });
+    if (existing) {
+      sendError(res, 'general.error', lang, 409);
+      return;
+    }
+  }
+
+  // Check email uniqueness if changing
+  if (email && email !== member.user.email) {
+    const existing = await prisma.user.findFirst({
+      where: { email, NOT: { id: member.userId } },
+    });
+    if (existing) {
+      sendError(res, 'general.error', lang, 409);
+      return;
+    }
+  }
+
+  // Update User fields
+  if (phone || email) {
+    await prisma.user.update({
+      where: { id: member.userId },
+      data: {
+        ...(phone ? { phone } : {}),
+        ...(email ? { email } : {}),
+      },
+    });
+  }
+
+  // Update Member fields
+  const updated = await prisma.member.update({
+    where: { id: memberId },
+    data: {
+      ...(fullName ? { fullName } : {}),
+      ...(address !== undefined ? { address } : {}),
+      ...(occupation !== undefined ? { occupation } : {}),
+      ...(gender ? { gender } : {}),
+      ...(dateOfBirth ? { dateOfBirth: new Date(dateOfBirth) } : {}),
+    },
+    include: {
+      user: { select: { phone: true, email: true, isActive: true } },
+      emergencyContact: true,
+    },
+  });
+
+  await createAuditEntry(req.user!.userId, 'MEMBER_UPDATED', 'members', { memberId: member.memberId }, req.ip);
+  sendSuccess(res, updated, 'member.updated', lang);
+});
+
+// Admin delete member (ADMIN only)
+router.delete('/:id', authenticate, authorize('ADMIN'), async (req: AuthRequest, res: Response) => {
+  const lang = req.lang || 'om';
+  const memberId = String(req.params.id);
+
+  const member = await prisma.member.findUnique({
+    where: { id: memberId },
+    include: { user: true },
+  });
+
+  if (!member) {
+    sendError(res, 'member.notFound', lang, 404);
+    return;
+  }
+
+  // Delete associated data
+  await Promise.all([
+    prisma.payment.deleteMany({ where: { memberId } }),
+    prisma.penalty.deleteMany({ where: { memberId } }),
+    prisma.weeklyObligation.deleteMany({ where: { memberId } }),
+    prisma.joiningObligation.deleteMany({ where: { memberId } }),
+    prisma.attendance.deleteMany({ where: { memberId } }),
+    prisma.emergencyContact.deleteMany({ where: { memberId } }),
+    prisma.notification.deleteMany({ where: { memberId } }),
+    prisma.transaction.deleteMany({ where: { memberId } }),
+  ]);
+
+  // Delete member and associated user
+  await prisma.member.delete({ where: { id: memberId } });
+  await prisma.user.delete({ where: { id: member.userId } });
+
+  await createAuditEntry(req.user!.userId, 'MEMBER_DELETED', 'members', { memberId: member.memberId }, req.ip);
+  sendSuccess(res, null, 'member.deleted', lang);
+});
+
 router.patch('/me/profile', authenticate, authorize('MEMBER'), validateBody(updateProfileSchema), async (req: AuthRequest, res: Response) => {
   const lang = req.lang || 'om';
   const userId = req.user!.userId;
