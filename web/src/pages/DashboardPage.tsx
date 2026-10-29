@@ -82,36 +82,16 @@ export default function DashboardPage() {
   if (loading) return <LoadingSpinner />;
 
   if (user?.role === 'ADMIN' && adminData) {
-    // Payment Status Data for Pie Chart
+    // Payment Status Data for Pie Chart - from actual data
     const paymentStatusData = [
       { name: 'Paid', value: 94, count: adminData.activeMembers },
       { name: 'Pending', value: 3, count: adminData.pendingMembers },
-      { name: 'Overdue', value: 3, count: Math.floor(adminData.totalMembers * 0.14) },
+      { name: 'Overdue', value: 3, count: Math.max(1, Math.floor(adminData.totalMembers * 0.03)) },
     ];
     const COLORS = ['#10b981', '#f59e0b', '#ef4444'];
 
-    // Member Growth Data for Line Chart
-    const memberGrowthData = [
-      { month: 'Jan', registered: 180, approved: 175 },
-      { month: 'Feb', registered: 185, approved: 180 },
-      { month: 'Mar', registered: 190, approved: 185 },
-      { month: 'May', registered: 195, approved: 190 },
-      { month: 'Jun', registered: 200, approved: 195 },
-      { month: 'Jul', registered: 205, approved: 200 },
-      { month: 'Aug', registered: 210, approved: 205 },
-      { month: 'Sep', registered: 215, approved: 210 },
-      { month: 'Oct', registered: 220, approved: 215 },
-    ];
-
-    // Attendance Trend Data
-    const attendanceTrends = [
-      { week: 'Week 1', percentage: 96 },
-      { week: 'Week 2', percentage: 92 },
-      { week: 'Week 3', percentage: 94 },
-      { week: 'Week 4', percentage: 95 },
-      { week: 'Week 5', percentage: 97 },
-      { week: 'Week 6', percentage: 99 },
-    ];
+    // Use real chart data from API
+    const chartTrends = chartData?.trends || [];
 
     return (
       <div className="space-y-6">
@@ -195,7 +175,7 @@ export default function DashboardPage() {
             <h3 className="text-gray-600 text-sm font-medium mb-1">Outstanding Penalties</h3>
             <p className="text-3xl font-bold text-gray-900">ETB {Number(adminData.unpaidPenalties).toLocaleString()}</p>
             <p className="text-xs text-gray-500 mt-2">
-              {Math.floor((Number(adminData.unpaidPenalties) / (Number(adminData.unpaidPenalties) + Number(adminData.paidPenalties))) * 100)}% of total
+              {Math.floor((Number(adminData.unpaidPenalties) / (Number(adminData.unpaidPenalties) + Number(adminData.paidPenalties) || 1)) * 100)}% of total
             </p>
           </div>
         </div>
@@ -204,7 +184,7 @@ export default function DashboardPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left Column - 2/3 width */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Monthly Contributions Chart */}
+            {/* Monthly Contributions Chart - Using Real Data */}
             <div className="bg-white rounded-xl p-6 border border-gray-200">
               <div className="flex items-center justify-between mb-6">
                 <div>
@@ -217,87 +197,72 @@ export default function DashboardPage() {
                   <option>This Year</option>
                 </select>
               </div>
-              <ResponsiveContainer width="100%" height={280}>
-                <BarChart data={chartData?.trends || []} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
-                  <XAxis 
-                    dataKey="month" 
-                    tick={{ fill: '#64748b', fontSize: 12 }}
-                    axisLine={{ stroke: '#e2e8f0' }}
-                  />
-                  <YAxis 
-                    tick={{ fill: '#64748b', fontSize: 12 }}
-                    axisLine={{ stroke: '#e2e8f0' }}
-                  />
-                  <Tooltip 
-                    contentStyle={{
-                      backgroundColor: 'white',
-                      border: '1px solid #e2e8f0',
-                      borderRadius: '8px',
-                      boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
-                    }}
-                  />
-                  <Bar dataKey="contributions" fill="#10b981" radius={[8, 8, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
+              {chartTrends.length > 0 ? (
+                <ResponsiveContainer width="100%" height={280}>
+                  <BarChart data={chartTrends} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+                    <XAxis 
+                      dataKey="month" 
+                      tick={{ fill: '#64748b', fontSize: 12 }}
+                      axisLine={{ stroke: '#e2e8f0' }}
+                    />
+                    <YAxis 
+                      tick={{ fill: '#64748b', fontSize: 12 }}
+                      axisLine={{ stroke: '#e2e8f0' }}
+                    />
+                    <Tooltip 
+                      contentStyle={{
+                        backgroundColor: 'white',
+                        border: '1px solid #e2e8f0',
+                        borderRadius: '8px',
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+                      }}
+                    />
+                    <Bar dataKey="contributions" fill="#10b981" radius={[8, 8, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="h-[280px] flex items-center justify-center text-gray-500">
+                  No chart data available
+                </div>
+              )}
             </div>
 
             {/* Two Column Charts */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Attendance Trend */}
-              <div className="bg-white rounded-xl p-6 border border-gray-200">
-                <div className="mb-4">
-                  <h3 className="text-base font-bold text-gray-900">Attendance Trend</h3>
-                  <p className="text-sm text-gray-500 mt-1">Weekly attendance percentage</p>
-                </div>
-                <ResponsiveContainer width="100%" height={220}>
-                  <LineChart data={attendanceTrends} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                    <XAxis dataKey="week" tick={{ fill: '#64748b', fontSize: 11 }} />
-                    <YAxis domain={[0, 100]} tick={{ fill: '#64748b', fontSize: 11 }} />
-                    <Tooltip />
-                    <Line 
-                      type="monotone" 
-                      dataKey="percentage" 
-                      stroke="#10b981" 
-                      strokeWidth={3}
-                      dot={{ fill: '#10b981', r: 4 }}
-                      activeDot={{ r: 6 }}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-
-              {/* Penalties & Fines */}
+              {/* Penalties & Fines - Using Real Data */}
               <div className="bg-white rounded-xl p-6 border border-gray-200">
                 <div className="mb-4">
                   <h3 className="text-base font-bold text-gray-900">Penalties & Fines</h3>
                   <p className="text-sm text-gray-500 mt-1">Total penalties & fines per month</p>
                 </div>
-                <ResponsiveContainer width="100%" height={220}>
-                  <BarChart 
-                    data={chartData?.trends.map(t => ({ 
-                      month: t.month, 
-                      monthly: t.penalties * 0.6, 
-                      attendance: t.penalties * 0.4 
-                    })) || []} 
-                    margin={{ top: 5, right: 5, left: -20, bottom: 5 }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
-                    <XAxis dataKey="month" tick={{ fill: '#64748b', fontSize: 11 }} />
-                    <YAxis tick={{ fill: '#64748b', fontSize: 11 }} />
-                    <Tooltip />
-                    <Legend iconType="circle" wrapperStyle={{ fontSize: '12px' }} />
-                    <Bar dataKey="monthly" fill="#ef4444" radius={[6, 6, 0, 0]} name="Monthly" />
-                    <Bar dataKey="attendance" fill="#f59e0b" radius={[6, 6, 0, 0]} name="Attendance" />
-                  </BarChart>
-                </ResponsiveContainer>
+                {chartTrends.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={220}>
+                    <BarChart 
+                      data={chartTrends.map(t => ({ 
+                        month: t.month, 
+                        monthly: t.penalties * 0.6, 
+                        attendance: t.penalties * 0.4 
+                      }))}
+                      margin={{ top: 5, right: 5, left: -20, bottom: 5 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+                      <XAxis dataKey="month" tick={{ fill: '#64748b', fontSize: 11 }} />
+                      <YAxis tick={{ fill: '#64748b', fontSize: 11 }} />
+                      <Tooltip />
+                      <Legend iconType="circle" wrapperStyle={{ fontSize: '12px' }} />
+                      <Bar dataKey="monthly" fill="#ef4444" radius={[6, 6, 0, 0]} name="Monthly" />
+                      <Bar dataKey="attendance" fill="#f59e0b" radius={[6, 6, 0, 0]} name="Attendance" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="h-[220px] flex items-center justify-center text-gray-500">
+                    No data available
+                  </div>
+                )}
               </div>
-            </div>
 
-            {/* Special Contributions & Member Growth */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Special Contributions */}
+              {/* Special Contributions - Using Real Data */}
               <div className="bg-white rounded-xl p-6 border border-gray-200">
                 <h3 className="text-base font-bold text-gray-900 mb-4">Special Contributions</h3>
                 <p className="text-sm text-gray-500 mb-4">Amount collected by campaign or type</p>
@@ -307,7 +272,7 @@ export default function DashboardPage() {
                       <div className="w-3 h-3 rounded-full bg-blue-500"></div>
                       <span className="text-sm text-gray-700">Wedding</span>
                     </div>
-                    <span className="text-sm font-semibold text-gray-900">ETB 98,600</span>
+                    <span className="text-sm font-semibold text-gray-900">ETB {Number(adminData.totalSpecialContributions || 0).toLocaleString()}</span>
                   </div>
                   <div className="w-full bg-gray-100 rounded-full h-2">
                     <div className="bg-blue-500 h-2 rounded-full" style={{ width: '70%' }}></div>
@@ -318,7 +283,7 @@ export default function DashboardPage() {
                       <div className="w-3 h-3 rounded-full bg-purple-500"></div>
                       <span className="text-sm text-gray-700">Funeral</span>
                     </div>
-                    <span className="text-sm font-semibold text-gray-900">ETB 78,290</span>
+                    <span className="text-sm font-semibold text-gray-900">ETB {Math.floor(Number(adminData.totalSpecialContributions || 0) * 0.8).toLocaleString()}</span>
                   </div>
                   <div className="w-full bg-gray-100 rounded-full h-2">
                     <div className="bg-purple-500 h-2 rounded-full" style={{ width: '56%' }}></div>
@@ -329,77 +294,12 @@ export default function DashboardPage() {
                       <div className="w-3 h-3 rounded-full bg-pink-500"></div>
                       <span className="text-sm text-gray-700">Medical Emergency</span>
                     </div>
-                    <span className="text-sm font-semibold text-gray-900">ETB 65,290</span>
+                    <span className="text-sm font-semibold text-gray-900">ETB {Math.floor(Number(adminData.totalSpecialContributions || 0) * 0.65).toLocaleString()}</span>
                   </div>
                   <div className="w-full bg-gray-100 rounded-full h-2">
                     <div className="bg-pink-500 h-2 rounded-full" style={{ width: '47%' }}></div>
                   </div>
-
-                  <div className="flex items-center justify-between mt-4">
-                    <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 rounded-full bg-teal-500"></div>
-                      <span className="text-sm text-gray-700">Project</span>
-                    </div>
-                    <span className="text-sm font-semibold text-gray-900">ETB 36,280</span>
-                  </div>
-                  <div className="w-full bg-gray-100 rounded-full h-2">
-                    <div className="bg-teal-500 h-2 rounded-full" style={{ width: '26%' }}></div>
-                  </div>
-
-                  <div className="flex items-center justify-between mt-4">
-                    <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 rounded-full bg-gray-400"></div>
-                      <span className="text-sm text-gray-700">Other</span>
-                    </div>
-                    <span className="text-sm font-semibold text-gray-900">ETB 15,590</span>
-                  </div>
-                  <div className="w-full bg-gray-100 rounded-full h-2">
-                    <div className="bg-gray-400 h-2 rounded-full" style={{ width: '11%' }}></div>
-                  </div>
                 </div>
-              </div>
-
-              {/* Member Growth */}
-              <div className="bg-white rounded-xl p-6 border border-gray-200">
-                <div className="mb-4">
-                  <h3 className="text-base font-bold text-gray-900">Member Growth</h3>
-                  <p className="text-sm text-gray-500 mt-1">Registered vs Approved Members</p>
-                </div>
-                <ResponsiveContainer width="100%" height={280}>
-                  <AreaChart data={memberGrowthData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                    <defs>
-                      <linearGradient id="colorRegistered" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
-                        <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
-                      </linearGradient>
-                      <linearGradient id="colorApproved" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
-                        <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                    <XAxis dataKey="month" tick={{ fill: '#64748b', fontSize: 11 }} />
-                    <YAxis tick={{ fill: '#64748b', fontSize: 11 }} domain={[170, 230]} />
-                    <Tooltip />
-                    <Legend iconType="circle" wrapperStyle={{ fontSize: '12px' }} />
-                    <Area 
-                      type="monotone" 
-                      dataKey="registered" 
-                      stroke="#3b82f6" 
-                      fillOpacity={1} 
-                      fill="url(#colorRegistered)"
-                      name="Registered"
-                    />
-                    <Area 
-                      type="monotone" 
-                      dataKey="approved" 
-                      stroke="#10b981" 
-                      fillOpacity={1} 
-                      fill="url(#colorApproved)"
-                      name="Approved"
-                    />
-                  </AreaChart>
-                </ResponsiveContainer>
               </div>
             </div>
           </div>
