@@ -5,7 +5,8 @@ import {
   Users, UserPlus, CreditCard, AlertTriangle, Wallet, 
   DollarSign, TrendingUp, TrendingDown, Calendar,
   UserCheck, CheckCircle, Clock, XCircle,
-  ArrowUpRight, ArrowDownRight, Plus, FileText, Gift, UserCog
+  ArrowUpRight, ArrowDownRight, Plus, FileText, Gift, UserCog,
+  Bell
 } from 'lucide-react';
 import { 
   BarChart, Bar, LineChart, Line, PieChart, Pie, Cell,
