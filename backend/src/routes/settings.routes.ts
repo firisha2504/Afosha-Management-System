@@ -1004,4 +1004,74 @@ router.get('/logo', async (_req, res: Response) => {
   }
 });
 
+// Reset database (ADMIN only) - clears all data except admin user and settings
+router.post('/reset-database', authenticate, authorize('ADMIN'), async (req: AuthRequest, res: Response) => {
+  const lang = req.lang || 'om';
+  
+  // Double confirmation check
+  const { confirm: confirmReset } = req.body;
+  if (!confirmReset || confirmReset !== true) {
+    sendError(res, 'Confirmation required', lang, 400);
+    return;
+  }
+
+  try {
+    // Create backup before reset
+    const filename = `backup-before-reset-${Date.now()}.json`;
+    const backupData = {
+      members: await prisma.member.findMany(),
+      payments: await prisma.payment.findMany(),
+      penalties: await prisma.penalty.findMany(),
+      obligations: await prisma.weeklyObligation.findMany(),
+    };
+    const backupDir = config.backup.dir;
+    await fs.mkdir(backupDir, { recursive: true });
+    const filePath = path.join(backupDir, filename);
+    await fs.writeFile(filePath, JSON.stringify(backupData, null, 2));
+
+    await prisma.backup.create({
+      data: {
+        filename,
+        filePath,
+        type: 'auto-before-reset',
+        fileSize: JSON.stringify(backupData).length,
+      },
+    });
+
+    // Delete all data (keeping admin and settings)
+    await Promise.all([
+      prisma.payment.deleteMany({}),
+      prisma.penalty.deleteMany({}),
+      prisma.weeklyObligation.deleteMany({}),
+      prisma.joiningObligation.deleteMany({}),
+      prisma.specialContributionObligation.deleteMany({}),
+      prisma.attendance.deleteMany({}),
+      prisma.meeting.deleteMany({}),
+      prisma.transaction.deleteMany({}),
+      prisma.notification.deleteMany({}),
+      prisma.refreshToken.deleteMany({}),
+      prisma.otpCode.deleteMany({}),
+    ]);
+
+    // Delete members (which cascades to delete related records)
+    await prisma.member.deleteMany({});
+
+    // Delete non-admin users
+    const memberUsers = await prisma.user.findMany({ where: { role: 'MEMBER' } });
+    for (const user of memberUsers) {
+      await prisma.user.delete({ where: { id: user.id } });
+    }
+
+    await createAuditEntry(req.user!.userId, 'DATABASE_RESET', 'admin', { reason: 'Manual reset by admin' }, req.ip);
+
+    sendSuccess(res, {
+      message: 'Database reset successful. Auto-backup created before reset.',
+      backupFile: filename,
+    }, 'general.success', lang);
+  } catch (error) {
+    console.error('Reset database error:', error);
+    sendError(res, 'Error resetting database', lang, 500);
+  }
+});
+
 export default router;
