@@ -1,4 +1,5 @@
 import { Router, Response } from 'express';
+import { Decimal } from '@prisma/client/runtime/library';
 import prisma from '../config/database.js';
 import { AuthRequest, authenticate, authorize } from '../middleware/auth.js';
 import { validateBody, validateQuery } from '../middleware/validate.js';
@@ -1075,3 +1076,117 @@ router.post('/reset-database', authenticate, authorize('ADMIN'), async (req: Aut
 });
 
 export default router;
+
+// Get contribution rate history
+router.get('/contribution-rates', authenticate, authorize('ADMIN'), async (req: AuthRequest, res: Response) => {
+  const lang = req.lang || 'om';
+  const rates = await prisma.contributionRateHistory.findMany({
+    orderBy: { effectiveDate: 'desc' }
+  });
+  sendSuccess(res, rates, 'general.success', lang);
+});
+
+// Add new contribution rate (when amount changes)
+router.post('/contribution-rates', authenticate, authorize('ADMIN'), async (req: AuthRequest, res: Response) => {
+  const lang = req.lang || 'om';
+  const { effectiveDate, weeklyAmount, description } = req.body;
+
+  if (!effectiveDate || !weeklyAmount) {
+    sendError(res, 'general.validationError', lang, 400);
+    return;
+  }
+
+  const rate = await prisma.contributionRateHistory.create({
+    data: {
+      effectiveDate: new Date(effectiveDate),
+      weeklyAmount: new Decimal(weeklyAmount),
+      description,
+      createdBy: req.user?.userId,
+    }
+  });
+
+  await createAuditEntry(req.user!.userId, 'CONTRIBUTION_RATE_ADDED', 'settings', { rateId: rate.id, amount: weeklyAmount }, req.ip);
+  sendSuccess(res, rate, 'general.success', lang, 201);
+});
+
+// Calculate joining obligation with variable rates
+router.post('/calculate-joining-with-rates', authenticate, async (req: AuthRequest, res: Response) => {
+  const lang = req.lang || 'om';
+  const { joinDate, groupStartDate } = req.body;
+
+  if (!joinDate || !groupStartDate) {
+    sendError(res, 'general.validationError', lang, 400);
+    return;
+  }
+
+  try {
+    const join = new Date(joinDate);
+    const groupStart = new Date(groupStartDate);
+
+    // Get all contribution rates between group start and join date
+    const rates = await prisma.contributionRateHistory.findMany({
+      where: {
+        effectiveDate: { lte: join }
+      },
+      orderBy: { effectiveDate: 'desc' }
+    });
+
+    if (rates.length === 0) {
+      // No rate history, use current setting
+      const setting = await prisma.systemSetting.findUnique({
+        where: { key: 'weekly_contribution' }
+      });
+      const weeklyAmount = Number(setting?.value || 50);
+      const weeks = Math.floor((join.getTime() - groupStart.getTime()) / (7 * 24 * 60 * 60 * 1000));
+      const total = weeks * weeklyAmount;
+      
+      sendSuccess(res, {
+        joinDate: join,
+        groupStartDate: groupStart,
+        weeksBefore: weeks,
+        rates: [{
+          effectiveDate: groupStart,
+          weeklyAmount,
+          weeks,
+          subtotal: weeks * weeklyAmount
+        }],
+        totalAmount: total
+      }, 'general.success', lang);
+      return;
+    }
+
+    // Calculate with rate history
+    let total = 0;
+    const breakdown: any[] = [];
+    let currentDate = join;
+
+    for (let i = 0; i < rates.length; i++) {
+      const rate = rates[i];
+      const nextRateDate = i > 0 ? rates[i - 1].effectiveDate : groupStart;
+      
+      if (nextRateDate >= currentDate) continue;
+      
+      const weeks = Math.floor((currentDate.getTime() - nextRateDate.getTime()) / (7 * 24 * 60 * 60 * 1000));
+      const subtotal = weeks * Number(rate.weeklyAmount);
+      
+      breakdown.push({
+        period: `${nextRateDate.toLocaleDateString()} - ${currentDate.toLocaleDateString()}`,
+        weeklyAmount: Number(rate.weeklyAmount),
+        weeks,
+        subtotal
+      });
+      
+      total += subtotal;
+      currentDate = nextRateDate;
+    }
+
+    sendSuccess(res, {
+      joinDate: join,
+      groupStartDate: groupStart,
+      breakdown,
+      totalAmount: total
+    }, 'general.success', lang);
+  } catch (error) {
+    sendError(res, 'general.error', lang, 500);
+  }
+});

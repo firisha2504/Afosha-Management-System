@@ -405,6 +405,19 @@ model SystemSetting {
   updatedAt DateTime @updatedAt
 }
 
+// Track contribution rate changes over time for accurate historical calculations
+model ContributionRateHistory {
+  id          String   @id @default(uuid())
+  effectiveDate DateTime // When this rate became effective
+  weeklyAmount Decimal  @db.Decimal(12, 2) // Weekly contribution amount during this period
+  description String?  // e.g., "Increased from 50 to 100 ETB"
+  createdBy   String?
+  createdAt   DateTime @default(now())
+  
+  @@index([effectiveDate])
+  @@index([createdAt])
+}
+
 model OtpCode {
   id        String     @id @default(uuid())
   userId    String
