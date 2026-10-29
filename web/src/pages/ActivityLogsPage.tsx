@@ -8,7 +8,7 @@ import AuditLogsPage from './AuditLogsPage';
 type Tab = 'history' | 'audit';
 
 export default function ActivityLogsPage() {
-  const { t } = useTranslation();
+  const [_t] = useTranslation();
   const [activeTab, setActiveTab] = useState<Tab>('history');
 
   const tabs = [

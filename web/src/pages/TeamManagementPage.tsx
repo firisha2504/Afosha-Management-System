@@ -27,7 +27,7 @@ export default function TeamManagementPage() {
   const [newRole, setNewRole] = useState('');
   const [newNameOm, setNewNameOm] = useState('');
   const [newRoleOm, setNewRoleOm] = useState('');
-  const [newImage, setNewImage] = useState<File | null>(null);
+  const [_newImage, setNewImage] = useState<File | null>(null); // newImage assignment may not be used everywhere
   const [newImagePreview, setNewImagePreview] = useState('');
   
   // Edit form state
@@ -36,7 +36,7 @@ export default function TeamManagementPage() {
   const [editRole, setEditRole] = useState('');
   const [editNameOm, setEditNameOm] = useState('');
   const [editRoleOm, setEditRoleOm] = useState('');
-  const [editImage, setEditImage] = useState<File | null>(null);
+  const [_editImage, setEditImage] = useState<File | null>(null); // editImage assignment may not be used everywhere
   const [editImagePreview, setEditImagePreview] = useState('');
   
   // Modal state

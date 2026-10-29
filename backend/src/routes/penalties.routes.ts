@@ -8,6 +8,7 @@ import {
   generatePaymentId,
   generateReceiptNumber,
 } from '../services/helpers.js';
+import { getMemberById, getLanguage, getStringParam } from '../middleware/commonOperations.js';
 import { recordLedgerEntry } from '../services/contribution.service.js';
 import { payPenalty, waivePenalty } from '../services/penalty.service.js';
 import { penaltyPaymentSchema, paginationSchema } from '../validators/schemas.js';
@@ -18,12 +19,12 @@ const router = Router();
 
 // Get all penalties for a member
 router.get('/member/:memberId', authenticate, authorize('ADMIN', 'AUDITOR'), validateQuery(paginationSchema), async (req: AuthRequest, res: Response) => {
-  const lang = req.lang || 'om';
-  const memberId = String(req.params.memberId);
+  const lang = getLanguage(req);
+  const memberId = getStringParam(req.params.memberId);
   const { page, limit, status } = req.validatedQuery as { page: number; limit: number; status?: string };
 
-  const member = await prisma.member.findUnique({ where: { id: memberId } });
-  if (!member) {
+  const { member, error } = await getMemberById(memberId, lang);
+  if (error) {
     sendError(res, 'member.notFound', lang, 404);
     return;
   }
@@ -51,7 +52,7 @@ router.get('/member/:memberId', authenticate, authorize('ADMIN', 'AUDITOR'), val
 
 // Get member's own penalties (for logged-in member)
 router.get('/my', authenticate, authorize('MEMBER'), validateQuery(paginationSchema), async (req: AuthRequest, res: Response) => {
-  const lang = req.lang || 'om';
+  const lang = getLanguage(req);
   const userId = req.user!.userId;
   const { page, limit, status } = req.validatedQuery as { page: number; limit: number; status?: string };
 
@@ -84,7 +85,7 @@ router.get('/my', authenticate, authorize('MEMBER'), validateQuery(paginationSch
 
 // Pay a specific penalty
 router.post('/pay', authenticate, authorize('ADMIN', 'AUDITOR'), validateBody(penaltyPaymentSchema), async (req: AuthRequest, res: Response) => {
-  const lang = req.lang || 'om';
+  const lang = getLanguage(req);
   const { penaltyId, amount, paymentMethod, transactionReference, notes } = req.body;
   const recordedById = req.user!.userId;
 
@@ -180,7 +181,7 @@ router.post('/pay', authenticate, authorize('ADMIN', 'AUDITOR'), validateBody(pe
 
 // Waive a penalty (ADMIN only)
 router.patch('/:id/waive', authenticate, authorize('ADMIN'), async (req: AuthRequest, res: Response) => {
-  const lang = req.lang || 'om';
+  const lang = getLanguage(req);
   const id = String(req.params.id);
   const { reason } = req.body;
 
@@ -242,7 +243,7 @@ router.patch('/:id/waive', authenticate, authorize('ADMIN'), async (req: AuthReq
 
 // Get all penalties (ADMIN/AUDITOR) - with filters
 router.get('/', authenticate, authorize('ADMIN', 'AUDITOR'), validateQuery(paginationSchema), async (req: AuthRequest, res: Response) => {
-  const lang = req.lang || 'om';
+  const lang = getLanguage(req);
   const { page, limit, status, isMonthly } = req.validatedQuery as {
     page: number;
     limit: number;
@@ -282,7 +283,7 @@ router.get('/', authenticate, authorize('ADMIN', 'AUDITOR'), validateQuery(pagin
 
 // Get penalty by ID
 router.get('/:id', authenticate, authorize('ADMIN', 'AUDITOR'), async (req: AuthRequest, res: Response) => {
-  const lang = req.lang || 'om';
+  const lang = getLanguage(req);
   const id = String(req.params.id);
 
   const penalty = await prisma.penalty.findUnique({

@@ -1,6 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
-import { ModalProvider } from './contexts/ModalContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import LoginPage from './pages/LoginPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
@@ -25,20 +24,8 @@ import './i18n';
 function App() {
   return (
     <AuthProvider>
-      <ModalProvider>
-        <BrowserRouter>
+      <BrowserRouter>
           <style>{`
-            @keyframes fadeInZoom {
-              from {
-                opacity: 0;
-                transform: scale(0.95);
-              }
-              to {
-                opacity: 1;
-                transform: scale(1);
-              }
-            }
-
             /* Prevent horizontal overflow on all devices */
             html, body, #root {
               overflow-x: hidden;
@@ -121,9 +108,8 @@ function App() {
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </BrowserRouter>
-      </ModalProvider>
-    </AuthProvider>
-  );
-}
+      </AuthProvider>
+    );
+  }
 
 export default App;

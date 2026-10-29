@@ -9,7 +9,7 @@ import SpecialContributionsPage from './SpecialContributionsPage';
 type Tab = 'penalties' | 'fines' | 'special';
 
 export default function FinancialManagementPage() {
-  const { t } = useTranslation();
+  const [_t] = useTranslation();
   const [activeTab, setActiveTab] = useState<Tab>('penalties');
 
   const tabs = [

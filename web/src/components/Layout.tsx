@@ -3,8 +3,8 @@ import * as React from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   LayoutDashboard, Users, CreditCard, CalendarCheck, FileText,
-  Bell, Settings, Database, LogOut, Globe,
-  HeartHandshake, ChevronRight, UserCircle, History,
+  Bell, Settings, Database, Globe,
+  ChevronRight, UserCircle, History,
   AlertCircle, Menu, X, Search, ChevronDown,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
@@ -41,7 +41,7 @@ const auditorNav = [
 
 export default function Layout({ children }: LayoutProps) {
   const { t, i18n } = useTranslation();
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = React.useState(false);
   const [logoUrl, setLogoUrl] = React.useState<string | null>(null);

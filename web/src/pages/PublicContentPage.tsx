@@ -1,9 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Save, FileText, Image, CheckCircle, XCircle } from 'lucide-react';
+import { Save, FileText, Image } from 'lucide-react';
 import { api } from '../lib/api';
-import { useModal } from '../contexts/ModalContext';
-import { PageHeader, LoadingSpinner, inputClass, btnPrimary, btnSecondary, Modal } from '../components/ui';
+import { PageHeader, LoadingSpinner, inputClass, btnPrimary, btnSecondary } from '../components/ui';
 
 interface ContentTab {
   slug: string;
@@ -22,7 +21,6 @@ const CONTENT_TABS = [
 
 export default function PublicContentPage() {
   const { i18n } = useTranslation();
-  const { showModal } = useModal();
   const [tabs, setTabs] = useState<ContentTab[]>([]);
   const [activeSlug, setActiveSlug] = useState('about-afosha');
   const [loading, setLoading] = useState(true);
@@ -81,21 +79,9 @@ export default function PublicContentPage() {
         contentOm: current.contentOm,
       });
       
-      await showModal({
-        type: 'success',
-        title: 'Content Saved',
-        message: 'Your content has been saved successfully!',
-        confirmText: 'OK',
-        cancelText: '',
-      });
+      alert('Content saved successfully!');
     } catch (error) {
-      await showModal({
-        type: 'error',
-        title: 'Save Failed',
-        message: 'Failed to save content. Please try again.',
-        confirmText: 'OK',
-        cancelText: '',
-      });
+      alert('Failed to save content. Please try again.');
     } finally {
       setSaving(false);
     }
@@ -130,15 +116,9 @@ export default function PublicContentPage() {
       setLogoFile(null);
       setLogoPreview('');
       
-      // Show success modal
-      setModalType('success');
-      setModalMessage('Logo uploaded successfully! The new logo will appear on the public landing page immediately.');
-      setModalOpen(true);
+      alert('Logo uploaded successfully! The new logo will appear on the public landing page immediately.');
     } catch {
-      // Show error modal
-      setModalType('error');
-      setModalMessage('Failed to upload logo. Please try again.');
-      setModalOpen(true);
+      alert('Failed to upload logo. Please try again.');
     } finally {
       setUploadingLogo(false);
     }
@@ -346,24 +326,6 @@ export default function PublicContentPage() {
           </ul>
         </div>
       </div>
-
-      {/* Success/Error Modal */}
-      <Modal open={modalOpen} onClose={() => setModalOpen(false)} title={modalType === 'success' ? 'Success' : 'Error'}>
-        <div className="text-center py-4">
-          {modalType === 'success' ? (
-            <CheckCircle className="w-16 h-16 text-green-600 mx-auto mb-4" />
-          ) : (
-            <XCircle className="w-16 h-16 text-red-600 mx-auto mb-4" />
-          )}
-          <p className="text-slate-700 text-sm leading-relaxed">{modalMessage}</p>
-          <button
-            onClick={() => setModalOpen(false)}
-            className={`mt-6 ${btnPrimary}`}
-          >
-            OK
-          </button>
-        </div>
-      </Modal>
     </div>
   );
 }

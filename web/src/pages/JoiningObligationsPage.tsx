@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Calendar, DollarSign, Users, AlertCircle } from 'lucide-react';
+import { DollarSign, Users, AlertCircle } from 'lucide-react';
 import { api } from '../lib/api';
 import { PageHeader, LoadingSpinner, inputClass, btnPrimary, Modal } from '../components/ui';
 import { CheckCircle, XCircle } from 'lucide-react';

@@ -9,7 +9,7 @@ import JoiningObligationsPage from './JoiningObligationsPage';
 type Tab = 'payments' | 'contributions' | 'joining';
 
 export default function MemberRecordsPage() {
-  const { t } = useTranslation();
+  const [_t] = useTranslation();
   const [activeTab, setActiveTab] = useState<Tab>('contributions');
 
   const tabs = [

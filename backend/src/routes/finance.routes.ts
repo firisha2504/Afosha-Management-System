@@ -2,6 +2,7 @@ import { Router, Response } from 'express';
 import prisma from '../config/database.js';
 import { AuthRequest, authenticate, authorize } from '../middleware/auth.js';
 import { validateBody, validateQuery } from '../middleware/validate.js';
+import { getLanguage } from '../middleware/commonOperations.js';
 import { createFineSchema, createMeetingSchema, recordAttendanceSchema, paginationSchema } from '../validators/schemas.js';
 import { sendError, sendSuccess } from '../utils/response.js';
 import { recordLedgerEntry } from '../services/contribution.service.js';
@@ -12,7 +13,7 @@ const router = Router();
 
 // --- Penalties ---
 router.get('/penalties', authenticate, async (req: AuthRequest, res: Response) => {
-  const lang = req.lang || 'om';
+  const lang = getLanguage(req);
   const { page = 1, limit = 20 } = req.query as { page?: number; limit?: number };
 
   const where: Record<string, unknown> = {};
@@ -38,7 +39,7 @@ router.get('/penalties', authenticate, async (req: AuthRequest, res: Response) =
 
 // --- Fines ---
 router.post('/fines', authenticate, authorize('ADMIN'), validateBody(createFineSchema), async (req: AuthRequest, res: Response) => {
-  const lang = req.lang || 'om';
+  const lang = getLanguage(req);
   const fine = await prisma.fine.create({
     data: { ...req.body, createdById: req.user!.userId },
     include: { member: { select: { fullName: true, memberId: true } } },
@@ -51,7 +52,7 @@ router.post('/fines', authenticate, authorize('ADMIN'), validateBody(createFineS
 });
 
 router.get('/fines', authenticate, authorize('ADMIN', 'AUDITOR'), validateQuery(paginationSchema), async (req: AuthRequest, res: Response) => {
-  const lang = req.lang || 'om';
+  const lang = getLanguage(req);
   const { page, limit } = req.validatedQuery as { page: number; limit: number };
 
   const [fines, total] = await Promise.all([
@@ -69,7 +70,7 @@ router.get('/fines', authenticate, authorize('ADMIN', 'AUDITOR'), validateQuery(
 
 // Edit a fine (ADMIN only, only if unpaid)
 router.patch('/fines/:id', authenticate, authorize('ADMIN'), async (req: AuthRequest, res: Response) => {
-  const lang = req.lang || 'om';
+  const lang = getLanguage(req);
   const { fineType, amount, reason, isPaid } = req.body;
 
   const existing = await prisma.fine.findUnique({
@@ -94,7 +95,7 @@ router.patch('/fines/:id', authenticate, authorize('ADMIN'), async (req: AuthReq
 
 // Delete a fine (ADMIN only, only if unpaid)
 router.delete('/fines/:id', authenticate, authorize('ADMIN'), async (req: AuthRequest, res: Response) => {
-  const lang = req.lang || 'om';
+  const lang = getLanguage(req);
 
   const existing = await prisma.fine.findUnique({ where: { id: String(req.params.id) } });
   if (!existing) { sendError(res, 'general.notFound', lang, 404); return; }
@@ -111,7 +112,7 @@ router.delete('/fines/:id', authenticate, authorize('ADMIN'), async (req: AuthRe
 // --- Weekly Contributions Summary ---
 // Shows all members with their obligation status for a given week/year
 router.get('/contributions/weekly', authenticate, authorize('ADMIN', 'AUDITOR'), async (req: AuthRequest, res: Response) => {
-  const lang = req.lang || 'om';
+  const lang = getLanguage(req);
   const { week, year } = req.query as { week?: string; year?: string };
 
   // Default to most recent recorded week if not provided
@@ -385,12 +386,15 @@ router.get('/obligations/member/:memberId', authenticate, authorize('ADMIN', 'AU
 });
 
 // Get all obligations (weekly + special) for bulk recording
+// Return DISTINCT weeks/campaigns (not per-member obligations)
 router.get('/obligations', authenticate, authorize('ADMIN', 'AUDITOR'), async (req: AuthRequest, res: Response) => {
   const lang = req.lang || 'om';
 
   const [weekly, special] = await Promise.all([
+    // Get DISTINCT weeks with unpaid obligations
     prisma.weeklyObligation.findMany({
       where: { status: { in: ['PENDING', 'OVERDUE', 'PARTIAL'] } },
+      distinct: ['weekNumber', 'year'],
       select: {
         id: true,
         memberId: true,
@@ -402,7 +406,7 @@ router.get('/obligations', authenticate, authorize('ADMIN', 'AUDITOR'), async (r
         year: true,
         member: { select: { fullName: true, memberId: true } },
       },
-      orderBy: { dueDate: 'desc' },
+      orderBy: [{ dueDate: 'desc' }, { weekNumber: 'desc' }],
       take: 100,
     }),
     prisma.specialContributionObligation.findMany({

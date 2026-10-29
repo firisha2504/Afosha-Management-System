@@ -18,8 +18,27 @@ export function startScheduledJobs(): void {
   // Every day at midnight — mark overdue obligations
   cron.schedule('0 0 * * *', async () => {
     console.log('[Cron] Marking overdue obligations...');
-    const count = await markOverdueObligations();
-    console.log(`[Cron] Marked ${count} as overdue`);
+    const now = new Date();
+    
+    // PHASE 3 FIX #5: Mark weekly obligations as overdue
+    const weeklyCount = await prisma.weeklyObligation.updateMany({
+      where: {
+        dueDate: { lt: now },
+        status: 'PENDING',
+      },
+      data: { status: 'OVERDUE' },
+    });
+    
+    // PHASE 3 FIX #5: Mark special contributions as overdue too
+    const specialCount = await prisma.specialContributionObligation.updateMany({
+      where: {
+        createdAt: { lt: new Date(now.getTime() - 24 * 60 * 60 * 1000) }, // Created more than 1 day ago
+        status: 'PENDING',
+      },
+      data: { status: 'OVERDUE' },
+    });
+    
+    console.log(`[Cron] Marked ${weeklyCount.count} weekly and ${specialCount.count} special obligations as overdue`);
   });
 
   // Friday at 6 PM — meeting reminder (1 day before Saturday)
@@ -164,6 +183,24 @@ export function startScheduledJobs(): void {
       console.log('[Cron] Daily backup completed');
     } catch (error) {
       console.error('[Cron] Backup failed:', error);
+    }
+  });
+
+  // PHASE 3 FIX #14: Daily joining obligation reconciliation at 3 AM
+  cron.schedule('0 3 * * *', async () => {
+    console.log('[Cron] Reconciling joining obligations...');
+    try {
+      const { reconcileAllJoiningObligations } = await import('../services/joining-obligation.service.js');
+      const results = await reconcileAllJoiningObligations();
+      
+      if (results.length > 0) {
+        const totalReconciled = results.reduce((sum, r) => sum + r.totalReconciled, 0);
+        console.log(`[Cron] Reconciled ${results.length} members, total ${totalReconciled} ETB`);
+      } else {
+        console.log('[Cron] No joining obligations to reconcile');
+      }
+    } catch (error) {
+      console.error('[Cron] Joining obligation reconciliation failed:', error);
     }
   });
 

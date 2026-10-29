@@ -95,6 +95,24 @@ export const recordAttendanceSchema = z.object({
   ),
 });
 
+export const bulkMemberSchema = z.object({
+  members: z.array(
+    z.object({
+      fullName: z.string().min(2),
+      gender: z.enum(['MALE', 'FEMALE', 'OTHER']),
+      dateOfBirth: z.string(),
+      phone: z.string().min(10),
+      email: z.string().email().optional(),
+      address: z.string().optional(),
+      occupation: z.string().optional(),
+      emergencyContactName: z.string().min(2).optional(),
+      emergencyContactRelationship: z.string().optional(),
+      emergencyContactPhone: z.string().min(10).optional(),
+      emergencyContactAddress: z.string().optional(),
+    })
+  ).min(1).max(1000),
+});
+
 export const updateSettingsSchema = z.object({
   settings: z.array(
     z.object({

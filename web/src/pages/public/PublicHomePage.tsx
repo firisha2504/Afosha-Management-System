@@ -18,6 +18,7 @@ interface TeamMember {
   nameOm?: string;
   role: string;
   roleOm?: string;
+  image?: string;
   type: 'member' | 'leader';
 }
 

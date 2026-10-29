@@ -4,6 +4,7 @@ import prisma from '../config/database.js';
 import { AuthRequest, authenticate, authorize } from '../middleware/auth.js';
 import { validateBody, validateQuery } from '../middleware/validate.js';
 import { createAuditEntry } from '../middleware/audit.js';
+import { getMemberById, getLanguage, getStringParam } from '../middleware/commonOperations.js';
 import {
   generatePaymentId,
   generateReceiptNumber,
@@ -12,6 +13,11 @@ import {
   applyPaymentToObligation,
   reversePaymentFromObligation,
   recordLedgerEntry,
+  validatePaymentObligation,
+  applyPaymentToObligationIdempotent,
+  recalculateOutstandingBalance,
+  validatePaymentFullyApplied,
+  autoReconcileJoiningObligationPayment,
 } from '../services/contribution.service.js';
 import { applySpecialContributionPayment } from '../services/special-contribution.service.js';
 import { recordPaymentSchema, paginationSchema } from '../validators/schemas.js';
@@ -20,14 +26,15 @@ import { sendPushNotification } from '../services/notification.service.js';
 
 const router = Router();
 
+// PHASE 1 FIX #10: Prevent orphan payments
 router.post('/', authenticate, authorize('ADMIN', 'AUDITOR'), validateBody(recordPaymentSchema), async (req: AuthRequest, res: Response) => {
-  const lang = req.lang || 'om';
-  const { memberId, amount, paymentMethod, transactionReference, specialContributionObligationId, notes } = req.body;
-  let { obligationId } = req.body;
+  const lang = getLanguage(req);
+  const { memberId, amount, paymentMethod, transactionReference, notes } = req.body;
+  let { obligationId, specialContributionObligationId } = req.body;
   const recordedById = req.user!.userId;
 
-  const member = await prisma.member.findUnique({ where: { id: memberId } });
-  if (!member) {
+  const { member, error } = await getMemberById(memberId, lang);
+  if (error) {
     sendError(res, 'member.notFound', lang, 404);
     return;
   }
@@ -43,7 +50,30 @@ router.post('/', authenticate, authorize('ADMIN', 'AUDITOR'), validateBody(recor
     });
     if (unpaidObligation) {
       obligationId = unpaidObligation.id;
+    } else {
+      // PHASE 3 FIX #6: Try to auto-link to oldest unpaid special contribution if no weekly obligations
+      const unpaidSpecial = await prisma.specialContributionObligation.findFirst({
+        where: {
+          memberId,
+          status: { in: ['PENDING', 'OVERDUE', 'PARTIAL'] },
+        },
+        orderBy: { createdAt: 'asc' }, // oldest first
+      });
+      if (unpaidSpecial) {
+        specialContributionObligationId = unpaidSpecial.id;
+      } else {
+        // PHASE 1 FIX #10: No unpaid obligation found - reject instead of creating orphan
+        sendError(res, 'payment.noUnpaidObligation', lang, 400);
+        return;
+      }
     }
+  }
+
+  // PHASE 1 FIX #10: Validate obligation exists
+  const validation = await validatePaymentObligation(obligationId, specialContributionObligationId);
+  if (!validation.valid) {
+    sendError(res, 'payment.invalidObligation', lang, 400);
+    return;
   }
 
   const transactionType = specialContributionObligationId
@@ -91,8 +121,31 @@ router.post('/', authenticate, authorize('ADMIN', 'AUDITOR'), validateBody(recor
   sendSuccess(res, payment, 'payment.recorded', lang, 201);
 });
 
+// PHASE 1 FIX #11: Prevent double-verify
 router.patch('/:id/verify', authenticate, authorize('ADMIN'), async (req: AuthRequest, res: Response) => {
-  const lang = req.lang || 'om';
+  const lang = getLanguage(req);
+
+  const existing = await prisma.payment.findUnique({
+    where: { id: String(req.params.id) },
+  });
+
+  if (!existing) {
+    sendError(res, 'payment.notFound', lang, 404);
+    return;
+  }
+
+  // PHASE 1 FIX #11: Check if already verified
+  if (existing.status === PaymentStatus.VERIFIED) {
+    sendError(res, 'payment.alreadyVerified', lang, 409);
+    return;
+  }
+
+  // PHASE 3 FIX #17: Validate payment has been fully applied before verification
+  const applicableValidation = await validatePaymentFullyApplied(String(req.params.id));
+  if (!applicableValidation.valid) {
+    sendError(res, 'payment.notFullyApplied', lang, 400);
+    return;
+  }
 
   const payment = await prisma.payment.update({
     where: { id: String(req.params.id) },
@@ -106,6 +159,21 @@ router.patch('/:id/verify', authenticate, authorize('ADMIN'), async (req: AuthRe
       verifiedBy: { select: { username: true } },
     },
   });
+
+  // PHASE 3 FIX #14: Auto-reconcile payment toward joining obligation if applicable
+  try {
+    const reconcilationResult = await autoReconcileJoiningObligationPayment(
+      payment.memberId,
+      Number(payment.amount),
+      payment.paymentDate
+    );
+    if (reconcilationResult.reconciled) {
+      console.log(`[Joining Obligation Reconciliation] ${reconcilationResult.reason} for payment ${payment.paymentId}`);
+    }
+  } catch (error) {
+    console.warn('[Joining Obligation Reconciliation Error]', error);
+    // Continue - reconciliation is optional
+  }
 
   // Obligation is already updated when the payment was recorded — do not apply again on verify.
 
@@ -139,7 +207,7 @@ router.patch('/:id/verify', authenticate, authorize('ADMIN'), async (req: AuthRe
 // If PENDING: just update fields
 // If VERIFIED: rollback old amount from obligation, apply new amount, add correction ledger entry
 router.patch('/:id', authenticate, authorize('ADMIN'), async (req: AuthRequest, res: Response) => {
-  const lang = req.lang || 'om';
+  const lang = getLanguage(req);
   const { amount, paymentMethod, transactionReference, notes, paymentDate, reason } = req.body;
 
   const existing = await prisma.payment.findUnique({
@@ -193,7 +261,7 @@ router.patch('/:id', authenticate, authorize('ADMIN'), async (req: AuthRequest, 
 // Rollback (unverify) a verified payment — ADMIN only
 // Reverses all effects: obligation status, balance, penalties, then sets back to PENDING
 router.patch('/:id/rollback', authenticate, authorize('ADMIN'), async (req: AuthRequest, res: Response) => {
-  const lang = req.lang || 'om';
+  const lang = getLanguage(req);
   const { reason } = req.body;
 
   const existing = await prisma.payment.findUnique({
@@ -262,7 +330,7 @@ router.patch('/:id/rollback', authenticate, authorize('ADMIN'), async (req: Auth
 
 // Delete a pending payment (ADMIN only)
 router.delete('/:id', authenticate, authorize('ADMIN'), async (req: AuthRequest, res: Response) => {
-  const lang = req.lang || 'om';
+  const lang = getLanguage(req);
 
   const existing = await prisma.payment.findUnique({ where: { id: String(req.params.id) } });
   if (!existing) { sendError(res, 'payment.notFound', lang, 404); return; }
@@ -278,7 +346,7 @@ router.delete('/:id', authenticate, authorize('ADMIN'), async (req: AuthRequest,
 
 // Bulk record payments for multiple members at once
 router.post('/bulk', authenticate, authorize('ADMIN', 'AUDITOR'), async (req: AuthRequest, res: Response) => {
-  const lang = req.lang || 'om';
+  const lang = getLanguage(req);
   const { payments: bulkPayments } = req.body as {
     payments: Array<{
       memberId: string;
@@ -343,7 +411,7 @@ router.post('/bulk', authenticate, authorize('ADMIN', 'AUDITOR'), async (req: Au
 });
 
 router.get('/', authenticate, authorize('ADMIN', 'AUDITOR'), validateQuery(paginationSchema), async (req: AuthRequest, res: Response) => {
-  const lang = req.lang || 'om';
+  const lang = getLanguage(req);
   const { page, limit, search, status } = req.validatedQuery as { page: number; limit: number; search?: string; status?: string };
 
   const where: Record<string, unknown> = {};
@@ -390,7 +458,7 @@ router.get('/', authenticate, authorize('ADMIN', 'AUDITOR'), validateQuery(pagin
 });
 
 router.get('/my', authenticate, authorize('MEMBER'), validateQuery(paginationSchema), async (req: AuthRequest, res: Response) => {
-  const lang = req.lang || 'om';
+  const lang = getLanguage(req);
   const userId = req.user!.userId;
   const { page, limit } = req.validatedQuery as { page: number; limit: number };
 
@@ -414,7 +482,7 @@ router.get('/my', authenticate, authorize('MEMBER'), validateQuery(paginationSch
 });
 
 router.get('/:id/receipt', authenticate, async (req: AuthRequest, res: Response) => {
-  const lang = req.lang || 'om';
+  const lang = getLanguage(req);
 
   const payment = await prisma.payment.findUnique({
     where: { id: String(req.params.id) },
@@ -514,3 +582,106 @@ router.get('/:id/receipt', authenticate, async (req: AuthRequest, res: Response)
 });
 
 export default router;
+
+
+// PHASE 1 FIX #8: Reconcile balance endpoint
+// Admin-only endpoint to recalculate outstanding balance from scratch
+router.post('/reconcile/:memberId', authenticate, authorize('ADMIN'), async (req: AuthRequest, res: Response) => {
+  const lang = getLanguage(req);
+  const memberId = getStringParam(req.params.memberId);
+
+  const { member, error } = await getMemberById(memberId, lang);
+  if (error) {
+    sendError(res, 'member.notFound', lang, 404);
+    return;
+  }
+
+  try {
+    const newBalance = await recalculateOutstandingBalance(memberId);
+    await createAuditEntry(req.user!.userId, 'BALANCE_RECONCILED', 'payments', { memberId, newBalance }, req.ip);
+    sendSuccess(res, { memberId, previousBalance: Number(member.outstandingBalance), newBalance }, 'general.success', lang);
+  } catch (error) {
+    console.error('[Reconciliation Error]', error);
+    sendError(res, 'general.error', lang, 500);
+  }
+});
+
+// PHASE 1 FIX #8: Reconcile all members (admin bulk operation)
+router.post('/reconcile-all', authenticate, authorize('ADMIN'), async (req: AuthRequest, res: Response) => {
+  const lang = getLanguage(req);
+
+  try {
+    const members = await prisma.member.findMany({
+      where: { status: 'APPROVED' },
+      select: { id: true },
+    });
+
+    const results = [];
+    for (const member of members) {
+      const newBalance = await recalculateOutstandingBalance(member.id);
+      results.push({ memberId: member.id, newBalance });
+    }
+
+    await createAuditEntry(req.user!.userId, 'BULK_BALANCE_RECONCILIATION', 'payments', { count: results.length }, req.ip);
+    sendSuccess(res, { reconciled: results.length, results }, 'general.success', lang);
+  } catch (error) {
+    console.error('[Bulk Reconciliation Error]', error);
+    sendError(res, 'general.error', lang, 500);
+  }
+});
+
+// PHASE 3 FIX #14: Reconcile joining obligation payments for a member
+router.post('/reconcile-joining/:memberId', authenticate, authorize('ADMIN'), async (req: AuthRequest, res: Response) => {
+  const lang = getLanguage(req);
+  const memberId = getStringParam(req.params.memberId);
+
+  const { member, error } = await getMemberById(memberId, lang);
+  if (error) {
+    sendError(res, 'member.notFound', lang, 404);
+    return;
+  }
+
+  try {
+    const { reconcileJoiningObligationPayments } = await import('../services/joining-obligation.service.js');
+    const result = await reconcileJoiningObligationPayments(memberId);
+    
+    if (result) {
+      await createAuditEntry(req.user!.userId, 'JOINING_OBLIGATION_RECONCILED', 'payments', 
+        { memberId, paymentsReconciled: result.paymentsReconciled, totalReconciled: result.totalReconciled }, req.ip);
+      sendSuccess(res, { 
+        memberId, 
+        paymentsReconciled: result.paymentsReconciled, 
+        totalReconciled: result.totalReconciled,
+        message: `Reconciled ${result.totalReconciled} ETB to joining obligation`
+      }, 'general.success', lang);
+    } else {
+      sendSuccess(res, { memberId, paymentsReconciled: 0, totalReconciled: 0, message: 'No joining obligation or payments to reconcile' }, 'general.success', lang);
+    }
+  } catch (error) {
+    console.error('[Joining Obligation Reconciliation Error]', error);
+    sendError(res, 'general.error', lang, 500);
+  }
+});
+
+// PHASE 3 FIX #14: Reconcile all joining obligations (admin bulk operation)
+router.post('/reconcile-all-joining', authenticate, authorize('ADMIN'), async (req: AuthRequest, res: Response) => {
+  const lang = getLanguage(req);
+
+  try {
+    const { reconcileAllJoiningObligations } = await import('../services/joining-obligation.service.js');
+    const results = await reconcileAllJoiningObligations();
+    
+    const totalReconciled = results.reduce((sum, r) => sum + r.totalReconciled, 0);
+    await createAuditEntry(req.user!.userId, 'BULK_JOINING_OBLIGATION_RECONCILIATION', 'payments', 
+      { count: results.length, totalReconciled }, req.ip);
+    
+    sendSuccess(res, { 
+      reconciled: results.length, 
+      totalReconciled,
+      results 
+    }, 'general.success', lang);
+  } catch (error) {
+    console.error('[Bulk Joining Obligation Reconciliation Error]', error);
+    sendError(res, 'general.error', lang, 500);
+  }
+});

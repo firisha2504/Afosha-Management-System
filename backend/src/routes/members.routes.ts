@@ -15,6 +15,7 @@ import {
   approveMemberSchema,
   updateProfileSchema,
   paginationSchema,
+  bulkMemberSchema,
 } from '../validators/schemas.js';
 import { sendError, sendSuccess } from '../utils/response.js';
 import { upload } from '../middleware/upload.js';
@@ -351,6 +352,22 @@ router.patch('/:id/approve', authenticate, authorize('ADMIN'), validateBody(appr
     data: { status, rejectionReason },
   });
 
+  // PHASE 2 FIX #1: Create joining obligation for newly approved members
+  if (status === 'APPROVED') {
+    try {
+      const { createJoiningObligation, getGroupStartDate } = await import('../services/joining-obligation.service.js');
+      
+      const groupStartDate = await getGroupStartDate();
+      // Only create if member joined after group started
+      if (member.joinDate > groupStartDate) {
+        await createJoiningObligation(member.id, member.joinDate, groupStartDate);
+      }
+    } catch (error) {
+      console.error('[Joining Obligation Creation Error]', error);
+      // Log error but don't fail approval
+    }
+  }
+
   await createAuditEntry(req.user!.userId, `MEMBER_${status}`, 'members', { memberId: member.memberId }, req.ip);
 
   const messageKey = status === 'APPROVED' ? 'member.approved' : 'member.rejected';
@@ -441,24 +458,33 @@ router.delete('/:id', authenticate, authorize('ADMIN'), async (req: AuthRequest,
     return;
   }
 
-  // Delete associated data
-  await Promise.all([
-    prisma.payment.deleteMany({ where: { memberId } }),
-    prisma.penalty.deleteMany({ where: { memberId } }),
-    prisma.weeklyObligation.deleteMany({ where: { memberId } }),
-    prisma.joiningObligation.deleteMany({ where: { memberId } }),
-    prisma.attendance.deleteMany({ where: { memberId } }),
-    prisma.emergencyContact.deleteMany({ where: { memberId } }),
-    prisma.notification.deleteMany({ where: { memberId } }),
-    prisma.transaction.deleteMany({ where: { memberId } }),
-  ]);
+  // PHASE 2 FIX #12: Safe cascade delete using transaction
+  // Ensures all data is deleted atomically and consistently
+  try {
+    await prisma.$transaction(async (tx) => {
+      // Delete all related data in order
+      await tx.payment.deleteMany({ where: { memberId } });
+      await tx.penalty.deleteMany({ where: { memberId } });
+      await tx.weeklyObligation.deleteMany({ where: { memberId } });
+      await tx.joiningObligation.deleteMany({ where: { memberId } });
+      await tx.specialContributionObligation.deleteMany({ where: { memberId } });
+      await tx.paymentRequest.deleteMany({ where: { memberId } });
+      await tx.attendance.deleteMany({ where: { memberId } });
+      await tx.emergencyContact.deleteMany({ where: { memberId } });
+      await tx.notification.deleteMany({ where: { memberId } });
+      await tx.transaction.deleteMany({ where: { memberId } });
 
-  // Delete member and associated user
-  await prisma.member.delete({ where: { id: memberId } });
-  await prisma.user.delete({ where: { id: member.userId } });
+      // Delete member and associated user
+      await tx.member.delete({ where: { id: memberId } });
+      await tx.user.delete({ where: { id: member.userId } });
+    });
 
-  await createAuditEntry(req.user!.userId, 'MEMBER_DELETED', 'members', { memberId: member.memberId }, req.ip);
-  sendSuccess(res, null, 'member.deleted', lang);
+    await createAuditEntry(req.user!.userId, 'MEMBER_DELETED', 'members', { memberId: member.memberId }, req.ip);
+    sendSuccess(res, null, 'member.deleted', lang);
+  } catch (error) {
+    console.error('[Member Deletion Error]', error);
+    sendError(res, 'general.error', lang, 500);
+  }
 });
 
 router.patch('/me/profile', authenticate, authorize('MEMBER'), validateBody(updateProfileSchema), async (req: AuthRequest, res: Response) => {
@@ -635,6 +661,106 @@ router.post('/me/device-token', authenticate, authorize('MEMBER'), async (req: A
   });
 
   sendSuccess(res, { registered: true }, 'general.success', lang);
+});
+
+// ============ BULK MEMBER IMPORT ROUTES ============
+
+// Bulk import members from JSON
+router.post('/bulk/import', authenticate, authorize('ADMIN'), validateBody(bulkMemberSchema), async (req: AuthRequest, res: Response) => {
+  const lang = req.lang || 'om';
+  
+  try {
+    const { members } = req.body as { members: any[] };
+    
+    // Import members
+    const { bulkImportMembers } = await import('../services/bulk-member.service.js');
+    const result = await bulkImportMembers(members);
+
+    // Create audit entry
+    await createAuditEntry(req.user!.userId, 'BULK_MEMBER_IMPORT', 'members', 
+      { successful: result.successful, failed: result.failed }, req.ip);
+
+    sendSuccess(res, result, 'general.success', lang, 201);
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    sendError(res, 'general.error', lang, 400);
+  }
+});
+
+// Bulk import members from CSV file
+router.post('/bulk/import-csv', authenticate, authorize('ADMIN'), upload.single('file'), async (req: AuthRequest, res: Response) => {
+  const lang = req.lang || 'om';
+
+  try {
+    if (!req.file) {
+      sendError(res, 'general.validationError', lang, 400);
+      return;
+    }
+
+    // Parse CSV
+    const { parseCSVData, bulkImportMembers } = await import('../services/bulk-member.service.js');
+    const csvText = req.file.buffer.toString('utf-8');
+    const members = parseCSVData(csvText);
+
+    // Import members
+    const result = await bulkImportMembers(members);
+
+    // Create audit entry
+    await createAuditEntry(req.user!.userId, 'BULK_MEMBER_CSV_IMPORT', 'members',
+      { successful: result.successful, failed: result.failed, fileName: req.file.originalname }, req.ip);
+
+    sendSuccess(res, result, 'general.success', lang, 201);
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    sendError(res, 'general.error', lang, 400);
+  }
+});
+
+// Get CSV template for bulk import
+router.get('/bulk/template', authenticate, authorize('ADMIN'), async (req: AuthRequest, res: Response) => {
+  try {
+    const { generateCSVTemplate } = await import('../services/bulk-member.service.js');
+    const csvTemplate = generateCSVTemplate();
+
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', 'attachment; filename="member-import-template.csv"');
+    res.send(csvTemplate);
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Failed to generate template' });
+  }
+});
+
+// Validate bulk member data without importing
+router.post('/bulk/validate', authenticate, authorize('ADMIN'), validateBody(bulkMemberSchema), async (req: AuthRequest, res: Response) => {
+  const lang = req.lang || 'om';
+
+  try {
+    const { members } = req.body as { members: any[] };
+    const { validateMemberData } = await import('../services/bulk-member.service.js');
+
+    const results = members.map((member, index) => {
+      const validation = validateMemberData(member, index);
+      return {
+        rowNumber: index + 1,
+        fullName: member.fullName,
+        phone: member.phone,
+        valid: validation.valid,
+        error: validation.error,
+      };
+    });
+
+    const validCount = results.filter((r) => r.valid).length;
+    const invalidCount = results.filter((r) => !r.valid).length;
+
+    sendSuccess(res, {
+      validCount,
+      invalidCount,
+      results,
+    }, 'general.success', lang);
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    sendError(res, 'general.error', lang, 400);
+  }
 });
 
 export default router;

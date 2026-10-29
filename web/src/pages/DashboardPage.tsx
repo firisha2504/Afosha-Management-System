@@ -2,10 +2,10 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { 
-  Users, UserPlus, CreditCard, AlertTriangle, Wallet, 
+  Users, UserPlus, CreditCard, AlertTriangle, 
   DollarSign, TrendingUp, TrendingDown, Calendar,
-  UserCheck, CheckCircle, Clock, XCircle,
-  ArrowUpRight, ArrowDownRight, Plus, FileText, Gift, UserCog,
+  UserCheck, CheckCircle, Clock,
+  ArrowUpRight, FileText, Gift,
   Bell
 } from 'lucide-react';
 import { 
@@ -45,7 +45,7 @@ interface Activity {
 }
 
 export default function DashboardPage() {
-  const { t } = useTranslation();
+  const [_t] = useTranslation();
   const { user } = useAuth();
   const [adminData, setAdminData] = useState<AdminDashboard | null>(null);
   const [chartData, setChartData] = useState<ChartData | null>(null);
@@ -436,7 +436,7 @@ export default function DashboardPage() {
                     paddingAngle={2}
                     dataKey="value"
                   >
-                    {paymentStatusData.map((entry, index) => (
+                    {paymentStatusData.map((_, index) => (
                       <Cell key={`cell-${index}`} fill={COLORS[index]} />
                     ))}
                   </Pie>
