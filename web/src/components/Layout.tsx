@@ -155,17 +155,17 @@ export default function Layout({ children }: LayoutProps) {
         </nav>
 
         {/* Footer tagline */}
-        <div className="px-4 pb-6 pt-3 border-t border-white/10">
-          <div className="flex items-start gap-2 text-gray-400">
-            <div className="mt-0.5">
-              <svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+        <div className="px-4 pb-6 pt-3 border-t border-white/10 bg-gradient-to-br from-teal-900/40 to-emerald-900/40 rounded-lg mx-3 mb-3">
+          <div className="flex items-start gap-2">
+            <div className="mt-1">
+              <svg className="w-5 h-5 text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
               </svg>
             </div>
             <div>
-              <p className="text-xs font-semibold text-white mb-0.5">Together for a</p>
-              <p className="text-xs font-semibold text-white">Stronger Future</p>
-              <p className="text-xs text-gray-500 mt-1">Afosha Management System</p>
+              <p className="text-sm font-bold text-emerald-100 leading-tight">Together for a</p>
+              <p className="text-sm font-bold text-emerald-100 leading-tight">Stronger Future</p>
+              <p className="text-xs text-emerald-200/70 mt-2 font-medium">Afosha Management System</p>
             </div>
           </div>
         </div>
