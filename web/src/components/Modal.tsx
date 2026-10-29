@@ -53,7 +53,7 @@ export default function Modal({
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
       onClick={handleBackdropClick}
     >
-      <div className="bg-white rounded-lg shadow-lg max-w-md w-full mx-4 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+      <div className="bg-white rounded-lg shadow-lg max-w-md w-full mx-4 overflow-hidden" style={{ animation: 'fadeInZoom 0.2s ease-in-out' }}>
         {/* Header */}
         <div className={`${bg} px-6 py-4 border-b border-gray-200 flex items-start justify-between`}>
           <div className="flex items-start gap-3">
