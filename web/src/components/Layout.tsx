@@ -201,7 +201,7 @@ export default function Layout({ children }: LayoutProps) {
             {/* Notifications */}
             <button 
               onClick={() => navigate('/notifications')}
-              className="relative p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-all"
+              className="relative z-20 p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-all cursor-pointer"
               title="Notifications"
             >
               <Bell size={20} />
