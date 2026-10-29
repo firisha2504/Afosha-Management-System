@@ -35,15 +35,24 @@ export default function LoginPage() {
       {/* ── Left panel ── */}
       <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden"
         style={{ background: 'linear-gradient(135deg, #060e33 0%, #091540 40%, #0d1e5e 100%)' }}>
-        {/* Grid */}
-        <div className="absolute inset-0 opacity-10" style={{
-          backgroundImage: 'linear-gradient(rgba(255,255,255,0.1) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.1) 1px,transparent 1px)',
-          backgroundSize: '40px 40px',
+        
+        {/* Community members network pattern - Same as home page */}
+        <div className="absolute inset-0 opacity-25" style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 400'%3E%3Cdefs%3E%3ClinearGradient id='grad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%2322c55e;stop-opacity:0.8' /%3E%3Cstop offset='100%25' style='stop-color:%23d97706;stop-opacity:0.8' /%3E%3C/linearGradient%3E%3C/defs%3E%3C!-- Savings/members circles --%3E%3Cg fill='url(%23grad)'%3E%3Ccircle cx='100' cy='100' r='20'/%3E%3Ccircle cx='300' cy='150' r='18'/%3E%3Ccircle cx='200' cy='250' r='22'/%3E%3Ccircle cx='350' cy='300' r='19'/%3E%3Ccircle cx='50' cy='300' r='16'/%3E%3Ccircle cx='150' cy='50' r='17'/%3E%3C/g%3E%3C!-- Connection lines between members --%3E%3Cg stroke='%2322c55e' stroke-width='2' stroke-opacity='0.4'%3E%3Cline x1='100' y1='100' x2='200' y2='250'/%3E%3Cline x1='100' y1='100' x2='300' y2='150'/%3E%3Cline x1='300' y1='150' x2='350' y2='300'/%3E%3Cline x1='200' y1='250' x2='50' y2='300'/%3E%3Cline x1='150' y1='50' x2='100' y2='100'/%3E%3C/g%3E%3C/svg%3E")`,
+          backgroundSize: '400px 400px',
+          backgroundRepeat: 'repeat',
         }} />
+        
+        {/* Grid pattern */}
+        <div className="absolute inset-0 opacity-15" style={{
+          backgroundImage: 'linear-gradient(rgba(100,200,100,0.3) 1px,transparent 1px),linear-gradient(90deg,rgba(100,200,100,0.3) 1px,transparent 1px)',
+          backgroundSize: '60px 60px',
+        }} />
+
         {/* Glow */}
-        <div className="absolute top-1/4 right-1/4 w-64 h-64 rounded-full opacity-15 blur-3xl pointer-events-none"
-          style={{ background: 'radial-gradient(circle, #3b82f6, transparent)' }} />
-        <div className="absolute bottom-1/4 left-1/4 w-48 h-48 rounded-full opacity-10 blur-3xl pointer-events-none"
+        <div className="absolute top-1/4 right-1/4 w-64 h-64 rounded-full opacity-20 blur-3xl pointer-events-none"
+          style={{ background: 'radial-gradient(circle, #22c55e, transparent)' }} />
+        <div className="absolute bottom-1/4 left-1/4 w-48 h-48 rounded-full opacity-20 blur-3xl pointer-events-none"
           style={{ background: 'radial-gradient(circle, #d97706, transparent)' }} />
 
         <div className="relative z-10 flex flex-col justify-between p-12 w-full">

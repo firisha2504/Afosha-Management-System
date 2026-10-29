@@ -23,6 +23,7 @@ import AboutPage from './pages/public/AboutPage';
 import ProfilePage from './pages/ProfilePage';
 import PublicContentPage from './pages/PublicContentPage';
 import TeamManagementPage from './pages/TeamManagementPage';
+import JoiningObligationsPage from './pages/JoiningObligationsPage';
 import './i18n';
 
 function App() {
@@ -112,6 +113,7 @@ function App() {
             <Route path="/backup" element={<BackupPage />} />
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/team-management" element={<TeamManagementPage />} />
+            <Route path="/joining-obligations" element={<JoiningObligationsPage />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

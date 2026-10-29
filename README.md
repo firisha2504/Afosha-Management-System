@@ -32,51 +32,43 @@ A comprehensive member management system for weekly contributions, penalties, at
 
 ## 📚 Documentation Index
 
-### 🎯 For Users & Administrators
+### 📖 For Members
 - **[QUICK_REFERENCE.md](QUICK_REFERENCE.md)** - Quick reference card for daily operations
 - **[START_HERE.md](START_HERE.md)** - Getting started guide
 - **[LOGIN_GUIDE.md](LOGIN_GUIDE.md)** - How to access the system
 - **[ATTENDANCE_VS_PAYMENTS_GUIDE.md](ATTENDANCE_VS_PAYMENTS_GUIDE.md)** - Understanding attendance vs payments
 - **[HOW_TO_PAY_PENALTIES.md](HOW_TO_PAY_PENALTIES.md)** - Penalty payment workflow
-- **[PENALTY_PAYMENT_FLOWCHART.md](PENALTY_PAYMENT_FLOWCHART.md)** - Visual payment workflow
-- **[RECORD_FIROMSA_PAYMENT.md](RECORD_FIROMSA_PAYMENT.md)** - Step-by-step payment recording
 - **[HOW_TO_PAY_PAST_WEEKS.md](HOW_TO_PAY_PAST_WEEKS.md)** - Paying for past weeks
-- **[ADMIN_DASHBOARD_PENALTIES_GUIDE.md](ADMIN_DASHBOARD_PENALTIES_GUIDE.md)** - Dashboard penalties guide
 
-### 💻 For Developers & Technical Team
-- **[ALL_FIXES_COMPLETE.md](ALL_FIXES_COMPLETE.md)** - Complete technical documentation of all fixes
-- **[SESSION_SUMMARY_FINAL.md](SESSION_SUMMARY_FINAL.md)** - Final session summary
-- **[PRODUCTION_CHECKLIST.md](PRODUCTION_CHECKLIST.md)** - Pre-deployment checklist
-- **[ALL_FIXES_SUMMARY.md](ALL_FIXES_SUMMARY.md)** - Summary of fixes
-- **[ALL_FIXES_TODAY.md](ALL_FIXES_TODAY.md)** - Today's fixes
-- **[ALL_ISSUES_FIXED.md](ALL_ISSUES_FIXED.md)** - Issues resolution log
+### 💻 For System Administrators
+- **[ADMIN_DASHBOARD_PENALTIES_GUIDE.md](ADMIN_DASHBOARD_PENALTIES_GUIDE.md)** - Admin dashboard guide
+- **[PRODUCTION_CHECKLIST.md](PRODUCTION_CHECKLIST.md)** - System administration & maintenance
 
 ---
 
 ## 🎯 Key Features
 
+### 📊 Personal Member Dashboard
+- **My Balance**: Real-time balance showing contributions vs obligations
+- **Weekly Overview**: Current week contribution status
+- **Attendance Record**: Your meeting attendance history
+- **Payment History**: Complete record of your transactions
+
 ### ✅ Payment Management
 - **Weekly Contributions**: 50 ETB per member per week
-- **Special Contributions**: One-time special contributions
-- **Penalty Payments**: Separate 50 ETB penalties for unpaid weeks
-- **Payment History**: Complete transaction tracking
+- **Special Contributions**: One-time special contributions for your account
+- **Penalty Payments**: Track and pay any outstanding penalties
+- **Payment Tracking**: See all your payments and remaining balance
 
 ### ✅ Penalty System
-- **Automatic Creation**: Sunday 1 AM for unpaid Saturday obligations
-- **Independent Payments**: Penalties paid separately from contributions
-- **Smart Filtering**: Only shows members with outstanding penalties
-- **Waive Option**: Admin can waive penalties with reason
-
-### ✅ Dashboard & Reports
-- **Unpaid Penalties**: Red card showing outstanding penalties
-- **Paid Penalties**: Green card showing settled/waived penalties
-- **Financial Summary**: Weekly + Special contributions (penalties separate)
-- **Member Statistics**: Active/pending/rejected member counts
+- **Your Penalties**: View any penalties on your account
+- **Payment History**: See all your penalty payments
+- **Status Overview**: Know exactly what you owe
 
 ### ✅ Attendance Tracking
 - **Independent System**: Attendance ≠ Payment
-- **Meeting Management**: Saturday meetings tracked separately
-- **Flexible Recording**: Can record attendance without payment and vice versa
+- **Meeting Record**: Your Saturday meeting attendance
+- **Flexible Status**: Can attend without paying and vice versa
 
 ---
 
@@ -171,89 +163,80 @@ Afosha MS/
 
 ### Production Readiness: ✅ 100%
 
-#### Completed Features (10/10):
-1. ✅ Penalty payment system separated from weekly contributions
-2. ✅ Automatic penalty creation (Sunday 1 AM job)
-3. ✅ Dashboard unpaid/paid penalties separated
-4. ✅ Financial summary excludes penalties
-5. ✅ Weekly contributions default week selection
-6. ✅ History page penalty tab detection
-7. ✅ Penalties page member dropdown filtering
-8. ✅ Transaction reset script
-9. ✅ Comprehensive documentation
-10. ✅ Production code cleanup (no debug logs)
+#### Member Features Complete (8/8):
+1. ✅ Personal dashboard with balance overview
+2. ✅ Weekly contribution payment tracking
+3. ✅ Penalty payment system
+4. ✅ Payment history by type (weekly/penalty)
+5. ✅ Attendance tracking
+6. ✅ Joining obligation management
+7. ✅ Multiple payment methods (6 methods)
+8. ✅ Special contribution support
 
 #### Quality Assurance:
-- ✅ All features tested
-- ✅ Debug logs removed
-- ✅ Business rules implemented
-- ✅ Cron jobs scheduled
-- ✅ Documentation complete
+- ✅ All member workflows tested
+- ✅ Payment security implemented
+- ✅ Business logic verified
+- ✅ Automatic penalty system working
+- ✅ Complete member documentation
 
 ---
 
-## 🎓 Common Tasks
+## 🎓 Common Member Tasks
 
-### Record Weekly Payment
+### Check My Balance
+1. Go to **Dashboard**
+2. View your balance card showing:
+   - Total owed for current week
+   - Any outstanding penalties
+   - Your payment status
+
+### Record My Payment
 1. Go to **Weekly Contributions** page
-2. Select week from dropdown
-3. Find member, click **Record Payment**
-4. Enter 50 ETB, select method, submit
-5. Admin verifies payment
+2. Select your week (defaults to current)
+3. Click **Pay Now** button
+4. Choose payment method (M-Pesa, Telebirr, CBE, eBirr, etc.)
+5. Enter 50 ETB and submit
 
-### Pay Penalty
+### Pay a Penalty
 1. Go to **Penalties** page
-2. Select member with outstanding penalty
-3. Click **Pay** button on penalty
-4. Enter 50 ETB (must equal penalty amount)
-5. Submit - penalty marked as SETTLED
+2. View your outstanding penalties
+3. Click **Pay** on the penalty you want to settle
+4. Enter payment amount and method
+5. Submit - penalty marked as PAID
 
-### View Payment History
+### View My Payment History
 1. Go to **History** page
-2. Use tabs to filter:
-   - **All Payments** - Everything
-   - **Weekly Contributions** - Only contribution payments
-   - **Penalty Payments** - Only penalty payments
+2. View all your transactions in one place:
+   - Weekly contributions paid
+   - Penalties paid
+   - Special contributions
+   - Attendance record
 
-### Pay Past Week's Contribution
-1. Go to **Weekly Contributions** page
-2. Select past week from dropdown
-3. Record payment normally (no special process)
+### Joining Obligation Payment
+1. Go to **My Joining Obligation** page
+2. See amount owed for weeks before joining
+3. Make payments toward your joining obligation
+4. Track progress until fully paid
 
 📖 **Detailed Instructions**: See [`QUICK_REFERENCE.md`](QUICK_REFERENCE.md)
 
 ---
 
-## 🔧 Admin Scripts
+## 🔧 System Access
 
-Located in `backend/`:
+### Member Account Login
+- **Username**: Your phone number or email
+- **Password**: Set during first login
+- **Reset**: Contact group admin if you forget
 
-### Penalty Management
-```bash
-# Create penalties for specific week
-npx tsx create-penalties-week26.ts
-
-# Check week 26 data
-npx tsx scripts/check-week26.ts
-
-# Apply missing penalties
-npx tsx scripts/apply-missing-penalties.ts
-```
-
-### Database Management
-```bash
-# Reset transactions only (keep members)
-npx tsx reset-transactions.ts
-
-# Full database reset (⚠️ DESTRUCTIVE)
-npx tsx reset-database.ts
-
-# Fix amount paid issues
-npx tsx scripts/fix-amount-paid.ts
-
-# Fix balance issues
-npx tsx fix-balance.ts
-```
+### Payment Methods Supported
+- ✅ M-Pesa
+- ✅ Telebirr (Ethio Telecom)
+- ✅ CBE (Commercial Bank of Ethiopia)
+- ✅ e-Birr
+- ✅ Bank Transfer
+- ✅ Cash (with receipt)
 
 ---
 
@@ -313,3 +296,10 @@ This project is proprietary software developed for Afosha organization.
 **Last Updated**: June 17, 2026 (Wednesday)  
 **Status**: ✅ Production Ready  
 **All Tasks**: 10/10 Complete
+
+
+
+
+
+
+how can i do this the app is only members uses

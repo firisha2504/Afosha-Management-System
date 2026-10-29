@@ -7,6 +7,7 @@ import {
   generateMemberId,
   hashPassword,
 } from '../services/helpers.js';
+import { createJoiningObligation, getGroupStartDate } from '../services/joining-obligation.service.js';
 import {
   registerMemberSchema,
   adminRegisterMemberSchema,
@@ -99,6 +100,7 @@ router.post('/admin-register', authenticate, authorize('ADMIN'), validateBody(ad
           address: data.address,
           occupation: data.occupation,
           status: 'APPROVED',
+          joinDate: new Date(), // Set join date to now
           ...(data.emergencyContact ? {
             emergencyContact: {
               create: data.emergencyContact,
@@ -109,6 +111,16 @@ router.post('/admin-register', authenticate, authorize('ADMIN'), validateBody(ad
     },
     include: { member: true },
   });
+
+  // Create joining obligation if needed
+  if (user.member) {
+    try {
+      const groupStartDate = await getGroupStartDate();
+      await createJoiningObligation(user.member.id, groupStartDate, user.member.joinDate);
+    } catch (error) {
+      console.error('Failed to create joining obligation:', error);
+    }
+  }
 
   await createAuditEntry(req.user!.userId, 'MEMBER_ADMIN_REGISTERED', 'members', { memberId }, req.ip);
 

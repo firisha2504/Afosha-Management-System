@@ -5,6 +5,7 @@ import {
   generateTransactionId,
   getNumericSetting,
   getWeekNumber,
+  getGroupRelativeWeekNumber,
   getNextSaturday,
 } from './helpers.js';
 import { sendPaymentReminderSms } from './notification.service.js';
@@ -126,7 +127,7 @@ async function createMemberWeeklyObligation(
 
 export async function createWeeklyObligations(): Promise<number> {
   const dueDate = getNextSaturday();
-  const weekNumber = getWeekNumber(dueDate);
+  const weekNumber = await getGroupRelativeWeekNumber(dueDate);
   const year = dueDate.getFullYear();
 
   const members = await prisma.member.findMany({
@@ -170,7 +171,7 @@ export async function createWeeklyObligationsForMultipleWeeks(numberOfWeeks: num
     const dueDate = getNextSaturday();
     dueDate.setDate(dueDate.getDate() + (weekOffset * 7));
 
-    const weekNumber = getWeekNumber(dueDate);
+    const weekNumber = await getGroupRelativeWeekNumber(dueDate);
     const year = dueDate.getFullYear();
     let createdThisWeek = 0;
 

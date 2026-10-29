@@ -177,6 +177,7 @@ model Member {
   occupation         String?
   profilePicture     String?
   registrationDate   DateTime     @default(now())
+  joinDate           DateTime     @default(now())
   status             MemberStatus @default(PENDING)
   rejectionReason    String?
   totalCredit        Decimal      @default(0) @db.Decimal(12, 2)
@@ -190,6 +191,7 @@ model Member {
   penalties          Penalty[]
   fines              Fine[]
   obligations        WeeklyObligation[]
+  joiningObligation  JoiningObligation?
   attendanceRecords  Attendance[]
   transactions       Transaction[]
   notifications      Notification[]
@@ -543,3 +545,21 @@ model PaymentRequest {
   @@index([paymentProvider])
 }
 
+
+
+model JoiningObligation {
+  id                            String   @id @default(uuid())
+  memberId                      String   @unique
+  totalBackContributionAmount   Decimal  @db.Decimal(12, 2)
+  backContributionWeeks         Int
+  amountPaid                    Decimal  @default(0) @db.Decimal(12, 2)
+  status                        String   @default("PENDING") // PENDING, PARTIAL, PAID, WAIVED
+  dueDate                       DateTime
+  createdAt                     DateTime @default(now())
+  updatedAt                     DateTime @updatedAt
+
+  member Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  @@index([status])
+  @@index([dueDate])
+}

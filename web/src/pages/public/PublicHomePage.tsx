@@ -272,39 +272,9 @@ export default function PublicHomePage() {
       {team.length > 0 && (
         <section className="py-12 sm:py-16 md:py-20">
           <div className="max-w-6xl mx-auto px-4">
-            {/* Members Section */}
-            {team.filter(m => m.type === 'member').length > 0 && (
-              <div className="mb-16">
-                <div className="text-center mb-8 sm:mb-12">
-                  <h2 className="text-2xl sm:text-3xl font-bold mb-3 flex items-center justify-center gap-2" style={{ color: '#e2e8f0' }}>
-                    <Users size={28} style={{ color: '#22c55e' }} />
-                    {isOm ? 'Miseensota Koree' : 'Team Members'}
-                  </h2>
-                  <div className="w-16 h-1 rounded-full mx-auto" style={{ background: 'linear-gradient(90deg, #22c55e, #16a34a)' }} />
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {team.filter(m => m.type === 'member').map((member) => (
-                    <div key={member.id} className="rounded-xl p-6 text-center transition-all hover:shadow-lg"
-                      style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
-                      <div className="w-20 h-20 rounded-full mx-auto mb-4 flex items-center justify-center text-3xl"
-                        style={{ background: 'linear-gradient(135deg, #22c55e, #10b981)' }}>
-                        👤
-                      </div>
-                      <h3 className="font-bold text-lg mb-1" style={{ color: '#e2e8f0' }}>
-                        {isOm && member.nameOm ? member.nameOm : member.name}
-                      </h3>
-                      <p className="text-sm" style={{ color: '#f59e0b' }}>
-                        {isOm && member.roleOm ? member.roleOm : member.role}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Leaders Section */}
+            {/* Leaders Section - FIRST */}
             {team.filter(m => m.type === 'leader').length > 0 && (
-              <div>
+              <div className="mb-16">
                 <div className="text-center mb-8 sm:mb-12">
                   <h2 className="text-2xl sm:text-3xl font-bold mb-3 flex items-center justify-center gap-2" style={{ color: '#e2e8f0' }}>
                     <Crown size={28} style={{ color: '#d97706' }} />
@@ -316,15 +286,53 @@ export default function PublicHomePage() {
                   {team.filter(m => m.type === 'leader').map((leader) => (
                     <div key={leader.id} className="rounded-xl p-6 text-center transition-all hover:shadow-lg"
                       style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
-                      <div className="w-20 h-20 rounded-full mx-auto mb-4 flex items-center justify-center text-3xl"
-                        style={{ background: 'linear-gradient(135deg, #d97706, #f59e0b)' }}>
-                        👔
-                      </div>
+                      {leader.image ? (
+                        <img src={leader.image} alt={leader.name} className="w-20 h-20 rounded-full mx-auto mb-4 object-cover" />
+                      ) : (
+                        <div className="w-20 h-20 rounded-full mx-auto mb-4 flex items-center justify-center text-3xl"
+                          style={{ background: 'linear-gradient(135deg, #d97706, #f59e0b)' }}>
+                          👔
+                        </div>
+                      )}
                       <h3 className="font-bold text-lg mb-1" style={{ color: '#e2e8f0' }}>
                         {isOm && leader.nameOm ? leader.nameOm : leader.name}
                       </h3>
                       <p className="text-sm" style={{ color: '#22c55e' }}>
                         {isOm && leader.roleOm ? leader.roleOm : leader.role}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Members Section - SECOND */}
+            {team.filter(m => m.type === 'member').length > 0 && (
+              <div>
+                <div className="text-center mb-8 sm:mb-12">
+                  <h2 className="text-2xl sm:text-3xl font-bold mb-3 flex items-center justify-center gap-2" style={{ color: '#e2e8f0' }}>
+                    <Users size={28} style={{ color: '#22c55e' }} />
+                    {isOm ? 'Miseensota Koree' : 'Team Members'}
+                  </h2>
+                  <div className="w-16 h-1 rounded-full mx-auto" style={{ background: 'linear-gradient(90deg, #22c55e, #16a34a)' }} />
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {team.filter(m => m.type === 'member').map((member) => (
+                    <div key={member.id} className="rounded-xl p-6 text-center transition-all hover:shadow-lg"
+                      style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                      {member.image ? (
+                        <img src={member.image} alt={member.name} className="w-20 h-20 rounded-full mx-auto mb-4 object-cover" />
+                      ) : (
+                        <div className="w-20 h-20 rounded-full mx-auto mb-4 flex items-center justify-center text-3xl"
+                          style={{ background: 'linear-gradient(135deg, #22c55e, #10b981)' }}>
+                          👤
+                        </div>
+                      )}
+                      <h3 className="font-bold text-lg mb-1" style={{ color: '#e2e8f0' }}>
+                        {isOm && member.nameOm ? member.nameOm : member.name}
+                      </h3>
+                      <p className="text-sm" style={{ color: '#f59e0b' }}>
+                        {isOm && member.roleOm ? member.roleOm : member.role}
                       </p>
                     </div>
                   ))}

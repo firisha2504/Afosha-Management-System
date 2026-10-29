@@ -105,11 +105,42 @@ export async function resetFailedLogin(userId: string): Promise<void> {
 }
 
 export function getWeekNumber(date: Date): number {
+  // ISO 8601 week numbering
   const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
   const dayNum = d.getUTCDay() || 7;
   d.setUTCDate(d.getUTCDate() + 4 - dayNum);
   const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
   return Math.ceil(((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
+}
+
+/**
+ * Calculate week number relative to group start date
+ * Week 1 = first week of group, Week 2 = second week, etc.
+ * This is more intuitive for savings groups than ISO week numbering
+ */
+export async function getGroupRelativeWeekNumber(date: Date): Promise<number> {
+  const prisma = (await import('../config/database.js')).default;
+  
+  // Get group start date from system settings
+  const setting = await prisma.systemSetting.findUnique({
+    where: { key: 'group_start_date' },
+  });
+
+  let groupStartDate: Date;
+  if (!setting || !setting.value) {
+    // Default to 1 year ago if not set
+    groupStartDate = new Date();
+    groupStartDate.setFullYear(groupStartDate.getFullYear() - 1);
+  } else {
+    groupStartDate = new Date(setting.value);
+  }
+
+  // Calculate weeks between group start and given date
+  const timeDiff = date.getTime() - groupStartDate.getTime();
+  const weeksDiff = Math.floor(timeDiff / (1000 * 60 * 60 * 24 * 7));
+  
+  // Week 1 is the first week (0-6 days = week 1, 7-13 days = week 2, etc.)
+  return weeksDiff + 1;
 }
 
 export function getNextSaturday(from: Date = new Date()): Date {
